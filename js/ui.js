@@ -326,7 +326,10 @@ const UIManager = {
     }
 };
 
-// Export for use in other modules
+// Export to global scope for browser usage
+window.UIManager = UIManager;
+
+// Export for use in other modules (Node.js)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIManager;
 }

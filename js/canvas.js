@@ -487,7 +487,10 @@ const CanvasManager = {
     }
 };
 
-// Export for use in other modules
+// Export to global scope for browser usage
+window.CanvasManager = CanvasManager;
+
+// Export for use in other modules (Node.js)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CanvasManager;
 }
