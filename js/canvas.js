@@ -255,7 +255,7 @@ const CanvasManager = {
         // Draw top text (rotated 90° counterclockwise + 180° flip) - SeoYeon with reduced letter spacing
         this.ctx.save();
         this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
-        this.ctx.translate(centerX, 200);
+        this.ctx.translate(centerX, 104);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
         this.ctx.restore();
@@ -270,7 +270,7 @@ const CanvasManager = {
 
         // Draw bottom text (rotated 90° clockwise) - tripleS with increased letter spacing
         this.ctx.save();
-        this.ctx.translate(centerX, this.canvasHeight - 200);
+        this.ctx.translate(centerX, this.canvasHeight - 227);
         this.ctx.rotate(Math.PI / 2);
 
         // Special handling for "tripleS" text with custom letter pair spacing
