@@ -13,7 +13,7 @@ const CanvasManager = {
     imagePosY: 0,
     canvasWidth: 768,
     canvasHeight: 1186,
-    accentWidth: 85,
+    accentWidth: 74.15,
     accentColor: '#FFD400',
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
@@ -247,7 +247,7 @@ const CanvasManager = {
 
         // Set text properties
         this.ctx.fillStyle = '#000000';
-        this.ctx.font = '600 40.90875px "Neue Helvetica Georgian", "Helvetica Neue", Helvetica, Arial, sans-serif';
+        this.ctx.font = '600 40.90875px "Nimbus Sans Arabic", sans-serif';
 
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
@@ -268,12 +268,49 @@ const CanvasManager = {
         this.ctx.fillText(this.middleText, 0, 0);
         this.ctx.restore();
 
-        // Draw bottom text (rotated 90° clockwise) - tripleS with reduced letter spacing
+        // Draw bottom text (rotated 90° clockwise) - tripleS with increased letter spacing
         this.ctx.save();
-        this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
         this.ctx.translate(centerX, this.canvasHeight - 200);
         this.ctx.rotate(Math.PI / 2);
-        this.ctx.fillText(this.bottomText, 0, 0);
+
+        // Special handling for "tripleS" text with custom letter pair spacing
+        if (this.bottomText === 'tripleS') {
+            const baseSpacing = -1.0973; // Base letter spacing value
+            const extraGap100 = Math.abs(baseSpacing); // 100% increment (doubling the gap)
+            const extraGap50 = Math.abs(baseSpacing) * 0.5; // 50% increment
+            const reducedGap = baseSpacing * 0.15; // 15% reduction
+
+            // Draw each character with custom spacing
+            let xOffset = 0;
+            for (let i = 0; i < this.bottomText.length; i++) {
+                const char = this.bottomText[i];
+                this.ctx.fillText(char, xOffset, 0);
+
+                // Measure character width for next position
+                const charWidth = this.ctx.measureText(char).width;
+                xOffset += charWidth + baseSpacing;
+
+                // Add 100% extra gap after 't' (index 0) and 'r' (index 1)
+                if (i === 0 || i === 1) {
+                    xOffset += extraGap100;
+                }
+
+                // Add 50% extra gap after 'l' (index 5)
+                if (i === 5) {
+                    xOffset += extraGap50;
+                }
+
+                // Reduce gap after 'e' (index 6)
+                if (i === 6) {
+                    xOffset -= reducedGap;
+                }
+            }
+        } else {
+            // Default rendering for other text
+            this.ctx.letterSpacing = '-1.0973px';
+            this.ctx.fillText(this.bottomText, 0, 0);
+        }
+
         this.ctx.restore();
 
         this.ctx.restore();
