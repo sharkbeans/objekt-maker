@@ -28,10 +28,22 @@ const UIManager = {
             panYSlider: document.getElementById('panYSlider'),
             panYValue: document.getElementById('panYValue'),
 
+            // Border color controls
+            borderColorPicker: document.getElementById('borderColorPicker'),
+            borderColorHex: document.getElementById('borderColorHex'),
+            presetColors: document.querySelectorAll('.preset-color'),
+
+            // Border image controls
+            borderImageUpload: document.getElementById('borderImageUpload'),
+            clearBorderImage: document.getElementById('clearBorderImage'),
+
             // Text controls
             topText: document.getElementById('topText'),
             middleText: document.getElementById('middleText'),
             bottomText: document.getElementById('bottomText'),
+            textColorPicker: document.getElementById('textColorPicker'),
+            textColorHex: document.getElementById('textColorHex'),
+            presetColorsText: document.querySelectorAll('.preset-color-text'),
 
             // Action buttons
             exportBtn: document.getElementById('exportBtn'),
@@ -72,6 +84,38 @@ const UIManager = {
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
         });
 
+        // Border color controls
+        this.elements.borderColorPicker.addEventListener('input', (e) => {
+            const color = e.target.value.toUpperCase();
+            this.elements.borderColorHex.value = color;
+            CanvasManager.setBorderColor(color);
+        });
+
+        this.elements.borderColorHex.addEventListener('input', (e) => {
+            let color = e.target.value.trim();
+
+            // Validate hex color format
+            if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                color = color.toUpperCase();
+                this.elements.borderColorPicker.value = color;
+                CanvasManager.setBorderColor(color);
+            }
+        });
+
+        // Preset color buttons
+        this.elements.presetColors.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                this.elements.borderColorPicker.value = color;
+                this.elements.borderColorHex.value = color;
+                CanvasManager.setBorderColor(color);
+            });
+        });
+
+        // Border image upload
+        this.elements.borderImageUpload.addEventListener('change', (e) => this.handleBorderImageUpload(e));
+        this.elements.clearBorderImage.addEventListener('click', () => this.clearBorderImage());
+
         // Text controls
         this.elements.topText.addEventListener('input', (e) => {
             CanvasManager.setText(e.target.value, undefined, undefined);
@@ -83,6 +127,34 @@ const UIManager = {
 
         this.elements.bottomText.addEventListener('input', (e) => {
             CanvasManager.setText(undefined, undefined, e.target.value);
+        });
+
+        // Text color controls
+        this.elements.textColorPicker.addEventListener('input', (e) => {
+            const color = e.target.value.toUpperCase();
+            this.elements.textColorHex.value = color;
+            CanvasManager.setTextColor(color);
+        });
+
+        this.elements.textColorHex.addEventListener('input', (e) => {
+            let color = e.target.value.trim();
+
+            // Validate hex color format
+            if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                color = color.toUpperCase();
+                this.elements.textColorPicker.value = color;
+                CanvasManager.setTextColor(color);
+            }
+        });
+
+        // Preset text color buttons
+        this.elements.presetColorsText.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                this.elements.textColorPicker.value = color;
+                this.elements.textColorHex.value = color;
+                CanvasManager.setTextColor(color);
+            });
         });
 
         // Action buttons
@@ -104,6 +176,32 @@ const UIManager = {
         } catch (error) {
             this.showErrorMessage(error.message);
         }
+    },
+
+    /**
+     * Handle border image upload
+     */
+    async handleBorderImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadBorderImage(file);
+            this.elements.clearBorderImage.style.display = 'block';
+            this.showSuccessMessage('Border image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear border image
+     */
+    clearBorderImage() {
+        CanvasManager.clearBorderImage();
+        this.elements.borderImageUpload.value = '';
+        this.elements.clearBorderImage.style.display = 'none';
+        console.log('Border image cleared');
     },
 
     /**
@@ -197,6 +295,12 @@ const UIManager = {
         this.elements.middleText.value = '100A';
         this.elements.bottomText.value = 'tripleS';
         this.elements.imageUpload.value = '';
+        this.elements.borderColorPicker.value = '#FFD400';
+        this.elements.borderColorHex.value = '#FFD400';
+        this.elements.borderImageUpload.value = '';
+        this.elements.clearBorderImage.style.display = 'none';
+        this.elements.textColorPicker.value = '#000000';
+        this.elements.textColorHex.value = '#000000';
 
         // Hide canvas
         this.hideCanvas();

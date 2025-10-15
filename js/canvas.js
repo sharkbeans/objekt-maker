@@ -15,11 +15,13 @@ const CanvasManager = {
     canvasHeight: 1186,
     accentWidth: 82.61793, // Reduced by 10% from 91.7977 (91.7977 × 0.9)
     accentColor: '#FFD400',
+    borderImage: null, // Custom border/notch image
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
     middleText: '100A',
     bottomText: 'tripleS',
+    textColor: '#000000', // Color for all text
 
     /**
      * Initialize canvas manager
@@ -119,6 +121,79 @@ const CanvasManager = {
     },
 
     /**
+     * Set border/accent color
+     * @param {string} color - Hex color value
+     */
+    setBorderColor(color) {
+        this.accentColor = color;
+        this.render();
+    },
+
+    /**
+     * Set text color (applies to all text)
+     * @param {string} color - Hex color value
+     */
+    setTextColor(color) {
+        this.textColor = color;
+        this.render();
+    },
+
+    /**
+     * Load a border image from file
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>} Success status
+     */
+    async loadBorderImage(file) {
+        return new Promise((resolve, reject) => {
+            // Validate file type
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.borderImage = img;
+                    console.log('Border image loaded:', img.width, 'x', img.height);
+                    this.render();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load border image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the border image and use color instead
+     */
+    clearBorderImage() {
+        this.borderImage = null;
+        this.render();
+    },
+
+    /**
      * Pan image position
      * @param {number} x - X offset
      * @param {number} y - Y offset
@@ -196,7 +271,6 @@ const CanvasManager = {
         // Draw centered notch on right side
         this.ctx.save();
         const accentX = this.canvasWidth - this.accentWidth;
-        this.ctx.fillStyle = this.accentColor;
 
         // Calculate vertical centering
         const notchY = (this.canvasHeight - this.notchHeight) / 2;
@@ -211,7 +285,44 @@ const CanvasManager = {
         this.ctx.lineTo(accentX + notchRadius, notchY + this.notchHeight);
         this.ctx.arcTo(accentX, notchY + this.notchHeight, accentX, notchY + this.notchHeight - notchRadius, notchRadius);
         this.ctx.closePath();
-        this.ctx.fill();
+
+        // If border image is set, use it; otherwise use color
+        if (this.borderImage) {
+            // Clip and draw the border image
+            this.ctx.clip();
+
+            // Calculate dimensions to cover the notch area (zoom to fill, don't stretch)
+            const notchAspect = this.accentWidth / this.notchHeight;
+            const imgAspect = this.borderImage.width / this.borderImage.height;
+
+            let drawWidth, drawHeight;
+            let offsetX = 0, offsetY = 0;
+
+            if (imgAspect > notchAspect) {
+                // Image is wider - fit to height and crop sides
+                drawHeight = this.notchHeight;
+                drawWidth = drawHeight * imgAspect;
+                offsetX = (this.accentWidth - drawWidth) / 2;
+            } else {
+                // Image is taller - fit to width and crop top/bottom
+                drawWidth = this.accentWidth;
+                drawHeight = drawWidth / imgAspect;
+                offsetY = (this.notchHeight - drawHeight) / 2;
+            }
+
+            // Draw the border image to cover the notch area
+            this.ctx.drawImage(
+                this.borderImage,
+                accentX + offsetX,
+                notchY + offsetY,
+                drawWidth,
+                drawHeight
+            );
+        } else {
+            // Use solid color
+            this.ctx.fillStyle = this.accentColor;
+            this.ctx.fill();
+        }
 
         this.ctx.restore();
 
@@ -246,7 +357,7 @@ const CanvasManager = {
         const centerX = accentX + this.accentWidth / 2;
 
         // Set text properties
-        this.ctx.fillStyle = '#000000';
+        this.ctx.fillStyle = this.textColor;
         this.ctx.font = '600 40.90875px "Helvetica Neue", sans-serif';
 
         this.ctx.textAlign = 'left';
@@ -352,6 +463,9 @@ const CanvasManager = {
         this.topText = 'SeoYeon';
         this.middleText = '100A';
         this.bottomText = 'tripleS';
+        this.accentColor = '#FFD400';
+        this.borderImage = null;
+        this.textColor = '#000000';
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
     },

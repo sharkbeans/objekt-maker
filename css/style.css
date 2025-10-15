@@ -266,6 +266,116 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ========================================
+   Color Picker Styles
+   ======================================== */
+
+.color-input-group {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+.color-picker {
+    width: 50px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: var(--bg-color);
+    padding: 2px;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-sm) - 2px);
+}
+
+.color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-sm) - 2px);
+}
+
+.color-hex-input {
+    flex: 1;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+}
+
+.color-presets {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+.presets-label {
+    font-size: 0.813rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.preset-colors {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: var(--space-sm);
+}
+
+.preset-color {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+}
+
+.preset-color:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.preset-color:active {
+    transform: scale(1);
+}
+
+.preset-color-text {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+}
+
+.preset-color-text:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.preset-color-text:active {
+    transform: scale(1);
+}
+
+/* Border Image Upload Styles */
+
+.border-image-upload {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.813rem;
+}
+
+/* ========================================
    Buttons
    ======================================== */
 
