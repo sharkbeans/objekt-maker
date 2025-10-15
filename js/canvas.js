@@ -18,6 +18,7 @@ const CanvasManager = {
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
+    middleText: '100A',
     bottomText: 'tripleS',
 
     /**
@@ -107,10 +108,12 @@ const CanvasManager = {
     /**
      * Set text values
      * @param {string} top - Top text
+     * @param {string} middle - Middle text
      * @param {string} bottom - Bottom text
      */
-    setText(top, bottom) {
+    setText(top, middle, bottom) {
         if (top !== undefined) this.topText = top;
+        if (middle !== undefined) this.middleText = middle;
         if (bottom !== undefined) this.bottomText = bottom;
         this.render();
     },
@@ -244,15 +247,23 @@ const CanvasManager = {
 
         // Set text properties
         this.ctx.fillStyle = '#000000';
-        this.ctx.font = 'bold 48px Inter, sans-serif';
+        this.ctx.font = '550 45px "Neue Helvetica Georgian", "Helvetica Neue", Helvetica, Arial, sans-serif';
+
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
 
-        // Draw top text (rotated 90° counterclockwise)
+        // Draw top text (rotated 90° counterclockwise + 180° flip)
         this.ctx.save();
         this.ctx.translate(centerX, 200);
-        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
+        this.ctx.restore();
+
+        // Draw middle text (rotated 90° counterclockwise + 180° flip)
+        this.ctx.save();
+        this.ctx.translate(centerX, this.canvasHeight / 2);
+        this.ctx.rotate(-Math.PI / 2 + Math.PI);
+        this.ctx.fillText(this.middleText, 0, 0);
         this.ctx.restore();
 
         // Draw bottom text (rotated 90° clockwise)
@@ -298,6 +309,7 @@ const CanvasManager = {
         this.imagePosX = 0;
         this.imagePosY = 0;
         this.topText = 'SeoYeon';
+        this.middleText = '100A';
         this.bottomText = 'tripleS';
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');

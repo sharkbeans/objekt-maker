@@ -30,6 +30,7 @@ const UIManager = {
 
             // Text controls
             topText: document.getElementById('topText'),
+            middleText: document.getElementById('middleText'),
             bottomText: document.getElementById('bottomText'),
 
             // Action buttons
@@ -73,11 +74,15 @@ const UIManager = {
 
         // Text controls
         this.elements.topText.addEventListener('input', (e) => {
-            CanvasManager.setText(e.target.value, undefined);
+            CanvasManager.setText(e.target.value, undefined, undefined);
+        });
+
+        this.elements.middleText.addEventListener('input', (e) => {
+            CanvasManager.setText(undefined, e.target.value, undefined);
         });
 
         this.elements.bottomText.addEventListener('input', (e) => {
-            CanvasManager.setText(undefined, e.target.value);
+            CanvasManager.setText(undefined, undefined, e.target.value);
         });
 
         // Action buttons
@@ -189,6 +194,7 @@ const UIManager = {
         this.elements.panYSlider.value = 0;
         this.elements.panYValue.textContent = '0px';
         this.elements.topText.value = 'SeoYeon';
+        this.elements.middleText.value = '100A';
         this.elements.bottomText.value = 'tripleS';
         this.elements.imageUpload.value = '';
 
