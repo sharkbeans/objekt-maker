@@ -9,18 +9,18 @@
 }
 
 :root {
-    /* Color Palette - objekt.top inspired */
+    /* Color Palette - Dark Mode */
     --primary-color: #22AEFF;
     --primary-hover: #1a8fdb;
     --secondary-color: #9200FF;
-    --bg-color: #fafafa;
-    --surface-color: #ffffff;
-    --text-primary: #0a0a0a;
-    --text-secondary: #6b6b6b;
-    --border-color: #e5e5e5;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    --shadow-md: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
+    --bg-color: #000000;
+    --surface-color: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #333333;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 8px 0 rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.7);
 
     /* Spacing */
     --space-xs: 0.5rem;
