@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- SEO and Social Meta Tags -->
+    <title>Photocard Maker - Create Custom Photocards Online</title>
+    <meta name="description" content="Create beautiful custom photocards with borders, frames, and text overlays. Free online tool with no registration required.">
+    <meta name="keywords" content="photocard, maker, kpop, frames, borders, photo editor">
+    <meta name="author" content="Photocard Maker">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourusername.github.io/photocard-maker/">
+    <meta property="og:title" content="Photocard Maker - Create Custom Photocards">
+    <meta property="og:description" content="Create beautiful custom photocards with borders, frames, and text overlays.">
+    <meta property="og:image" content="https://yourusername.github.io/photocard-maker/assets/icons/preview.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourusername.github.io/photocard-maker/">
+    <meta property="twitter:title" content="Photocard Maker - Create Custom Photocards">
+    <meta property="twitter:description" content="Create beautiful custom photocards with borders, frames, and text overlays.">
+    <meta property="twitter:image" content="https://yourusername.github.io/photocard-maker/assets/icons/preview.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <link rel="alternate icon" href="assets/icons/favicon.ico">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">✨ Photocard Maker</h1>
+            <p class="tagline">Create stunning photocards in seconds</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Controls Panel -->
+            <aside class="controls-panel">
+                <section class="control-section">
+                    <h2 class="section-title">📸 Upload Image</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                        <label for="imageUpload" class="upload-label">
+                            <span class="upload-icon">⬆️</span>
+                            <span class="upload-text">Click to upload or drag image here</span>
+                            <span class="upload-hint">JPG or PNG, max 5MB</span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <h2 class="section-title">🖼️ Frame Style</h2>
+                    <div class="frame-grid" id="frameGrid">
+                        <!-- Frames loaded dynamically -->
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <h2 class="section-title">🎨 Frame Color</h2>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="frameColor" value="#ffffff">
+                        <label for="frameColor" class="color-label">Choose color</label>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <h2 class="section-title">✏️ Add Text</h2>
+                    <input type="text" id="textInput" class="text-input" placeholder="Enter text...">
+                    <div class="text-controls">
+                        <input type="color" id="textColor" value="#000000">
+                        <select id="fontSize" class="font-size-select">
+                            <option value="16">Small</option>
+                            <option value="24" selected>Medium</option>
+                            <option value="32">Large</option>
+                            <option value="48">X-Large</option>
+                        </select>
+                        <button id="addTextBtn" class="btn btn-secondary">Add Text</button>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <h2 class="section-title">🔧 Adjustments</h2>
+                    <div class="adjustment-controls">
+                        <label>
+                            <span>Zoom:</span>
+                            <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
+                            <span id="zoomValue">100%</span>
+                        </label>
+                        <label>
+                            <span>Rotation:</span>
+                            <input type="range" id="rotationSlider" min="0" max="360" value="0" step="1">
+                            <span id="rotationValue">0°</span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <button id="exportBtn" class="btn btn-primary btn-large">💾 Download Photocard</button>
+                    <button id="resetBtn" class="btn btn-secondary">🔄 Reset</button>
+                </section>
+            </aside>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="mainCanvas" width="800" height="1000"></canvas>
+                    <div id="textOverlays" class="text-overlays">
+                        <!-- Draggable text elements added here -->
+                    </div>
+                </div>
+                <div class="canvas-placeholder" id="canvasPlaceholder">
+                    <p>Upload an image to get started</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Photocard Maker | All processing happens in your browser</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Modules -->
+    <script src="js/borders.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
