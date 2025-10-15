@@ -9,9 +9,16 @@ const CanvasManager = {
     uploadedImage: null,
     imageScale: 1,
     imageRotation: 0,
-    canvasWidth: 800,
-    canvasHeight: 1000,
-    frameColor: '#ffffff',
+    imagePosX: 0,
+    imagePosY: 0,
+    canvasWidth: 768,
+    canvasHeight: 1186,
+    accentWidth: 85,
+    accentColor: '#FFD400',
+    cornerRadius: 36,
+    notchHeight: 1050, // Height of the centered notch
+    topText: 'SeoYeon',
+    bottomText: 'tripleS',
 
     /**
      * Initialize canvas manager
@@ -98,11 +105,24 @@ const CanvasManager = {
     },
 
     /**
-     * Set frame/border color
-     * @param {string} color - Hex color value
+     * Set text values
+     * @param {string} top - Top text
+     * @param {string} bottom - Bottom text
      */
-    setFrameColor(color) {
-        this.frameColor = color;
+    setText(top, bottom) {
+        if (top !== undefined) this.topText = top;
+        if (bottom !== undefined) this.bottomText = bottom;
+        this.render();
+    },
+
+    /**
+     * Pan image position
+     * @param {number} x - X offset
+     * @param {number} y - Y offset
+     */
+    setPan(x, y) {
+        this.imagePosX = x;
+        this.imagePosY = y;
         this.render();
     },
 
@@ -117,124 +137,144 @@ const CanvasManager = {
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-        // Fill background with white
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+        // Create a temporary canvas for the rounded image
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = this.canvasWidth;
+        tempCanvas.height = this.canvasHeight;
+        const tempCtx = tempCanvas.getContext('2d');
 
-        // Save context state
-        this.ctx.save();
+        // Calculate image area (canvas width minus accent bar)
+        const imageAreaWidth = this.canvasWidth - this.accentWidth;
+        const imageAreaHeight = this.canvasHeight;
 
-        // Move to center for rotation
-        this.ctx.translate(this.canvasWidth / 2, this.canvasHeight / 2);
-
-        // Apply rotation
-        const radians = (this.imageRotation * Math.PI) / 180;
-        this.ctx.rotate(radians);
-
-        // Calculate image dimensions to fit canvas while maintaining aspect ratio
+        // Calculate image dimensions to cover the entire canvas with 2:3 aspect ratio
+        // Using "cover" mode - fill entire area, cropping if necessary
+        const targetAspect = 2 / 3; // Width / Height = 2 / 3
         const imgAspect = this.uploadedImage.width / this.uploadedImage.height;
-        const canvasAspect = this.canvasWidth / this.canvasHeight;
 
         let drawWidth, drawHeight;
 
-        if (imgAspect > canvasAspect) {
-            // Image is wider than canvas
-            drawHeight = this.canvasHeight;
+        // Calculate dimensions to cover the entire canvas area (including accent bar)
+        const fullAspect = this.canvasWidth / this.canvasHeight;
+
+        if (imgAspect > fullAspect) {
+            // Image is wider - fit to height
+            drawHeight = this.canvasHeight * this.imageScale;
             drawWidth = drawHeight * imgAspect;
         } else {
-            // Image is taller than canvas
-            drawWidth = this.canvasWidth;
+            // Image is taller - fit to width
+            drawWidth = this.canvasWidth * this.imageScale;
             drawHeight = drawWidth / imgAspect;
         }
 
-        // Apply zoom
-        drawWidth *= this.imageScale;
-        drawHeight *= this.imageScale;
+        // Calculate position (centered with pan)
+        const xPos = (this.canvasWidth - drawWidth) / 2 + this.imagePosX;
+        const yPos = (this.canvasHeight - drawHeight) / 2 + this.imagePosY;
 
-        // Draw image centered
-        this.ctx.drawImage(
+        // Draw image on temp canvas
+        tempCtx.drawImage(
             this.uploadedImage,
-            -drawWidth / 2,
-            -drawHeight / 2,
+            xPos,
+            yPos,
             drawWidth,
             drawHeight
         );
 
-        // Restore context state
+        // Create rounded rectangle clip path on main canvas
+        this.ctx.save();
+        this.createRoundedRect(0, 0, this.canvasWidth, this.canvasHeight, this.cornerRadius);
+        this.ctx.clip();
+
+        // Draw the temp canvas (with image) onto main canvas
+        this.ctx.drawImage(tempCanvas, 0, 0);
+
         this.ctx.restore();
 
-        // Apply border/frame on top
-        if (BorderManager && BorderManager.getCurrentBorder()) {
-            BorderManager.applyBorder(this.ctx, this.canvasWidth, this.canvasHeight, this.frameColor);
-        }
+        // Draw centered notch on right side
+        this.ctx.save();
+        const accentX = this.canvasWidth - this.accentWidth;
+        this.ctx.fillStyle = this.accentColor;
+
+        // Calculate vertical centering
+        const notchY = (this.canvasHeight - this.notchHeight) / 2;
+        const notchRadius = 20; // Radius for the notch rounded corners (left side only)
+
+        // Create path for centered notch with rounded corners only on left side
+        this.ctx.beginPath();
+        this.ctx.moveTo(accentX, notchY + notchRadius);
+        this.ctx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
+        this.ctx.lineTo(this.canvasWidth, notchY); // Straight line to top-right (no rounding)
+        this.ctx.lineTo(this.canvasWidth, notchY + this.notchHeight); // Straight line down the right edge
+        this.ctx.lineTo(accentX + notchRadius, notchY + this.notchHeight);
+        this.ctx.arcTo(accentX, notchY + this.notchHeight, accentX, notchY + this.notchHeight - notchRadius, notchRadius);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        this.ctx.restore();
+
+        // Draw text on accent bar
+        this.drawAccentText();
     },
 
     /**
-     * Add text overlay to canvas
-     * @param {string} text - Text content
-     * @param {number} x - X position
-     * @param {number} y - Y position
-     * @param {string} color - Text color
-     * @param {number} fontSize - Font size in pixels
+     * Create rounded rectangle path
      */
-    addTextToCanvas(text, x, y, color, fontSize) {
+    createRoundedRect(x, y, width, height, radius) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius, y);
+        this.ctx.lineTo(x + width - radius, y);
+        this.ctx.arcTo(x + width, y, x + width, y + radius, radius);
+        this.ctx.lineTo(x + width, y + height - radius);
+        this.ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+        this.ctx.lineTo(x + radius, y + height);
+        this.ctx.arcTo(x, y + height, x, y + height - radius, radius);
+        this.ctx.lineTo(x, y + radius);
+        this.ctx.arcTo(x, y, x + radius, y, radius);
+        this.ctx.closePath();
+    },
+
+    /**
+     * Draw rotated text on accent bar
+     */
+    drawAccentText() {
         this.ctx.save();
 
-        this.ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-        this.ctx.fillStyle = color;
-        this.ctx.textAlign = 'left';
-        this.ctx.textBaseline = 'top';
+        const accentX = this.canvasWidth - this.accentWidth;
+        const centerX = accentX + this.accentWidth / 2;
 
-        // Add text shadow for better visibility
-        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.shadowBlur = 4;
-        this.ctx.shadowOffsetX = 2;
-        this.ctx.shadowOffsetY = 2;
+        // Set text properties
+        this.ctx.fillStyle = '#000000';
+        this.ctx.font = 'bold 48px Inter, sans-serif';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
 
-        this.ctx.fillText(text, x, y);
+        // Draw top text (rotated 90° counterclockwise)
+        this.ctx.save();
+        this.ctx.translate(centerX, 200);
+        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.fillText(this.topText, 0, 0);
+        this.ctx.restore();
+
+        // Draw bottom text (rotated 90° clockwise)
+        this.ctx.save();
+        this.ctx.translate(centerX, this.canvasHeight - 200);
+        this.ctx.rotate(Math.PI / 2);
+        this.ctx.fillText(this.bottomText, 0, 0);
+        this.ctx.restore();
 
         this.ctx.restore();
     },
 
     /**
      * Export canvas as downloadable image
-     * @param {Array} textOverlays - Array of text overlay objects {text, x, y, color, fontSize}
+     * @param {Array} textOverlays - Array of text overlay objects (not used anymore)
      * @param {string} format - Export format ('png' or 'jpeg')
      * @param {string} filename - Download filename
      */
-    async exportImage(textOverlays = [], format = 'png', filename = 'photocard') {
-        // Create a temporary canvas for export
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = this.canvasWidth;
-        exportCanvas.height = this.canvasHeight;
-        const exportCtx = exportCanvas.getContext('2d');
-
-        // Draw the main canvas content
-        exportCtx.drawImage(this.canvas, 0, 0);
-
-        // Add all text overlays
-        textOverlays.forEach(overlay => {
-            exportCtx.save();
-
-            exportCtx.font = `bold ${overlay.fontSize}px Arial, sans-serif`;
-            exportCtx.fillStyle = overlay.color;
-            exportCtx.textAlign = 'left';
-            exportCtx.textBaseline = 'top';
-
-            // Add text shadow
-            exportCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            exportCtx.shadowBlur = 4;
-            exportCtx.shadowOffsetX = 2;
-            exportCtx.shadowOffsetY = 2;
-
-            exportCtx.fillText(overlay.text, overlay.x, overlay.y);
-
-            exportCtx.restore();
-        });
-
+    async exportImage(textOverlays = [], format = 'png', filename = 'image') {
         // Convert to blob and download
         return new Promise((resolve) => {
-            exportCanvas.toBlob((blob) => {
+            this.canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.download = `${filename}.${format}`;
@@ -255,7 +295,10 @@ const CanvasManager = {
         this.uploadedImage = null;
         this.imageScale = 1;
         this.imageRotation = 0;
-        this.frameColor = '#ffffff';
+        this.imagePosX = 0;
+        this.imagePosY = 0;
+        this.topText = 'SeoYeon';
+        this.bottomText = 'tripleS';
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
     },

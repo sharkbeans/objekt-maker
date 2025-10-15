@@ -1,30 +1,28 @@
-# ✨ Photocard Maker
+# Photocard Maker
 
-A beautiful, feature-rich web application for creating custom photocards with borders, frames, and text overlays. Perfect for K-pop fans, collectors, and anyone who wants to create stunning photo cards!
+A specialized web application for creating custom photocards with a yellow accent bar design, perfect for K-pop fans, collectors, and anyone who wants to create professional-looking photocards!
 
 ![Photocard Maker](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![No Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 
-## 🌟 Features
+## Features
 
-- **📸 Image Upload**: Drag & drop or click to upload JPG/PNG images (max 5MB)
-- **🖼️ Multiple Frame Styles**: Choose from 8 preset borders including:
-  - Classic border
-  - Polaroid style
-  - Rounded corners
-  - Circle crop
-  - Heart shape
-  - And more!
-- **🎨 Customizable Colors**: Pick any color for frames and text
-- **✏️ Text Overlays**: Add draggable text with adjustable size and color
-- **🔧 Image Adjustments**:
+- **Image Upload**: Drag & drop or click to upload JPG/PNG images (max 5MB)
+- **Fixed Canvas Size**: 768×1186 px (2:3 aspect ratio) - standard photocard dimensions
+- **Rounded Corners**: 36px radius on all edges for a polished look
+- **Yellow Accent Bar**: 135px wide vertical strip on the right side (#FFD400)
+- **Rotated Text Labels**:
+  - Top text (default: "SeoYeon") - rotated 90° counterclockwise
+  - Bottom text (default: "tripleS") - rotated 90° clockwise
+  - Bold sans-serif font in black (#000000)
+- **Image Adjustments**:
   - Zoom control (50% - 200%)
-  - Rotation (0° - 360°)
-- **💾 Export**: Download your creation as high-quality PNG
-- **💻 Client-Side Only**: All processing happens in your browser - no server required
-- **📱 Responsive Design**: Works on desktop, tablet, and mobile
-- **💾 LocalStorage**: Remembers your last used frame and color preferences
+  - Pan X/Y controls (-300 to +300 pixels)
+- **Editable Text**: Customize both text fields to personalize your photocards
+- **PNG Export**: Download your creation as high-quality PNG (768×1186 px)
+- **Client-Side Only**: All processing happens in your browser - no server required
+- **Responsive Design**: Works on desktop, tablet, and mobile
 
 ## 🚀 Quick Start
 
@@ -72,156 +70,158 @@ A beautiful, feature-rich web application for creating custom photocards with bo
 
 3. **Access your app** at `https://yourusername.github.io/photocard-maker/`
 
-## 📖 How to Use
+## How to Use
 
 1. **Upload an Image**
    - Click the upload area or drag & drop your photo
    - Supported formats: JPG, PNG (max 5MB)
+   - The image will automatically be cropped to fit the 768×1186 px canvas with 2:3 aspect ratio
 
-2. **Choose a Frame**
-   - Click one of the frame style buttons
-   - Select a color using the color picker
+2. **Adjust Your Photo**
+   - Use the **Zoom** slider to scale your image (50% - 200%)
+   - Use the **Pan X** slider to move the image horizontally
+   - Use the **Pan Y** slider to move the image vertically
 
-3. **Add Text** (Optional)
-   - Type your text in the input field
-   - Choose text color and size
-   - Click "Add Text"
-   - Drag the text to position it anywhere on the card
+3. **Customize Text**
+   - Edit the **Top Text** field (default: "SeoYeon")
+   - Edit the **Bottom Text** field (default: "tripleS")
+   - Text will appear vertically on the yellow accent bar
 
-4. **Adjust Your Photo**
-   - Use the zoom slider to scale your image
-   - Use the rotation slider to rotate your image
+4. **Download**
+   - Click "💾 Download Image"
+   - Your photocard will be saved as `photocard.png` (768×1186 px)
 
-5. **Download**
-   - Click "💾 Download Photocard"
-   - Your image will be saved as `photocard.png`
-
-## 🗂️ Project Structure
+## Project Structure
 
 ```
-photocard-maker/
+objekt-maker/
 ├── index.html              # Main HTML file
 ├── /assets/
-│   ├── /borders/          # Sample border assets (SVG/PNG)
-│   ├── /fonts/            # Custom fonts (optional)
 │   └── /icons/            # Favicon and app icons
 ├── /css/
-│   └── style.css          # All styles
+│   └── style.css          # All styles (dark mode theme)
 ├── /js/
 │   ├── main.js            # App initialization & orchestration
 │   ├── canvas.js          # Canvas drawing & export logic
 │   ├── ui.js              # UI controls & event handlers
-│   └── borders.js         # Border/frame management
-├── /data/
-│   └── borders.json       # Frame preset definitions
+│   └── borders.js         # (Not used in current version)
 ├── README.md
 └── LICENSE
 ```
 
-## 🛠️ Technical Details
+## Technical Details
 
 ### Stack
 - **HTML5** for structure
-- **CSS3** for styling (CSS Grid, Flexbox, custom properties)
+- **CSS3** for styling (CSS Grid, Flexbox, custom properties, dark mode theme)
 - **Vanilla JavaScript (ES6+)** for functionality
 - **Canvas API** for image manipulation and export
+- **Google Fonts (Inter)** for typography
+
+### Canvas Specifications
+- **Canvas Size**: 768 × 1186 pixels
+- **Aspect Ratio**: 2:3 (portrait)
+- **Image Area**: 633 × 1186 pixels (canvas minus accent bar)
+- **Accent Bar**: 135 × 1186 pixels (#FFD400)
+- **Corner Radius**: 36 pixels (all corners)
+- **Text Font**: Bold 48px Inter
+- **Text Color**: #000000 (black)
 
 ### Browser Compatibility
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (iOS Safari, Chrome Mobile)
 
 ### No Build Process Required
 This project uses zero build tools - it's pure HTML/CSS/JS that runs directly in the browser!
 
-## 🎨 Customization
-
-### Adding New Frames
-
-1. Open `data/borders.json`
-2. Add a new border object:
-   ```json
-   {
-     "id": "my-frame",
-     "name": "My Frame",
-     "description": "Custom frame style",
-     "type": "border",
-     "width": 50,
-     "color": "#ff0000",
-     "emoji": "🎨"
-   }
-   ```
-
-3. Supported types: `none`, `border`, `polaroid`, `rounded`, `circle`, `heart`
+## Customization
 
 ### Changing Canvas Size
 
-In `js/canvas.js`, modify:
+In `js/canvas.js`, modify the CanvasManager properties:
 ```javascript
-canvasWidth: 800,   // Width in pixels
-canvasHeight: 1000, // Height in pixels
+canvasWidth: 768,     // Width in pixels
+canvasHeight: 1186,   // Height in pixels
+accentWidth: 135,     // Accent bar width
+accentColor: '#FFD400', // Accent color (yellow)
+cornerRadius: 36,     // Corner radius
 ```
 
-Standard photocard sizes:
-- **Standard**: 800x1000px (55x85mm)
-- **Mini**: 640x1020px (42x59mm)
-- **Polaroid**: 800x1000px (Polaroid instant)
+### Changing Text Defaults
+
+In `js/canvas.js`, modify:
+```javascript
+topText: 'SeoYeon',   // Default top text
+bottomText: 'tripleS', // Default bottom text
+```
 
 ### Styling
 
-All styles are in `css/style.css`. Key CSS variables:
+All styles are in `css/style.css`. Key CSS variables (dark mode theme):
 ```css
 :root {
-    --primary-color: #6366f1;    /* Main accent color */
-    --secondary-color: #8b5cf6;  /* Secondary accent */
-    --bg-color: #f8fafc;         /* Background */
-    --surface-color: #ffffff;    /* Card backgrounds */
+    --primary-color: #22AEFF;    /* Main accent color (blue) */
+    --secondary-color: #9200FF;  /* Secondary accent (purple) */
+    --bg-color: #000000;         /* Background (black) */
+    --surface-color: #1a1a1a;    /* Card backgrounds (dark gray) */
+    --text-primary: #ffffff;     /* Primary text (white) */
+    --text-secondary: #a0a0a0;   /* Secondary text (gray) */
 }
 ```
 
-## 🐛 Troubleshooting
+### Customizing Accent Color
+
+To change the accent bar color, modify `accentColor` in `js/canvas.js`:
+```javascript
+accentColor: '#FFD400',  // Change to any hex color
+```
+
+Common K-pop photocard colors:
+- Yellow: `#FFD400` (tripleS, current)
+- Pink: `#FF69B4`
+- Purple: `#9200FF`
+- Blue: `#00A2FF`
+- Green: `#00D084`
+
+## Troubleshooting
 
 ### Images not loading
 - Ensure you're using JPG or PNG format
 - Check file size is under 5MB
-- Try using a local server instead of opening `index.html` directly
-
-### Frames not showing
-- Check browser console for errors
-- Ensure `data/borders.json` is accessible
-- Verify you're using a modern browser
+- Try using a local server instead of opening `index.html` directly (file:// protocol may have limitations)
 
 ### Export not working
 - Check that Canvas API is supported in your browser
 - Ensure you have an image loaded first
 - Try a different browser if issues persist
+- Check browser console (F12) for error messages
 
-## 🤝 Contributing
+### Text not showing
+- Ensure the text fields are not empty
+- Try zooming and panning the canvas to see if text is visible
+- Check that you've uploaded an image first
+
+## Contributing
 
 Contributions are welcome! Feel free to:
 - Report bugs
 - Suggest new features
 - Submit pull requests
 
-## 📝 License
+## License
 
 MIT License - See [LICENSE](LICENSE) file for details
 
-## 🎉 Credits
+## Credits
 
-Created with ❤️ for photocard enthusiasts worldwide
+Created for photocard enthusiasts worldwide
 
 ---
 
 **Note**: This is a client-side only application. No data is uploaded to any server - everything happens in your browser!
 
-## 🔗 Links
-
-- [Live Demo](https://yourusername.github.io/photocard-maker/)
-- [Report Issues](https://github.com/yourusername/photocard-maker/issues)
-- [Documentation](https://github.com/yourusername/photocard-maker/wiki)
-
 ---
 
-Made with vanilla JavaScript • No frameworks • No build tools • Just pure web tech! 🚀
+Made with vanilla JavaScript - No frameworks - No build tools - Just pure web tech!

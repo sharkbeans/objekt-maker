@@ -15,10 +15,6 @@ const App = {
         console.log(`Photocard Maker v${this.version} - Initializing...`);
 
         try {
-            // Initialize BorderManager first (needs to load borders.json)
-            await BorderManager.init();
-            console.log('✓ BorderManager initialized');
-
             // Initialize CanvasManager
             const canvas = document.getElementById('mainCanvas');
             if (!canvas) {
@@ -49,10 +45,11 @@ const App = {
     showWelcome() {
         console.log(`
 ╔═══════════════════════════════════════╗
-║     ✨ PHOTOCARD MAKER ✨            ║
+║       PHOTOCARD MAKER                 ║
 ║                                       ║
-║  Welcome! Upload an image to start.   ║
-║  All processing happens locally.      ║
+║  Upload an image to create a          ║
+║  768×1186 px photocard with           ║
+║  yellow accent bar and text!          ║
 ║                                       ║
 ╚═══════════════════════════════════════╝
         `);
@@ -73,8 +70,9 @@ const App = {
             version: this.version,
             initialized: this.initialized,
             hasImage: CanvasManager.hasImage(),
-            borderCount: BorderManager.getAllBorders().length,
-            textOverlayCount: UIManager.textOverlays.length
+            canvasSize: `${CanvasManager.canvasWidth}x${CanvasManager.canvasHeight}`,
+            topText: CanvasManager.topText,
+            bottomText: CanvasManager.bottomText
         };
     }
 };

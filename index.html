@@ -36,8 +36,8 @@
     <!-- Header -->
     <header class="header">
         <div class="container">
-            <h1 class="logo">✨ Photocard Maker</h1>
-            <p class="tagline">Create stunning photocards in seconds</p>
+            <h1 class="logo">Photocard Maker</h1>
+            <p class="tagline">Create custom photocards with yellow accent bar (768×1186 px)</p>
         </div>
     </header>
 
@@ -59,36 +59,6 @@
                 </section>
 
                 <section class="control-section">
-                    <h2 class="section-title">🖼️ Frame Style</h2>
-                    <div class="frame-grid" id="frameGrid">
-                        <!-- Frames loaded dynamically -->
-                    </div>
-                </section>
-
-                <section class="control-section">
-                    <h2 class="section-title">🎨 Frame Color</h2>
-                    <div class="color-picker-wrapper">
-                        <input type="color" id="frameColor" value="#ffffff">
-                        <label for="frameColor" class="color-label">Choose color</label>
-                    </div>
-                </section>
-
-                <section class="control-section">
-                    <h2 class="section-title">✏️ Add Text</h2>
-                    <input type="text" id="textInput" class="text-input" placeholder="Enter text...">
-                    <div class="text-controls">
-                        <input type="color" id="textColor" value="#000000">
-                        <select id="fontSize" class="font-size-select">
-                            <option value="16">Small</option>
-                            <option value="24" selected>Medium</option>
-                            <option value="32">Large</option>
-                            <option value="48">X-Large</option>
-                        </select>
-                        <button id="addTextBtn" class="btn btn-secondary">Add Text</button>
-                    </div>
-                </section>
-
-                <section class="control-section">
                     <h2 class="section-title">🔧 Adjustments</h2>
                     <div class="adjustment-controls">
                         <label>
@@ -97,15 +67,34 @@
                             <span id="zoomValue">100%</span>
                         </label>
                         <label>
-                            <span>Rotation:</span>
-                            <input type="range" id="rotationSlider" min="0" max="360" value="0" step="1">
-                            <span id="rotationValue">0°</span>
+                            <span>Pan X:</span>
+                            <input type="range" id="panXSlider" min="-300" max="300" value="0" step="5">
+                            <span id="panXValue">0px</span>
+                        </label>
+                        <label>
+                            <span>Pan Y:</span>
+                            <input type="range" id="panYSlider" min="-300" max="300" value="0" step="5">
+                            <span id="panYValue">0px</span>
                         </label>
                     </div>
                 </section>
 
                 <section class="control-section">
-                    <button id="exportBtn" class="btn btn-primary btn-large">💾 Download Photocard</button>
+                    <h2 class="section-title">✏️ Text</h2>
+                    <div class="adjustment-controls">
+                        <label>
+                            <span>Top Text:</span>
+                            <input type="text" id="topText" value="SeoYeon" class="text-input">
+                        </label>
+                        <label>
+                            <span>Bottom Text:</span>
+                            <input type="text" id="bottomText" value="tripleS" class="text-input">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="control-section">
+                    <button id="exportBtn" class="btn btn-primary btn-large">💾 Download Image</button>
                     <button id="resetBtn" class="btn btn-secondary">🔄 Reset</button>
                 </section>
             </aside>
@@ -113,10 +102,7 @@
             <!-- Canvas Area -->
             <div class="canvas-container">
                 <div class="canvas-wrapper" id="canvasWrapper">
-                    <canvas id="mainCanvas" width="800" height="1000"></canvas>
-                    <div id="textOverlays" class="text-overlays">
-                        <!-- Draggable text elements added here -->
-                    </div>
+                    <canvas id="mainCanvas" width="768" height="1186"></canvas>
                 </div>
                 <div class="canvas-placeholder" id="canvasPlaceholder">
                     <p>Upload an image to get started</p>
@@ -133,7 +119,6 @@
     </footer>
 
     <!-- JavaScript Modules -->
-    <script src="js/borders.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
