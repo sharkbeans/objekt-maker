@@ -247,27 +247,30 @@ const CanvasManager = {
 
         // Set text properties
         this.ctx.fillStyle = '#000000';
-        this.ctx.font = '550 45px "Neue Helvetica Georgian", "Helvetica Neue", Helvetica, Arial, sans-serif';
+        this.ctx.font = '600 40.90875px "Neue Helvetica Georgian", "Helvetica Neue", Helvetica, Arial, sans-serif';
 
-        this.ctx.textAlign = 'center';
+        this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
 
-        // Draw top text (rotated 90° counterclockwise + 180° flip)
+        // Draw top text (rotated 90° counterclockwise + 180° flip) - SeoYeon with reduced letter spacing
         this.ctx.save();
+        this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
         this.ctx.translate(centerX, 200);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
         this.ctx.restore();
 
-        // Draw middle text (rotated 90° counterclockwise + 180° flip)
+        // Draw middle text (rotated 90° counterclockwise + 180° flip) - 100A with reduced letter spacing
         this.ctx.save();
+        this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
         this.ctx.translate(centerX, this.canvasHeight / 2);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.middleText, 0, 0);
         this.ctx.restore();
 
-        // Draw bottom text (rotated 90° clockwise)
+        // Draw bottom text (rotated 90° clockwise) - tripleS with reduced letter spacing
         this.ctx.save();
+        this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
         this.ctx.translate(centerX, this.canvasHeight - 200);
         this.ctx.rotate(Math.PI / 2);
         this.ctx.fillText(this.bottomText, 0, 0);
