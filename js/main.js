@@ -21,14 +21,14 @@ const App = {
                 throw new Error('Canvas element not found');
             }
             CanvasManager.init(canvas);
-            console.log('✓ CanvasManager initialized');
+            console.log('[OK] CanvasManager initialized');
 
             // Initialize UIManager
             UIManager.init();
-            console.log('✓ UIManager initialized');
+            console.log('[OK] UIManager initialized');
 
             this.initialized = true;
-            console.log('✓ Photocard Maker ready!');
+            console.log('[OK] Photocard Maker ready!');
 
             // Show welcome message
             this.showWelcome();

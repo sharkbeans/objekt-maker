@@ -39,12 +39,12 @@ const BorderManager = {
      */
     getDefaultBorders() {
         return [
-            { id: 'none', name: 'None', type: 'none', emoji: '⬜' },
-            { id: 'classic', name: 'Classic', type: 'border', width: 40, color: '#ffffff', emoji: '🖼️' },
-            { id: 'polaroid', name: 'Polaroid', type: 'polaroid', emoji: '📷' },
-            { id: 'rounded', name: 'Rounded', type: 'rounded', radius: 30, emoji: '⬛' },
-            { id: 'circle', name: 'Circle', type: 'circle', emoji: '⭕' },
-            { id: 'heart', name: 'Heart', type: 'heart', emoji: '❤️' }
+            { id: 'none', name: 'None', type: 'none', icon: 'square' },
+            { id: 'classic', name: 'Classic', type: 'border', width: 40, color: '#ffffff', icon: 'frame' },
+            { id: 'polaroid', name: 'Polaroid', type: 'polaroid', icon: 'camera' },
+            { id: 'rounded', name: 'Rounded', type: 'rounded', radius: 30, icon: 'square-rounded' },
+            { id: 'circle', name: 'Circle', type: 'circle', icon: 'circle' },
+            { id: 'heart', name: 'Heart', type: 'heart', icon: 'heart' }
         ];
     },
 

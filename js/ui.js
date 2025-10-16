@@ -694,7 +694,7 @@ const UIManager = {
      */
     showSuccessMessage(message) {
         // Simple console log for now - can be enhanced with toast notifications
-        console.log('✓', message);
+        console.log('[SUCCESS]', message);
         alert(message);
     },
 
@@ -702,7 +702,7 @@ const UIManager = {
      * Show error message
      */
     showErrorMessage(message) {
-        console.error('✗', message);
+        console.error('[ERROR]', message);
         alert(message);
     }
 };
