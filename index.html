@@ -6,15 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <!-- SEO and Social Meta Tags -->
-    <title>Photocard Maker - Create Custom Photocards Online</title>
-    <meta name="description" content="Create beautiful custom photocards with borders, frames, and text overlays. Free online tool with no registration required.">
-    <meta name="keywords" content="photocard, maker, kpop, frames, borders, photo editor">
-    <meta name="author" content="Photocard Maker">
+    <title>Objekts</title>
+    <meta name="author" content="Objekts">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://yourusername.github.io/photocard-maker/">
-    <meta property="og:title" content="Photocard Maker - Create Custom Photocards">
     <meta property="og:description" content="Create beautiful custom photocards with borders, frames, and text overlays.">
     <meta property="og:image" content="https://yourusername.github.io/photocard-maker/assets/icons/preview.png">
 
@@ -36,8 +33,7 @@
     <!-- Header -->
     <header class="header">
         <div class="container">
-            <h1 class="logo">Photocard Maker</h1>
-            <p class="tagline">Create custom photocards with yellow accent bar (768×1186 px)</p>
+            <h4></h4>
         </div>
     </header>
 
@@ -78,33 +74,36 @@
                         </label>
                     </div>
                 </section>
-
+                
                 <section class="control-section">
-                    <h2 class="section-title">🎨 Border Color</h2>
+                    <h2 class="section-title">🎨 Notch Color</h2>
                     <div class="adjustment-controls">
+                        <!-- Notch Color Dropdown: Select from categorized color presets -->
+                        <label>
+                            <span>Category:</span>
+                            <select id="notchColorGroupSelect" class="dropdown-select"></select>
+                        </label>
+
+                        <!-- Notch Color Options: Dropdown list of colors in selected category -->
                         <label>
                             <span>Color:</span>
-                            <div class="color-input-group">
-                                <input type="color" id="borderColorPicker" value="#FFD400" class="color-picker">
-                                <input type="text" id="borderColorHex" value="#FFD400" class="text-input color-hex-input" placeholder="#FFD400" maxlength="7">
+                            <div class="color-dropdown-wrapper">
+                                <!-- Color preview square displayed on the left -->
+                                <div id="notchColorPreview" class="notch-color-preview"></div>
+                                <select id="notchColorSelect" class="dropdown-select dropdown-with-preview">
+                                    <option value="">Select a color</option>
+                                </select>
                             </div>
                         </label>
-                        <div class="color-presets">
-                            <span class="presets-label">Presets:</span>
-                            <div class="preset-colors">
-                                <button class="preset-color" data-color="#FFD400" style="background-color: #FFD400;" title="#FFD400"></button>
-                                <button class="preset-color" data-color="#FF6B9D" style="background-color: #FF6B9D;" title="#FF6B9D"></button>
-                                <button class="preset-color" data-color="#00D4FF" style="background-color: #00D4FF;" title="#00D4FF"></button>
-                                <button class="preset-color" data-color="#9D4EDD" style="background-color: #9D4EDD;" title="#9D4EDD"></button>
-                                <button class="preset-color" data-color="#06FFA5" style="background-color: #06FFA5;" title="#06FFA5"></button>
-                                <button class="preset-color" data-color="#FF4136" style="background-color: #FF4136;" title="#FF4136"></button>
-                                <button class="preset-color" data-color="#FFFFFF" style="background-color: #FFFFFF; border: 1px solid #333;" title="#FFFFFF"></button>
-                                <button class="preset-color" data-color="#000000" style="background-color: #000000;" title="#000000"></button>
-                            </div>
-                        </div>
+
+                        <!-- Manual Hex Input: For custom colors -->
+                        <label>
+                            <span>Custom Hex:</span>
+                            <input type="text" id="borderColorHex" value="#FFD400" class="text-input color-hex-input" placeholder="#FFD400" maxlength="7">
+                        </label>
                     </div>
                 </section>
-
+                <!-- Border -->
                 <section class="control-section">
                     <h2 class="section-title">🖼️ Border Image</h2>
                     <div class="adjustment-controls">

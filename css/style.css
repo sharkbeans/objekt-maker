@@ -265,6 +265,81 @@ input[type="range"]::-moz-range-thumb:hover {
     color: var(--text-secondary);
 }
 
+/* Dropdown Select Styles - Modern minimal design matching the layout */
+.dropdown-select {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* Custom dropdown arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-sm) center;
+    background-size: 12px;
+    padding-right: calc(var(--space-md) + 20px);
+}
+
+.dropdown-select:hover {
+    border-color: var(--text-secondary);
+}
+
+.dropdown-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(34, 174, 255, 0.1);
+}
+
+/* Dropdown options styling - Color preview shown inline with text */
+.dropdown-select option {
+    background: var(--surface-color);
+    color: var(--text-primary);
+    padding: var(--space-sm);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Border color dropdown - Options will have their colors set dynamically via JS */
+#notchColorSelect option {
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Style for dropdown to support colored unicode boxes */
+#notchColorSelect {
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Color dropdown wrapper - Contains preview square and dropdown */
+.color-dropdown-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+}
+
+/* Notch color preview square - Shows selected color on the left */
+.notch-color-preview {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-color);
+    transition: background-color 0.2s ease;
+}
+
+/* Dropdown with preview - Takes remaining width */
+.dropdown-with-preview {
+    flex: 1;
+}
+
 /* ========================================
    Color Picker Styles
    ======================================== */
@@ -322,6 +397,30 @@ input[type="range"]::-moz-range-thumb:hover {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: var(--space-sm);
+}
+
+/* Preset group selector row */
+.preset-group-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+#borderPresetContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+#borderPresetContainer .preset-color {
+    width: 32px;
+    height: 32px;
+}
+
+.preset-color.active {
+    box-shadow: 0 0 0 3px rgba(34,174,255,0.18), 0 0 0 1px var(--primary-color);
+    transform: scale(1.05);
 }
 
 .preset-color {
@@ -503,6 +602,22 @@ input[type="range"]::-moz-range-thumb:hover {
 @media (max-width: 768px) {
     .header {
         padding: var(--space-lg) var(--space-md);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .header .container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .header h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
     }
 
     .logo {

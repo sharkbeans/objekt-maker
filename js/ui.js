@@ -28,10 +28,11 @@ const UIManager = {
             panYSlider: document.getElementById('panYSlider'),
             panYValue: document.getElementById('panYValue'),
 
-            // Border color controls
-            borderColorPicker: document.getElementById('borderColorPicker'),
+            // Notch color controls - Dropdown selectors for category and color
+            notchColorGroupSelect: document.getElementById('notchColorGroupSelect'),
+            notchColorSelect: document.getElementById('notchColorSelect'),
+            notchColorPreview: document.getElementById('notchColorPreview'),
             borderColorHex: document.getElementById('borderColorHex'),
-            presetColors: document.querySelectorAll('.preset-color'),
 
             // Border image controls
             borderImageUpload: document.getElementById('borderImageUpload'),
@@ -84,32 +85,21 @@ const UIManager = {
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
         });
 
-        // Border color controls
-        this.elements.borderColorPicker.addEventListener('input', (e) => {
-            const color = e.target.value.toUpperCase();
-            this.elements.borderColorHex.value = color;
-            CanvasManager.setBorderColor(color);
-        });
+        // Notch color dropdowns - Populate and handle selection changes
+        this._initNotchColorDropdowns();
 
+        // Hex input for notch color - Allow manual hex color entry
         this.elements.borderColorHex.addEventListener('input', (e) => {
             let color = e.target.value.trim();
 
-            // Validate hex color format
+            // Validate hex color format (#RRGGBB)
             if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
                 color = color.toUpperCase();
-                this.elements.borderColorPicker.value = color;
+                // Update preview square, canvas, and sync dropdown
+                this._updateColorPreview(color);
                 CanvasManager.setBorderColor(color);
+                this._syncDropdownWithColor(color);
             }
-        });
-
-        // Preset color buttons
-        this.elements.presetColors.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const color = e.target.dataset.color;
-                this.elements.borderColorPicker.value = color;
-                this.elements.borderColorHex.value = color;
-                CanvasManager.setBorderColor(color);
-            });
         });
 
         // Border image upload
@@ -160,6 +150,303 @@ const UIManager = {
         // Action buttons
         this.elements.exportBtn.addEventListener('click', () => this.exportImage());
         this.elements.resetBtn.addEventListener('click', () => this.resetAll());
+    },
+
+    /**
+     * Notch color groups - Organized by category (e.g., First CLASS, Binary01, etc.)
+     * Each category contains color options with title and hex/rgba color value
+     */
+    notchColorGroups: {
+        "Atom01": [
+            { "title": "FCO", "color": "#FFDD00" },
+            { "title": "LoK", "color": "#2C3A53" },
+            { "title": "Ancient8", "color": "#151646" },
+            { "title": "DMM", "color": "#F49B4E" },
+            { "title": "Ktown", "color": "#3D71B8" },
+            { "title": "MMT", "color": "#39C3DB" },
+            { "title": "SoundWave", "color": "#000000" },
+            { "title": "Withmuu", "color": "#5E5FAB" },
+            { "title": "World Cup 2022", "color": "#ED1941" },
+            { "title": "Christmas 2022", "color": "#27550A" },
+            { "title": "GS25", "color": "#0279BC" },
+            { "title": "Lunar New Year", "color": "#E3F4F1" }
+        ],
+        "Binary01": [
+            { "title": "FCO", "color": "#00FF00" },
+            { "title": "DMM", "color": "#F49B4E" },
+            { "title": "SoundWave", "color": "#000000" },
+            { "title": "MMT", "color": "#39C3DB" },
+            { "title": "GUESS", "color": "#000000" },
+            { "title": "Objekt Trading Cafe 1.0", "color": "#2F6A9A" },
+            { "title": "GS25", "color": "#0278BD" },
+            { "title": "April Fools' Day", "color": "#000000" },
+            { "title": "hellolive", "color": "#7D3AF5" },
+            { "title": "Wonderwall", "color": "#000000" },
+            { "title": "FLNK", "color": "#7D3AF5" },
+            { "title": "All My Things (S8)", "color": "#F6ADCD" },
+            { "title": "(S8) Objekt Trading Cafe 2.0", "color": "#3D71B8" },
+            { "title": "(S1) COSMO the gate register", "color": "#8A8C8E" },
+            { "title": "(S4) Urban Break", "color": "#F15D22" },
+            { "title": "(S4) Everline", "color": "#DF2E37" },
+            { "title": "LOVElution US Tour", "color": "#0C89FF" },
+            { "title": "K4 Objekt Gaming Club", "color": "#3D71B8" },
+            { "title": "(S15) Asian Games Hangzhou 2023", "color": "#F3486D" }
+        ],
+        "Cream01": [
+            { "title": "FCO", "color": "#FF7477" },
+            { "title": "MMT", "color": "#39C3DB" },
+            { "title": "DMM", "color": "#F49B4E" },
+            { "title": "AAA Anniversary", "color": "#000000" },
+            { "title": "LOVE/EVOL promotion sale", "color": "#DF3174" },
+            { "title": "EVOL Authentic tour", "color": "#BF4239" },
+            { "title": "MAMA Best New Female Artist", "color": "#EED056" },
+            { "title": "Christmas 2023", "color": "#C8161D" },
+            { "title": "Season's Greeting 2024", "color": "#F0907A" },
+            { "title": "(EVOL) Season's Greeting 2024", "color": "#FFF8EE" },
+            { "title": "Badge War Season 1", "color": "#294A80" },
+            { "title": "Aria promotion sale", "color": "#C8A2C8" },
+            { "title": "Winter Meetup", "color": "#7282B9" },
+            { "title": "Authentic Seoul", "color": "#C5D4FF" },
+            { "title": "Rising Anniversary", "color": "#F9F8F2" },
+            { "title": "Valentine's Day", "color": "#6D4633" },
+            { "title": "GND gravity", "color": "#000000" },
+            { "title": "Glow Pre-sale", "color": "#DEFAE9" },
+            { "title": "Cherry Blossom", "color": "#F8E6FF" },
+            { "title": "KRE Anniversary", "color": "#EDAFA6" },
+            { "title": "Children's Day", "color": "#026009" }
+        ],
+        "Divine01": [
+            { "title": "FCO", "color": "#B400FF" },
+            { "title": "ASSEMBLE24 PB ver.", "color": "#0B3951" },
+            { "title": "ASSEMBLE24 OMA ver.1", "color": "#C4C0BF" },
+            { "title": "Offline event DCO", "color": "#A9CCED" },
+            { "title": "HeartS Lightstick", "color": "#EEF3FF" },
+            { "title": "GND gravity", "color": "#000000" },
+            { "title": "MMT pob", "color": "#39C3DB" },
+            { "title": "Fan-made Objekt", "color": "#C2FFE9" },
+            { "title": "The Show 1st win", "color": "#A2F796" },
+            { "title": "Badge War Season 2", "color": "#FFE67D" },
+            { "title": "Everline pob", "color": "#DF2E37" },
+            { "title": "Glow promotion sale", "color": "#D866A2" },
+            { "title": "ASSEMBLE24 OMA ver.2", "color": "#000000" },
+            { "title": "Mayu mini PB DCO sale", "color": "#03BD79" },
+            { "title": "Summer Edition sale", "color": "#7899DD" },
+            { "title": "LOVElution Anniversary", "color": "#FFF3EB" },
+            { "title": "Women NGO sale", "color": "#D5D2FF" },
+            { "title": "Hachi Gravity", "color": "#EFCBE2" },
+            { "title": "VV Performante PB ver.", "color": "#0E2D6B" },
+            { "title": "JiWoo Sofamon collab", "color": "#4F92FF" },
+            { "title": "VV Performante OMA", "color": "#000000" },
+            { "title": "Web drama (S1, S3)", "color": "#F1FFDE" },
+            { "title": "EVOLution Anniversary", "color": "#EFCBE2" },
+            { "title": "WAV 1st Fanclub", "color": "#8EBDD1" },
+            { "title": "VV Sihyunhada collab DCO sale", "color": "#AB1A13" },
+            { "title": "AAA 2nd Anniversary sale", "color": "#122C49" },
+            { "title": "VV The Show 1st win", "color": "#A2F796" }
+        ],
+        "Ever01": [
+            { "title": "FCO", "color": "#33ECFD" },
+            { "title": "∞! Untitle album", "color": "#2A343C" },
+            { "title": "WAV Japan 1st FanClub DCO", "color": "#9B1837" },
+            { "title": "Offline event DCO", "color": "#FFFCE4" },
+            { "title": "Season's Greeting 2025", "color": "#ECE3DB" },
+            { "title": "K-monstar Trading Cafe in Taipei", "color": "#9A659D" },
+            { "title": "Gravity-Rolex team DCO sale", "color": "#FDD46B" },
+            { "title": "Nien Hakka Kitchen DCO sale", "color": "#DB5E1D" },
+            { "title": "∞! promotion sale", "color": "#56399E" },
+            { "title": "Everline pob", "color": "#DF2E37" },
+            { "title": "Christmas 2024 sale", "color": "#C8161D" },
+            { "title": "NXT Anniversary sale", "color": "#0B3B51" },
+            { "title": "AAA ACCESS OMA", "color": "#000000" },
+            { "title": "KRE AESTHETIC OMA", "color": "#000000" },
+            { "title": "OT10 ASSEMBLE OMA", "color": "#000000" },
+            { "title": "LOVElution MUHAN OMA", "color": "#000000" },
+            { "title": "EVOLution MUJUK OMA", "color": "#000000" },
+            { "title": "ASSEMBLE24 OMA ver.3", "color": "#000000" },
+            { "title": "World Tour VIP pob", "color": "#AEE2FF" },
+            { "title": "World Tour Attending gift", "color": "#AEE2FF" },
+            { "title": "Hanlimz DCO sale", "color": "#1C2646" },
+            { "title": "tripleS Awards 2024 sale", "color": "#6C87A8" },
+            { "title": "Aria Anniversary sale", "color": "#E8BCEF" },
+            { "title": "ASSEMBLE 2nd Anniversary sale", "color": "#F9F8F2" },
+            { "title": "Valentine's Day", "color": "#6B4633" },
+            { "title": "World Tour in Seoul Merch", "color": "#4d0083" },
+            { "title": "World Tour BIGC streaming pob", "color": "#3F4049" },
+            { "title": "1st Fanmeeting Surfing Club", "color": "#FFF0A9" },
+            { "title": "Cherry Blossom", "color": "#F7E5FF" },
+            { "title": "InfinityKPOP Trading Cafe in Singapore", "color": "#54C9CC" },
+            { "title": "Withmuu pob", "color": "#5E5FAB" },
+            { "title": "Black Soul Dress", "color": "#A2A7C2" },
+            { "title": "Everline pob", "color": "#DF2E37" },
+            { "title": "April Fools' Day", "color": "#E2F29E" },
+            { "title": "Leader PCO (S2, S16)", "color": "#2E3192" },
+            { "title": "Divine01 ranking top10", "color": "#2E3192" }
+        ],
+        "Atom02": [
+            { "title": "FCO", "color": "#FFFF00" },
+            { "title": "ASSEMBLE25 OMA ver.", "color": "#000000" },
+            { "title": "ASSEMBLE25 PB ver.", "color": "#9cbb98" },
+            { "title": "KRE 2nd Anniversary sale", "color": "#edafa6" },
+            { "title": "Offline event DCO", "color": "#fe646b" },
+            { "title": "tripleS X Woori Bank CBDC", "color": "#e6f6ff" },
+            { "title": "ASSEMBLE24 1st Anniversary sale", "color": "#69738b" },
+            { "title": "TikTok event", "color": "#FE2C55" },
+            { "title": "MMT pob", "color": "#39C3DB" },
+            { "title": "Melon event", "color": "#00CD3C" },
+            { "title": "Makuhari Messe Booth DCO KCON", "color": "#ab73a8" },
+            { "title": "Badge war Season 3 sale", "color": "#72F2D9" },
+            { "title": "NXT Glow Spring Break sale", "color": "#E6E6E6" },
+            { "title": "School Uniform", "color": "#2A4746" },
+            { "title": "The Show 1st win", "color": "#A2F796" },
+            { "title": "Show Champion 1 win", "color": "#1992ff" },
+            { "title": "Everline pob", "color": "#DF2E37" },
+            { "title": "K-monstar Trading Cafe in Taipei", "color": "#9A659D" },
+            { "title": "Glow Anniversary sale", "color": "#FFCBF8" },
+            { "title": "A Live 25 Concert VIP", "color": "#E35080" },
+            { "title": "2025 Summer Edition", "color": "#7899DD" },
+            { "title": "A Live 25 offline DCO", "color": "#C23A62" },
+            { "title": "Abstract sale/event", "color": "#00C65E" },
+            { "title": "Water Festival / Waterbomb", "color": "#FFE85F" },
+            { "title": "Jump Up pob", "color": "#00A2E5" },
+            { "title": "LOVElution 2nd Anniversary", "color": "#FFF3EB" },
+            { "title": "Summer Edition Night ver.", "color": "#7899DD" },
+            { "title": "Leader PCO (S1)", "color": "#2E3192" },
+            { "title": "Ever01 ranking top10", "color": "#2E3192" }
+        ]
+    },
+
+    /**
+     * Initialize notch color dropdowns - Populates category and color selectors
+     * Sets up event listeners for immediate color updates on selection
+     */
+    _initNotchColorDropdowns() {
+        const groupSelect = this.elements.notchColorGroupSelect;
+        const colorSelect = this.elements.notchColorSelect;
+
+        if (!groupSelect || !colorSelect) return;
+
+        // Populate category dropdown with all available groups
+        const groupNames = Object.keys(this.notchColorGroups);
+        groupSelect.innerHTML = '';
+        groupNames.forEach((name, idx) => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            if (idx === 0) option.selected = true;
+            groupSelect.appendChild(option);
+        });
+
+        // Populate colors for the initially selected category
+        this._populateColorDropdown(groupNames[0]);
+
+        // Initialize preview square with current color from CanvasManager
+        if (CanvasManager && CanvasManager.accentColor) {
+            this._updateColorPreview(CanvasManager.accentColor);
+        }
+
+        // Event: Category selection changes - Update color dropdown options
+        groupSelect.addEventListener('change', (e) => {
+            this._populateColorDropdown(e.target.value);
+        });
+
+        // Event: Color selection changes - Apply color immediately to notch
+        colorSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const color = selectedOption.value.toUpperCase();
+                // Update preview square, hex input, and canvas
+                this._updateColorPreview(color);
+                this.elements.borderColorHex.value = color;
+                CanvasManager.setBorderColor(color);
+            }
+        });
+    },
+
+    /**
+     * Populate the color dropdown based on selected category
+     * Each option displays the color name/title with a colored square preview
+     * @param {string} groupName - The selected category/collection name
+     */
+    _populateColorDropdown(groupName) {
+        const colorSelect = this.elements.notchColorSelect;
+        const colors = this.notchColorGroups[groupName] || [];
+
+        // Clear existing options and add default placeholder
+        colorSelect.innerHTML = '<option value="">Select a color</option>';
+
+        // Add color options with colored square indicator
+        colors.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.color;
+
+            // Display format: ■ Title (unicode square + text)
+            option.textContent = `■ ${item.title}`;
+
+            // Tooltip shows full color information on hover
+            option.title = `${item.title} - ${item.color}`;
+
+            // Store color in data attribute for styling
+            option.dataset.color = item.color;
+            option.dataset.title = item.title;
+
+            colorSelect.appendChild(option);
+        });
+
+        // Apply colored square styling to each option
+        this._styleColorOptions(colorSelect);
+    },
+
+    /**
+     * Style dropdown options with colored unicode squares
+     * The unicode box character will be colored to match the hex color
+     * @param {HTMLSelectElement} selectElement - The select element containing color options
+     */
+    _styleColorOptions(selectElement) {
+        Array.from(selectElement.options).forEach(option => {
+            if (option.dataset.color) {
+                const color = option.dataset.color;
+
+                // Apply styling: Use text-shadow to create colored unicode box effect
+                // The first character (■) gets the color shadow, rest of text stays white
+                option.style.cssText = `
+                    background: var(--surface-color);
+                    padding-left: 0.2em;
+                    text-shadow: 0 0 0 ${color};
+                    color: ${color};
+                `;
+            }
+        });
+    },
+
+    /**
+     * Update the color preview square with the selected color
+     * @param {string} color - Hex color value to display
+     */
+    _updateColorPreview(color) {
+        if (this.elements.notchColorPreview) {
+            this.elements.notchColorPreview.style.backgroundColor = color;
+        }
+    },
+
+    /**
+     * Sync dropdown selection with manually entered hex color
+     * Searches current category for matching color and selects it
+     * @param {string} color - Hex color value to match
+     */
+    _syncDropdownWithColor(color) {
+        const colorSelect = this.elements.notchColorSelect;
+        const normalizedColor = color.toUpperCase();
+
+        // Try to find and select matching option in current dropdown
+        for (let i = 0; i < colorSelect.options.length; i++) {
+            if (colorSelect.options[i].value.toUpperCase() === normalizedColor) {
+                colorSelect.selectedIndex = i;
+                return;
+            }
+        }
+
+        // If not found, reset to default "Select a color"
+        colorSelect.selectedIndex = 0;
     },
 
     /**
@@ -294,9 +581,9 @@ const UIManager = {
         this.elements.topText.value = 'SeoYeon';
         this.elements.middleText.value = '100A';
         this.elements.bottomText.value = 'tripleS';
-        this.elements.imageUpload.value = '';
-        this.elements.borderColorPicker.value = '#FFD400';
-        this.elements.borderColorHex.value = '#FFD400';
+    this.elements.imageUpload.value = '';
+    this.elements.borderColorHex.value = '#FFD400';
+    CanvasManager.setBorderColor('#FFD400');
         this.elements.borderImageUpload.value = '';
         this.elements.clearBorderImage.style.display = 'none';
         this.elements.textColorPicker.value = '#000000';
