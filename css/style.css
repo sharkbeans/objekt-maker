@@ -38,6 +38,22 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Europa Grotesk No. 2 SB Font
+   Note: You'll need to add the actual font files (.woff2/.woff/.ttf) to your project
+   Common font file names: EuropaGroteskSH-SemiBd, EuropaGrotesk-SemiBold
+   Place them in an 'assets/fonts/' directory and uncomment the @font-face below:
+*/
+/*
+@font-face {
+    font-family: 'Europa Grotesk No. 2 SB';
+    src: url('../assets/fonts/EuropaGroteskSH-SemiBd.woff2') format('woff2'),
+         url('../assets/fonts/EuropaGroteskSH-SemiBd.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+*/
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: var(--bg-color);

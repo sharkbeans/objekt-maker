@@ -608,36 +608,46 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider1Y, whiteBoxRightEdge - leftMargin, 1);
 
         // NAME section
-        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + 17);
+        backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + 10);
 
-        backCtx.font = '700 90px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-4px';
-        backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 51);
+        backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '-2px'; // Doubled gap (was -4px, now -2px)
+        // Use stroke to make it slightly thicker than 500 but thinner than 600
+        backCtx.strokeStyle = '#000000'; // Purple for debugging, set to black later
+        backCtx.lineWidth = 2.2; // Fine tune thickness
+        backCtx.strokeText(this.backNameValue, leftMargin, divider1Y + 58); // Moved down 7px (was 51)
+        backCtx.fillStyle = this.textColor;
+        backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 58);
 
         // Horizontal divider 2 (1px solid line)
         backCtx.fillRect(leftMargin, divider2Y, whiteBoxRightEdge - leftMargin, 1);
 
         // CLASS section
-        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + 17);
+        backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + 10);
 
-        backCtx.font = '700 108px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-3px';
-        backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 51);
+        backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
+        // Use stroke to make it slightly thicker than 500 but thinner than 600
+        backCtx.strokeStyle = '#000000'; // Purple for debugging
+        backCtx.lineWidth = 2.2; // Increased to 3 for visibility
+        backCtx.strokeText(this.backClassValue, leftMargin, divider2Y + 58); // Moved down 7px (was 51)
+        backCtx.fillStyle = this.textColor;
+        backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 58);
 
         // Horizontal divider 3 (1px solid line)
         backCtx.fillRect(leftMargin, divider3Y, whiteBoxRightEdge - leftMargin, 1);
 
         // SEASON section
-        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + 17);
+        backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + 10);
 
         // Draw SEASON value with special handling for outline "02"
-        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + 49);
+        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + 56); // Moved down 7px (was 49)
 
         // Horizontal divider 4 (1px solid line)
         backCtx.fillRect(leftMargin, divider4Y, whiteBoxRightEdge - leftMargin, 1);
@@ -665,31 +675,71 @@ const CanvasManager = {
 
         // Draw rotated text on the sides
         backCtx.save();
-        const centerX = this.canvasWidth - this.accentWidth / 2;
+        // Position text at the right edge of the yellow info block
+        const whiteBackgroundWidth2 = this.accentWidth * 0.8378;
+        const rectWidth2 = this.canvasWidth - whiteBackgroundWidth2;
+        const rectY2 = this.accentWidth * 0.84375;
+        const rectHeight2 = this.canvasHeight - (2 * rectY2);
+        const rightGap = rectWidth2 * 0.04; // 4% of info block width from right edge
+        const textX = rectWidth2 - rightGap - 18; // Additional 10px left
+        const topGap = rectHeight2 * 0.04; // 4% of info block height from top edge
+        const bottomGap = 30; // Gap from bottom of info block
 
-        // Draw "SeoYeon" (name) - positioned in upper portion
-        backCtx.translate(centerX, 250);
+        // Draw "SeoYeon" (name) - aligned to top corner of info block
+        backCtx.translate(textX, rectY2 + topGap - 10); // Moved up 10px
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = '600 35px "Helvetica Neue", sans-serif';
+        backCtx.font = '600 41.18px "Helvetica Neue", sans-serif'; // Increased by 17.65% from 35px
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
         backCtx.letterSpacing = '-1.5px';
         backCtx.fillText(this.backNameValue, 0, 0);
         backCtx.restore();
 
-        // Draw "tripleS" text - positioned in lower portion
+        // Draw "tripleS" text - aligned to bottom corner of info block
         backCtx.save();
-        backCtx.translate(centerX, this.canvasHeight - 200);
+        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 125); // Moved up 125px
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = '600 35px "Helvetica Neue", sans-serif';
+        backCtx.font = '600 41.18px "Helvetica Neue", sans-serif'; // Increased by 17.65% from 35px
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
-        backCtx.letterSpacing = '-1.5px';
-        backCtx.fillText('tripleS', 0, 0);
+
+        // Special handling for "tripleS" text with custom letter pair spacing (same as front page)
+        const text = 'tripleS';
+        const baseSpacing = -1.5; // Base letter spacing for this text
+        const extraGap100 = Math.abs(baseSpacing); // 100% increment (doubling the gap)
+        const extraGap50 = Math.abs(baseSpacing) * 0.5; // 50% increment
+        const reducedGap = baseSpacing * 0.15; // 15% reduction
+
+        // Draw each character with custom spacing
+        let xOffset = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            backCtx.fillText(char, xOffset, 0);
+
+            // Measure character width for next position
+            const charWidth = backCtx.measureText(char).width;
+            xOffset += charWidth + baseSpacing;
+
+            // Add 100% extra gap after 't' (index 0) and 'r' (index 1)
+            if (i === 0 || i === 1) {
+                xOffset += extraGap100;
+            }
+
+            // Add 50% extra gap after 'l' (index 5)
+            if (i === 5) {
+                xOffset += extraGap50;
+            }
+
+            // Reduce gap after 'e' (index 6)
+            if (i === 6) {
+                xOffset -= reducedGap;
+            }
+        }
+
         backCtx.restore();
 
         return backCanvas;
@@ -758,8 +808,8 @@ const CanvasManager = {
      */
     drawSeasonTextWithOutline(ctx, text, x, y) {
         ctx.save();
-        ctx.font = '700 78px "Helvetica Neue", sans-serif';
-        ctx.letterSpacing = '-2.5px';
+        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        ctx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
 
@@ -770,7 +820,10 @@ const CanvasManager = {
             const textPart = numberMatch[1]; // e.g., "Atom"
             const numberPart = numberMatch[2]; // e.g., "02"
 
-            // Draw text part (filled)
+            // Draw text part with stroke + fill for slightly thicker appearance
+            ctx.strokeStyle = '#000000'; // Purple for debugging
+            ctx.lineWidth = 3; // Increased to 3 for visibility
+            ctx.strokeText(textPart, x, y);
             ctx.fillStyle = this.textColor;
             ctx.fillText(textPart, x, y);
 
@@ -779,10 +832,13 @@ const CanvasManager = {
 
             // Draw number part (outlined)
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2.0;
             ctx.strokeText(numberPart, x + textWidth - 3, y);
         } else {
-            // If no numbers, just draw normally
+            // If no numbers, just draw normally with stroke + fill
+            ctx.strokeStyle = this.textColor;
+            ctx.lineWidth = 0.5;
+            ctx.strokeText(text, x, y);
             ctx.fillStyle = this.textColor;
             ctx.fillText(text, x, y);
         }
