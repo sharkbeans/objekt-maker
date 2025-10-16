@@ -289,15 +289,18 @@ const UIManager = {
         // Toggle Back Side
         backSideToggle.addEventListener('click', () => {
             const isCollapsed = backSideToggle.classList.contains('collapsed');
+            const isMobile = window.innerWidth <= 768;
 
             if (isCollapsed) {
                 // Expand back side
                 backSideToggle.classList.remove('collapsed');
                 backSideContent.classList.remove('collapsed');
 
-                // Collapse front side
-                frontSideToggle.classList.add('collapsed');
-                frontSideContent.classList.add('collapsed');
+                // Collapse front side only on desktop, not on mobile
+                if (!isMobile) {
+                    frontSideToggle.classList.add('collapsed');
+                    frontSideContent.classList.add('collapsed');
+                }
             } else {
                 // Collapse back side
                 backSideToggle.classList.add('collapsed');
