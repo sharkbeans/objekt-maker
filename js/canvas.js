@@ -414,12 +414,13 @@ const CanvasManager = {
         }
 
         // Calculate Y position, adjusting if text would overflow the notch
+        const bottomMargin = 20; // Padding from the bottom edge of the notch
         let bottomTextY = defaultBottomY;
         const textEnd = defaultBottomY + textWidth; // After rotation, text extends upward (positive direction)
 
-        if (textEnd > notchBottom) {
-            // Text overflows - align to right edge of notch
-            bottomTextY = notchBottom - textWidth;
+        if (textEnd > notchBottom - bottomMargin) {
+            // Text overflows - align to right edge of notch with margin
+            bottomTextY = notchBottom - textWidth - bottomMargin;
         }
 
         this.ctx.translate(centerX, bottomTextY);
