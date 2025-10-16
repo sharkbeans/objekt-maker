@@ -32,6 +32,7 @@ const UIManager = {
             notchColorGroupSelect: document.getElementById('notchColorGroupSelect'),
             notchColorSelect: document.getElementById('notchColorSelect'),
             notchColorPreview: document.getElementById('notchColorPreview'),
+            notchColorPicker: document.getElementById('notchColorPicker'),
             borderColorHex: document.getElementById('borderColorHex'),
 
             // Border image controls
@@ -87,6 +88,21 @@ const UIManager = {
 
         // Notch color dropdowns - Populate and handle selection changes
         this._initNotchColorDropdowns();
+
+        // Click on preview box to open color picker
+        this.elements.notchColorPreview.addEventListener('click', () => {
+            this.elements.notchColorPicker.click();
+        });
+
+        // Color picker input for notch color
+        this.elements.notchColorPicker.addEventListener('input', (e) => {
+            const color = e.target.value.toUpperCase();
+            // Update preview square, hex input, canvas, and sync dropdown
+            this._updateColorPreview(color);
+            this.elements.borderColorHex.value = color;
+            CanvasManager.setBorderColor(color);
+            this._syncDropdownWithColor(color);
+        });
 
         // Hex input for notch color - Allow manual hex color entry
         this.elements.borderColorHex.addEventListener('input', (e) => {
@@ -425,6 +441,9 @@ const UIManager = {
     _updateColorPreview(color) {
         if (this.elements.notchColorPreview) {
             this.elements.notchColorPreview.style.backgroundColor = color;
+        }
+        if (this.elements.notchColorPicker) {
+            this.elements.notchColorPicker.value = color;
         }
     },
 
