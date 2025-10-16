@@ -590,7 +590,6 @@ const CanvasManager = {
         backCtx.textBaseline = 'top';
 
         const leftMargin = 47;
-        const rightMargin = 678; // Right edge for divider lines
 
         // Calculate divider positions based on info block proportions
         // Info block is 100 units tall, dividers at: 17.5, 32.5, 47.5, 62.5, 83.5
@@ -600,8 +599,13 @@ const CanvasManager = {
         const divider4Y = rectY + (rectHeight * 0.625); // 62.5 units
         const divider5Y = rectY + (rectHeight * 0.835); // 83.5 units
 
+        // Calculate white square position and size for divider line endpoint
+        const squareSize = divider5Y - divider4Y;
+        const whiteBoxX = rectX + (rectWidth * 0.52);
+        const whiteBoxRightEdge = whiteBoxX + squareSize;
+
         // Draw horizontal divider line 1 (1px solid line)
-        backCtx.fillRect(leftMargin, divider1Y, rightMargin - leftMargin, 1);
+        backCtx.fillRect(leftMargin, divider1Y, whiteBoxRightEdge - leftMargin, 1);
 
         // NAME section
         backCtx.font = '400 18px "Helvetica Neue", sans-serif';
@@ -613,7 +617,7 @@ const CanvasManager = {
         backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 51);
 
         // Horizontal divider 2 (1px solid line)
-        backCtx.fillRect(leftMargin, divider2Y, rightMargin - leftMargin, 1);
+        backCtx.fillRect(leftMargin, divider2Y, whiteBoxRightEdge - leftMargin, 1);
 
         // CLASS section
         backCtx.font = '400 18px "Helvetica Neue", sans-serif';
@@ -625,7 +629,7 @@ const CanvasManager = {
         backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 51);
 
         // Horizontal divider 3 (1px solid line)
-        backCtx.fillRect(leftMargin, divider3Y, rightMargin - leftMargin, 1);
+        backCtx.fillRect(leftMargin, divider3Y, whiteBoxRightEdge - leftMargin, 1);
 
         // SEASON section
         backCtx.font = '400 18px "Helvetica Neue", sans-serif';
@@ -636,31 +640,28 @@ const CanvasManager = {
         this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + 49);
 
         // Horizontal divider 4 (1px solid line)
-        backCtx.fillRect(leftMargin, divider4Y, rightMargin - leftMargin, 1);
+        backCtx.fillRect(leftMargin, divider4Y, whiteBoxRightEdge - leftMargin, 1);
 
         // Draw signature on the left side of the lower area
         const signatureWidth = 220;
-        const signatureHeight = 170;
+        const signatureHeight = squareSize;
         const signatureX = leftMargin + 30;
-        const signatureY = divider4Y + 29;
+        const signatureY = divider4Y + (squareSize - signatureHeight) / 2;
         this.drawSignature(backCtx, signatureX, signatureY, signatureWidth, signatureHeight);
 
-        // Draw white rectangle on the right side of the signature
-        const whiteBoxWidth = 255;
-        const whiteBoxHeight = 180;
-        const whiteBoxX = signatureX + signatureWidth + 50;
-        const whiteBoxY = divider4Y + 24;
+        // Draw white square (whiteBoxX and squareSize already calculated above)
+        const whiteBoxY = divider4Y;
         backCtx.fillStyle = '#FFFFFF';
-        backCtx.fillRect(whiteBoxX, whiteBoxY, whiteBoxWidth, whiteBoxHeight);
+        backCtx.fillRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
+
+        // Add black border to white square (1px like divider lines)
+        backCtx.strokeStyle = this.textColor;
+        backCtx.lineWidth = 1;
+        backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Horizontal divider 5 at bottom (1px solid line)
         backCtx.fillStyle = this.textColor;
-        backCtx.fillRect(leftMargin, divider5Y, rightMargin - leftMargin, 1);
-
-        // Footer text - Updated to match reference
-        backCtx.font = '400 10.5px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '0px';
-        backCtx.fillText('©& MODHAUS. All Rights Reserved.', leftMargin, divider5Y + 22);
+        backCtx.fillRect(leftMargin, divider5Y, whiteBoxRightEdge - leftMargin, 1);
 
         // Draw rotated text on the sides
         backCtx.save();
