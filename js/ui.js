@@ -31,7 +31,6 @@ const UIManager = {
             // Notch color controls - Dropdown selectors for category and color
             notchColorGroupSelect: document.getElementById('notchColorGroupSelect'),
             notchColorSelect: document.getElementById('notchColorSelect'),
-            notchColorPreview: document.getElementById('notchColorPreview'),
             notchColorPicker: document.getElementById('notchColorPicker'),
             borderColorHex: document.getElementById('borderColorHex'),
 
@@ -88,11 +87,6 @@ const UIManager = {
 
         // Notch color dropdowns - Populate and handle selection changes
         this._initNotchColorDropdowns();
-
-        // Click on preview box to open color picker
-        this.elements.notchColorPreview.addEventListener('click', () => {
-            this.elements.notchColorPicker.click();
-        });
 
         // Color picker input for notch color
         this.elements.notchColorPicker.addEventListener('input', (e) => {
@@ -439,9 +433,6 @@ const UIManager = {
      * @param {string} color - Hex color value to display
      */
     _updateColorPreview(color) {
-        if (this.elements.notchColorPreview) {
-            this.elements.notchColorPreview.style.backgroundColor = color;
-        }
         if (this.elements.notchColorPicker) {
             this.elements.notchColorPicker.value = color;
         }
