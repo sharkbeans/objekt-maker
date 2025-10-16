@@ -35,7 +35,7 @@ const App = {
 
         } catch (error) {
             console.error('Failed to initialize app:', error);
-            this.showError('Failed to initialize application. Please refresh the page.');
+            // Removed alert - error logged to console only
         }
     },
 

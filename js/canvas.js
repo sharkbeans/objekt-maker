@@ -558,22 +558,31 @@ const CanvasManager = {
         backCtx.restore();
 
         // Draw yellow rectangle with corner rounding
-        // Width = canvasWidth - accentWidth (notch width)
-        // Height = canvasHeight - 2*accentWidth
-        const rectWidth = this.canvasWidth - this.accentWidth;
-        const rectHeight = this.canvasHeight - (2 * this.accentWidth);
+        // Width calculation: white background decreased by 16.22%, so yellow box expands
+        // Original white width: accentWidth (82.61793)
+        // New white width: accentWidth * (1 - 0.1622) = accentWidth * 0.8378
+        const whiteBackgroundWidth = this.accentWidth * 0.8378;
+        const rectWidth = this.canvasWidth - whiteBackgroundWidth;
+
+        // Height calculation: top and bottom white parts decreased by 15.625%
+        // Original top/bottom white height: accentWidth (82.61793)
+        // New top/bottom white height: accentWidth * (1 - 0.15625) = accentWidth * 0.84375
+        const whiteBackgroundHeight = this.accentWidth * 0.84375;
+        const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
+
         const rectX = 0;
-        const rectY = this.accentWidth;
-        const rectRadius = 20; // Corner radius for the yellow rectangle
+        const rectY = whiteBackgroundHeight;
+        const rectRadius = 26; // Corner radius for the info block (increased by 30% from 20)
 
         backCtx.save();
-        this.createRoundedRectOnContext(backCtx, rectX, rectY, rectWidth, rectHeight, rectRadius);
+        // Draw content panel with rounded corners only on right side (top-right and bottom-right)
+        this.createPartiallyRoundedRect(backCtx, rectX, rectY, rectWidth, rectHeight, rectRadius);
         backCtx.fillStyle = this.accentColor; // Yellow color (inherits from front)
         backCtx.fill();
         backCtx.restore();
 
         // Draw filled hexagonal cube logo at top left
-        this.drawFilledHexCubeIcon(backCtx, 47, 124);
+        this.drawFilledHexCubeIcon(backCtx, 47, 110);
 
         // Draw the text content on the left side
         backCtx.fillStyle = this.textColor;
@@ -581,58 +590,77 @@ const CanvasManager = {
         backCtx.textBaseline = 'top';
 
         const leftMargin = 47;
-        const rightMargin = 678; // Right edge for divider lines (adjusted to match reference)
+        const rightMargin = 678; // Right edge for divider lines
 
-        // Draw horizontal divider line at top
-        backCtx.fillRect(leftMargin, 290, rightMargin - leftMargin, 2);
+        // Calculate divider positions based on info block proportions
+        // Info block is 100 units tall, dividers at: 17.5, 32.5, 47.5, 62.5, 83.5
+        const divider1Y = rectY + (rectHeight * 0.175); // 17.5 units
+        const divider2Y = rectY + (rectHeight * 0.325); // 32.5 units
+        const divider3Y = rectY + (rectHeight * 0.475); // 47.5 units
+        const divider4Y = rectY + (rectHeight * 0.625); // 62.5 units
+        const divider5Y = rectY + (rectHeight * 0.835); // 83.5 units
+
+        // Draw horizontal divider line 1 (1px solid line)
+        backCtx.fillRect(leftMargin, divider1Y, rightMargin - leftMargin, 1);
 
         // NAME section
-        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backNameLabel, leftMargin, 317);
-
-        backCtx.font = '700 80px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-3px';
-        backCtx.fillText(this.backNameValue, leftMargin, 352);
-
-        // Horizontal divider
-        backCtx.fillRect(leftMargin, 475, rightMargin - leftMargin, 2);
-
-        // CLASS section
-        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backClassLabel, leftMargin, 502);
+        backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + 17);
 
         backCtx.font = '700 90px "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-2px';
-        backCtx.fillText(this.backClassValue, leftMargin, 537);
+        backCtx.letterSpacing = '-4px';
+        backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 51);
 
-        // Horizontal divider
-        backCtx.fillRect(leftMargin, 655, rightMargin - leftMargin, 2);
+        // Horizontal divider 2 (1px solid line)
+        backCtx.fillRect(leftMargin, divider2Y, rightMargin - leftMargin, 1);
+
+        // CLASS section
+        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '0px';
+        backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + 17);
+
+        backCtx.font = '700 108px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '-3px';
+        backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 51);
+
+        // Horizontal divider 3 (1px solid line)
+        backCtx.fillRect(leftMargin, divider3Y, rightMargin - leftMargin, 1);
 
         // SEASON section
-        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 18px "Helvetica Neue", sans-serif';
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backSeasonLabel, leftMargin, 682);
+        backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + 17);
 
         // Draw SEASON value with special handling for outline "02"
-        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, 717);
+        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + 49);
 
-        // Draw signature/white box area (bottom left)
+        // Horizontal divider 4 (1px solid line)
+        backCtx.fillRect(leftMargin, divider4Y, rightMargin - leftMargin, 1);
+
+        // Draw signature on the left side of the lower area
+        const signatureWidth = 220;
+        const signatureHeight = 170;
+        const signatureX = leftMargin + 30;
+        const signatureY = divider4Y + 29;
+        this.drawSignature(backCtx, signatureX, signatureY, signatureWidth, signatureHeight);
+
+        // Draw white rectangle on the right side of the signature
+        const whiteBoxWidth = 255;
+        const whiteBoxHeight = 180;
+        const whiteBoxX = signatureX + signatureWidth + 50;
+        const whiteBoxY = divider4Y + 24;
         backCtx.fillStyle = '#FFFFFF';
-        backCtx.fillRect(leftMargin, 837, 260, 260);
+        backCtx.fillRect(whiteBoxX, whiteBoxY, whiteBoxWidth, whiteBoxHeight);
 
-        // Draw signature inside the box if available
-        this.drawSignature(backCtx, leftMargin, 837, 260, 260);
-
-        // Horizontal divider at bottom
+        // Horizontal divider 5 at bottom (1px solid line)
         backCtx.fillStyle = this.textColor;
-        backCtx.fillRect(leftMargin, 1120, rightMargin - leftMargin, 2);
+        backCtx.fillRect(leftMargin, divider5Y, rightMargin - leftMargin, 1);
 
         // Footer text - Updated to match reference
-        backCtx.font = '400 11px "Helvetica Neue", sans-serif';
+        backCtx.font = '400 10.5px "Helvetica Neue", sans-serif';
         backCtx.letterSpacing = '0px';
-        backCtx.fillText('©& MODHAUS. All Rights Reserved.', leftMargin, 1145);
+        backCtx.fillText('©& MODHAUS. All Rights Reserved.', leftMargin, divider5Y + 22);
 
         // Draw rotated text on the sides
         backCtx.save();
@@ -673,10 +701,10 @@ const CanvasManager = {
      * @param {number} y - Y position
      */
     drawFilledHexCubeIcon(ctx, x, y) {
-        const size = 90;
+        const size = 100;
         ctx.save();
         ctx.strokeStyle = this.textColor;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3.5;
         ctx.lineJoin = 'miter';
         ctx.lineCap = 'square';
 
@@ -729,8 +757,8 @@ const CanvasManager = {
      */
     drawSeasonTextWithOutline(ctx, text, x, y) {
         ctx.save();
-        ctx.font = '700 75px "Helvetica Neue", sans-serif';
-        ctx.letterSpacing = '-2px';
+        ctx.font = '700 78px "Helvetica Neue", sans-serif';
+        ctx.letterSpacing = '-2.5px';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
 
@@ -750,8 +778,8 @@ const CanvasManager = {
 
             // Draw number part (outlined)
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 3;
-            ctx.strokeText(numberPart, x + textWidth - 2, y);
+            ctx.lineWidth = 2.5;
+            ctx.strokeText(numberPart, x + textWidth - 3, y);
         } else {
             // If no numbers, just draw normally
             ctx.fillStyle = this.textColor;
@@ -762,57 +790,54 @@ const CanvasManager = {
     },
 
     /**
-     * Draw signature in the signature box
+     * Draw signature in the signature area (left side, next to white box)
      * @param {CanvasRenderingContext2D} ctx - Canvas context
-     * @param {number} x - Box X position
-     * @param {number} y - Box Y position
-     * @param {number} width - Box width
-     * @param {number} height - Box height
+     * @param {number} x - Signature X position
+     * @param {number} y - Signature Y position
+     * @param {number} _width - Signature area width (unused)
+     * @param {number} height - Signature area height
      */
-    drawSignature(ctx, x, y, width, height) {
+    drawSignature(ctx, x, y, _width, height) {
         // Draw a stylized signature similar to the reference
         ctx.save();
         ctx.strokeStyle = this.textColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        const centerX = x + width / 2;
         const centerY = y + height / 2;
-        const scale = 0.6;
 
-        // Draw a stylized cursive signature (abstract representation)
-        // This creates flowing curves similar to a handwritten signature
+        // Draw a flowing cursive signature
         ctx.beginPath();
 
-        // First curve (left side)
-        ctx.moveTo(x + 40, centerY + 20);
+        // First swooping curve
+        ctx.moveTo(x, centerY - 10);
         ctx.bezierCurveTo(
-            x + 60, centerY - 30,
-            x + 80, centerY + 40,
-            x + 100, centerY - 10
+            x + 30, centerY - 35,
+            x + 50, centerY + 20,
+            x + 80, centerY - 5
         );
 
-        // Second curve (middle)
+        // Middle flowing part
         ctx.bezierCurveTo(
-            x + 120, centerY - 40,
-            x + 140, centerY + 30,
-            x + 160, centerY + 10
+            x + 110, centerY - 25,
+            x + 130, centerY + 15,
+            x + 160, centerY + 5
         );
 
-        // Third curve (right side)
+        // Final tail
         ctx.bezierCurveTo(
-            x + 180, centerY - 20,
-            x + 200, centerY + 20,
-            x + 220, centerY - 5
+            x + 180, centerY - 10,
+            x + 200, centerY + 10,
+            x + 220, centerY
         );
 
         ctx.stroke();
 
-        // Add a decorative underline
+        // Add a subtle underline below the signature
         ctx.beginPath();
-        ctx.moveTo(x + 40, centerY + 40);
-        ctx.quadraticCurveTo(centerX, centerY + 50, x + width - 40, centerY + 40);
+        ctx.moveTo(x + 10, centerY + 40);
+        ctx.lineTo(x + 200, centerY + 40);
         ctx.stroke();
 
         ctx.restore();
@@ -838,6 +863,33 @@ const CanvasManager = {
         ctx.arcTo(x, y + height, x, y + height - radius, radius);
         ctx.lineTo(x, y + radius);
         ctx.arcTo(x, y, x + radius, y, radius);
+        ctx.closePath();
+    },
+
+    /**
+     * Create partially rounded rectangle path (only top-right and bottom-right corners rounded)
+     * Used for the content panel on the back side
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} width - Width
+     * @param {number} height - Height
+     * @param {number} radius - Corner radius for top-right and bottom-right
+     */
+    createPartiallyRoundedRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        // Start at top-left (no rounding)
+        ctx.moveTo(x, y);
+        // Top edge to top-right corner (with rounding)
+        ctx.lineTo(x + width - radius, y);
+        ctx.arcTo(x + width, y, x + width, y + radius, radius);
+        // Right edge to bottom-right corner (with rounding)
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+        // Bottom edge to bottom-left (no rounding)
+        ctx.lineTo(x, y + height);
+        // Left edge back to top-left (no rounding)
+        ctx.lineTo(x, y);
         ctx.closePath();
     },
 

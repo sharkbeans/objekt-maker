@@ -224,6 +224,11 @@ const UIManager = {
             this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
         });
 
+        // Auto-enable back side by default
+        this.elements.enableBackSide.checked = true;
+        CanvasManager.setBackSideEnabled(true);
+        this.elements.backSideControls.style.display = 'block';
+
         this.elements.backNameLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameLabel: e.target.value });
         });
