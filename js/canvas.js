@@ -23,6 +23,16 @@ const CanvasManager = {
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
 
+    // Back side settings
+    enableBackSide: false,
+    backNameLabel: 'NAME',
+    backNameValue: 'SeoYeon',
+    backClassLabel: 'CLASS',
+    backClassValue: 'First',
+    backSeasonLabel: 'SEASON',
+    backSeasonValue: 'Atom02',
+    backFooterText: '©& MODHAUS. All Rights Reserved.',
+
     /**
      * Initialize canvas manager
      * @param {HTMLCanvasElement} canvasElement - The canvas element
@@ -127,6 +137,7 @@ const CanvasManager = {
     setBorderColor(color) {
         this.accentColor = color;
         this.render();
+        this.updateBackSidePreview();
     },
 
     /**
@@ -136,6 +147,33 @@ const CanvasManager = {
     setTextColor(color) {
         this.textColor = color;
         this.render();
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set back side enabled state
+     * @param {boolean} enabled - Whether back side is enabled
+     */
+    setBackSideEnabled(enabled) {
+        this.enableBackSide = enabled;
+        // Trigger back side preview update
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set back side text values
+     * @param {Object} data - Back side text data
+     */
+    setBackSideData(data) {
+        if (data.nameLabel !== undefined) this.backNameLabel = data.nameLabel;
+        if (data.nameValue !== undefined) this.backNameValue = data.nameValue;
+        if (data.classLabel !== undefined) this.backClassLabel = data.classLabel;
+        if (data.classValue !== undefined) this.backClassValue = data.classValue;
+        if (data.seasonLabel !== undefined) this.backSeasonLabel = data.seasonLabel;
+        if (data.seasonValue !== undefined) this.backSeasonValue = data.seasonValue;
+        if (data.footerText !== undefined) this.backFooterText = data.footerText;
+        // Update back side preview
+        this.updateBackSidePreview();
     },
 
     /**
@@ -167,6 +205,7 @@ const CanvasManager = {
                     this.borderImage = img;
                     console.log('Border image loaded:', img.width, 'x', img.height);
                     this.render();
+                    this.updateBackSidePreview();
                     resolve(true);
                 };
 
@@ -191,6 +230,7 @@ const CanvasManager = {
     clearBorderImage() {
         this.borderImage = null;
         this.render();
+        this.updateBackSidePreview();
     },
 
     /**
@@ -202,6 +242,30 @@ const CanvasManager = {
         this.imagePosX = x;
         this.imagePosY = y;
         this.render();
+    },
+
+    /**
+     * Update back side preview canvas
+     */
+    updateBackSidePreview() {
+        const backCanvasWrapper = document.getElementById('backCanvasWrapper');
+        const backCanvas = document.getElementById('backCanvas');
+
+        if (!backCanvasWrapper || !backCanvas) return;
+
+        if (this.enableBackSide) {
+            // Show the back canvas wrapper
+            backCanvasWrapper.classList.add('active');
+
+            // Render the back side to the preview canvas
+            const backSideCanvas = this.renderBackSide();
+            const backCtx = backCanvas.getContext('2d');
+            backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height);
+            backCtx.drawImage(backSideCanvas, 0, 0);
+        } else {
+            // Hide the back canvas wrapper
+            backCanvasWrapper.classList.remove('active');
+        }
     },
 
     /**
@@ -469,26 +533,367 @@ const CanvasManager = {
     },
 
     /**
+     * Render back side of the Objekt card
+     * @returns {HTMLCanvasElement} Canvas with back side rendered
+     */
+    renderBackSide() {
+        // Create a new canvas for the back side
+        const backCanvas = document.createElement('canvas');
+        backCanvas.width = this.canvasWidth;
+        backCanvas.height = this.canvasHeight;
+        const backCtx = backCanvas.getContext('2d');
+
+        // Enable high quality rendering
+        backCtx.imageSmoothingEnabled = true;
+        backCtx.imageSmoothingQuality = 'high';
+
+        // Clear canvas
+        backCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+        // Draw rounded rectangle background (white)
+        backCtx.save();
+        this.createRoundedRectOnContext(backCtx, 0, 0, this.canvasWidth, this.canvasHeight, this.cornerRadius);
+        backCtx.fillStyle = '#FFFFFF'; // White background
+        backCtx.fill();
+        backCtx.restore();
+
+        // Draw yellow rectangle with corner rounding
+        // Width = canvasWidth - accentWidth (notch width)
+        // Height = canvasHeight - 2*accentWidth
+        const rectWidth = this.canvasWidth - this.accentWidth;
+        const rectHeight = this.canvasHeight - (2 * this.accentWidth);
+        const rectX = 0;
+        const rectY = this.accentWidth;
+        const rectRadius = 20; // Corner radius for the yellow rectangle
+
+        backCtx.save();
+        this.createRoundedRectOnContext(backCtx, rectX, rectY, rectWidth, rectHeight, rectRadius);
+        backCtx.fillStyle = this.accentColor; // Yellow color (inherits from front)
+        backCtx.fill();
+        backCtx.restore();
+
+        // Draw filled hexagonal cube logo at top left
+        this.drawFilledHexCubeIcon(backCtx, 47, 124);
+
+        // Draw the text content on the left side
+        backCtx.fillStyle = this.textColor;
+        backCtx.textAlign = 'left';
+        backCtx.textBaseline = 'top';
+
+        const leftMargin = 47;
+        const rightMargin = 678; // Right edge for divider lines (adjusted to match reference)
+
+        // Draw horizontal divider line at top
+        backCtx.fillRect(leftMargin, 290, rightMargin - leftMargin, 2);
+
+        // NAME section
+        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '0px';
+        backCtx.fillText(this.backNameLabel, leftMargin, 317);
+
+        backCtx.font = '700 80px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '-3px';
+        backCtx.fillText(this.backNameValue, leftMargin, 352);
+
+        // Horizontal divider
+        backCtx.fillRect(leftMargin, 475, rightMargin - leftMargin, 2);
+
+        // CLASS section
+        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '0px';
+        backCtx.fillText(this.backClassLabel, leftMargin, 502);
+
+        backCtx.font = '700 90px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '-2px';
+        backCtx.fillText(this.backClassValue, leftMargin, 537);
+
+        // Horizontal divider
+        backCtx.fillRect(leftMargin, 655, rightMargin - leftMargin, 2);
+
+        // SEASON section
+        backCtx.font = '400 20px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '0px';
+        backCtx.fillText(this.backSeasonLabel, leftMargin, 682);
+
+        // Draw SEASON value with special handling for outline "02"
+        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, 717);
+
+        // Draw signature/white box area (bottom left)
+        backCtx.fillStyle = '#FFFFFF';
+        backCtx.fillRect(leftMargin, 837, 260, 260);
+
+        // Draw signature inside the box if available
+        this.drawSignature(backCtx, leftMargin, 837, 260, 260);
+
+        // Horizontal divider at bottom
+        backCtx.fillStyle = this.textColor;
+        backCtx.fillRect(leftMargin, 1120, rightMargin - leftMargin, 2);
+
+        // Footer text - Updated to match reference
+        backCtx.font = '400 11px "Helvetica Neue", sans-serif';
+        backCtx.letterSpacing = '0px';
+        backCtx.fillText('©& MODHAUS. All Rights Reserved.', leftMargin, 1145);
+
+        // Draw rotated text on the sides
+        backCtx.save();
+        const centerX = this.canvasWidth - this.accentWidth / 2;
+
+        // Draw "SeoYeon" (name) - positioned in upper portion
+        backCtx.translate(centerX, 250);
+        backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
+
+        backCtx.fillStyle = this.textColor;
+        backCtx.font = '600 35px "Helvetica Neue", sans-serif';
+        backCtx.textAlign = 'left';
+        backCtx.textBaseline = 'middle';
+        backCtx.letterSpacing = '-1.5px';
+        backCtx.fillText(this.backNameValue, 0, 0);
+        backCtx.restore();
+
+        // Draw "tripleS" text - positioned in lower portion
+        backCtx.save();
+        backCtx.translate(centerX, this.canvasHeight - 200);
+        backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
+
+        backCtx.fillStyle = this.textColor;
+        backCtx.font = '600 35px "Helvetica Neue", sans-serif';
+        backCtx.textAlign = 'left';
+        backCtx.textBaseline = 'middle';
+        backCtx.letterSpacing = '-1.5px';
+        backCtx.fillText('tripleS', 0, 0);
+        backCtx.restore();
+
+        return backCanvas;
+    },
+
+    /**
+     * Draw outlined hexagonal cube logo (matching the reference card logo)
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     */
+    drawFilledHexCubeIcon(ctx, x, y) {
+        const size = 90;
+        ctx.save();
+        ctx.strokeStyle = this.textColor;
+        ctx.lineWidth = 4;
+        ctx.lineJoin = 'miter';
+        ctx.lineCap = 'square';
+
+        // Draw outlined hexagonal cube (isometric style)
+        const w = size * 0.65;
+        const h = size * 0.75;
+
+        // Top face (diamond/rhombus) - outline only
+        ctx.beginPath();
+        ctx.moveTo(x + w / 2, y);
+        ctx.lineTo(x + w, y + h * 0.25);
+        ctx.lineTo(x + w / 2, y + h * 0.5);
+        ctx.lineTo(x, y + h * 0.25);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Left face - outline only
+        ctx.beginPath();
+        ctx.moveTo(x, y + h * 0.25);
+        ctx.lineTo(x + w / 2, y + h * 0.5);
+        ctx.lineTo(x + w / 2, y + h);
+        ctx.lineTo(x, y + h * 0.75);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Right face - outline only
+        ctx.beginPath();
+        ctx.moveTo(x + w / 2, y + h * 0.5);
+        ctx.lineTo(x + w, y + h * 0.25);
+        ctx.lineTo(x + w, y + h * 0.75);
+        ctx.lineTo(x + w / 2, y + h);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Add internal vertical line for detail
+        ctx.beginPath();
+        ctx.moveTo(x + w / 2, y);
+        ctx.lineTo(x + w / 2, y + h);
+        ctx.stroke();
+
+        ctx.restore();
+    },
+
+    /**
+     * Draw season text with outline style for numbers (like "Atom02" where "02" is outlined)
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {string} text - Season text (e.g., "Atom02")
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     */
+    drawSeasonTextWithOutline(ctx, text, x, y) {
+        ctx.save();
+        ctx.font = '700 75px "Helvetica Neue", sans-serif';
+        ctx.letterSpacing = '-2px';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+
+        // Check if text ends with numbers (like "02")
+        const numberMatch = text.match(/^([A-Za-z]+)(\d+)$/);
+
+        if (numberMatch) {
+            const textPart = numberMatch[1]; // e.g., "Atom"
+            const numberPart = numberMatch[2]; // e.g., "02"
+
+            // Draw text part (filled)
+            ctx.fillStyle = this.textColor;
+            ctx.fillText(textPart, x, y);
+
+            // Measure text part width
+            const textWidth = ctx.measureText(textPart).width;
+
+            // Draw number part (outlined)
+            ctx.strokeStyle = this.textColor;
+            ctx.lineWidth = 3;
+            ctx.strokeText(numberPart, x + textWidth - 2, y);
+        } else {
+            // If no numbers, just draw normally
+            ctx.fillStyle = this.textColor;
+            ctx.fillText(text, x, y);
+        }
+
+        ctx.restore();
+    },
+
+    /**
+     * Draw signature in the signature box
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - Box X position
+     * @param {number} y - Box Y position
+     * @param {number} width - Box width
+     * @param {number} height - Box height
+     */
+    drawSignature(ctx, x, y, width, height) {
+        // Draw a stylized signature similar to the reference
+        ctx.save();
+        ctx.strokeStyle = this.textColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
+        const scale = 0.6;
+
+        // Draw a stylized cursive signature (abstract representation)
+        // This creates flowing curves similar to a handwritten signature
+        ctx.beginPath();
+
+        // First curve (left side)
+        ctx.moveTo(x + 40, centerY + 20);
+        ctx.bezierCurveTo(
+            x + 60, centerY - 30,
+            x + 80, centerY + 40,
+            x + 100, centerY - 10
+        );
+
+        // Second curve (middle)
+        ctx.bezierCurveTo(
+            x + 120, centerY - 40,
+            x + 140, centerY + 30,
+            x + 160, centerY + 10
+        );
+
+        // Third curve (right side)
+        ctx.bezierCurveTo(
+            x + 180, centerY - 20,
+            x + 200, centerY + 20,
+            x + 220, centerY - 5
+        );
+
+        ctx.stroke();
+
+        // Add a decorative underline
+        ctx.beginPath();
+        ctx.moveTo(x + 40, centerY + 40);
+        ctx.quadraticCurveTo(centerX, centerY + 50, x + width - 40, centerY + 40);
+        ctx.stroke();
+
+        ctx.restore();
+    },
+
+    /**
+     * Create rounded rectangle path on a given context
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} width - Width
+     * @param {number} height - Height
+     * @param {number} radius - Corner radius
+     */
+    createRoundedRectOnContext(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.arcTo(x + width, y, x + width, y + radius, radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+        ctx.lineTo(x + radius, y + height);
+        ctx.arcTo(x, y + height, x, y + height - radius, radius);
+        ctx.lineTo(x, y + radius);
+        ctx.arcTo(x, y, x + radius, y, radius);
+        ctx.closePath();
+    },
+
+    /**
      * Export canvas as downloadable image
      * @param {Array} textOverlays - Array of text overlay objects (not used anymore)
      * @param {string} format - Export format ('png' or 'jpeg')
      * @param {string} filename - Download filename
      */
     async exportImage(textOverlays = [], format = 'png', filename = 'image') {
-        // Convert to blob and download
-        return new Promise((resolve) => {
-            this.canvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `${filename}.${format}`;
-                link.href = url;
-                link.click();
+        if (this.enableBackSide) {
+            // Export both front and back side
+            // First, download the front side
+            await new Promise((resolve) => {
+                this.canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${filename}-front.${format}`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    resolve(true);
+                }, `image/${format}`, 0.95);
+            });
 
-                // Clean up
-                URL.revokeObjectURL(url);
-                resolve(true);
-            }, `image/${format}`, 0.95);
-        });
+            // Then, download the back side
+            const backCanvas = this.renderBackSide();
+            await new Promise((resolve) => {
+                backCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${filename}-back.${format}`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    resolve(true);
+                }, `image/${format}`, 0.95);
+            });
+
+            return true;
+        } else {
+            // Export only front side
+            return new Promise((resolve) => {
+                this.canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${filename}.${format}`;
+                    link.href = url;
+                    link.click();
+
+                    // Clean up
+                    URL.revokeObjectURL(url);
+                    resolve(true);
+                }, `image/${format}`, 0.95);
+            });
+        }
     },
 
     /**

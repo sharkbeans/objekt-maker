@@ -162,6 +162,42 @@
                 </section>
 
                 <section class="control-section">
+                    <h2 class="section-title"><i data-lucide="credit-card"></i> Back Side</h2>
+                    <div class="adjustment-controls">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="enableBackSide" style="width: auto;">
+                            <span>Generate Back Side</span>
+                        </label>
+                        <div id="backSideControls" style="display: none;">
+                            <label>
+                                <span>NAME Label:</span>
+                                <input type="text" id="backNameLabel" value="NAME" class="text-input">
+                            </label>
+                            <label>
+                                <span>Name Value:</span>
+                                <input type="text" id="backNameValue" value="SeoYeon" class="text-input">
+                            </label>
+                            <label>
+                                <span>CLASS Label:</span>
+                                <input type="text" id="backClassLabel" value="CLASS" class="text-input">
+                            </label>
+                            <label>
+                                <span>Class Value:</span>
+                                <input type="text" id="backClassValue" value="First" class="text-input">
+                            </label>
+                            <label>
+                                <span>SEASON Label:</span>
+                                <input type="text" id="backSeasonLabel" value="SEASON" class="text-input">
+                            </label>
+                            <label>
+                                <span>Season Value:</span>
+                                <input type="text" id="backSeasonValue" value="Atom02" class="text-input">
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="control-section">
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
                     <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </section>
@@ -170,7 +206,12 @@
             <!-- Canvas Area -->
             <div class="canvas-container" id="canvasContainer">
                 <div class="canvas-wrapper" id="canvasWrapper">
+                    <div class="preview-label">Front Side</div>
                     <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                </div>
+                <div class="canvas-wrapper" id="backCanvasWrapper">
+                    <div class="preview-label">Back Side</div>
+                    <canvas id="backCanvas" width="768" height="1186"></canvas>
                 </div>
                 <div class="canvas-placeholder" id="canvasPlaceholder">
                     <p>Upload an image to get started</p>

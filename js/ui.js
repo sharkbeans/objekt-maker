@@ -60,7 +60,18 @@ const UIManager = {
             exportBtn: document.getElementById('exportBtn'),
             resetBtn: document.getElementById('resetBtn'),
             exportBtnMobile: document.getElementById('exportBtnMobile'),
-            resetBtnMobile: document.getElementById('resetBtnMobile')
+            resetBtnMobile: document.getElementById('resetBtnMobile'),
+
+            // Back side controls
+            enableBackSide: document.getElementById('enableBackSide'),
+            backSideControls: document.getElementById('backSideControls'),
+            backNameLabel: document.getElementById('backNameLabel'),
+            backNameValue: document.getElementById('backNameValue'),
+            backClassLabel: document.getElementById('backClassLabel'),
+            backClassValue: document.getElementById('backClassValue'),
+            backSeasonLabel: document.getElementById('backSeasonLabel'),
+            backSeasonValue: document.getElementById('backSeasonValue'),
+            backFooterText: document.getElementById('backFooterText')
         };
 
         this.bindEvents();
@@ -205,6 +216,41 @@ const UIManager = {
         this.elements.resetBtn.addEventListener('click', () => this.resetAll());
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
+
+        // Back side controls
+        this.elements.enableBackSide.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            CanvasManager.setBackSideEnabled(enabled);
+            this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
+        });
+
+        this.elements.backNameLabel.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ nameLabel: e.target.value });
+        });
+
+        this.elements.backNameValue.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ nameValue: e.target.value });
+        });
+
+        this.elements.backClassLabel.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ classLabel: e.target.value });
+        });
+
+        this.elements.backClassValue.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ classValue: e.target.value });
+        });
+
+        this.elements.backSeasonLabel.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ seasonLabel: e.target.value });
+        });
+
+        this.elements.backSeasonValue.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ seasonValue: e.target.value });
+        });
+
+        this.elements.backFooterText.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ footerText: e.target.value });
+        });
     },
 
     /**
