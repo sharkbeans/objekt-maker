@@ -71,7 +71,7 @@ const UIManager = {
             backClassValue: document.getElementById('backClassValue'),
             backSeasonLabel: document.getElementById('backSeasonLabel'),
             backSeasonValue: document.getElementById('backSeasonValue'),
-            backFooterText: document.getElementById('backFooterText')
+            backGroupName: document.getElementById('backGroupName')
         };
 
         this.bindEvents();
@@ -224,11 +224,6 @@ const UIManager = {
             this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
         });
 
-        // Auto-enable back side by default
-        this.elements.enableBackSide.checked = true;
-        CanvasManager.setBackSideEnabled(true);
-        this.elements.backSideControls.style.display = 'block';
-
         this.elements.backNameLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameLabel: e.target.value });
         });
@@ -253,8 +248,61 @@ const UIManager = {
             CanvasManager.setBackSideData({ seasonValue: e.target.value });
         });
 
-        this.elements.backFooterText.addEventListener('input', (e) => {
-            CanvasManager.setBackSideData({ footerText: e.target.value });
+        this.elements.backGroupName.addEventListener('input', (e) => {
+            CanvasManager.setBackSideData({ groupName: e.target.value });
+        });
+
+        // Collapsible section handlers
+        this.setupCollapsibleSections();
+    },
+
+    /**
+     * Setup collapsible sections for Front Side and Back Side
+     */
+    setupCollapsibleSections() {
+        const frontSideToggle = document.getElementById('frontSideToggle');
+        const frontSideContent = document.getElementById('frontSideContent');
+        const backSideToggle = document.getElementById('backSideToggle');
+        const backSideContent = document.getElementById('backSideContent');
+
+        if (!frontSideToggle || !backSideToggle) return;
+
+        // Toggle Front Side
+        frontSideToggle.addEventListener('click', () => {
+            const isCollapsed = frontSideToggle.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                // Expand front side
+                frontSideToggle.classList.remove('collapsed');
+                frontSideContent.classList.remove('collapsed');
+
+                // Collapse back side
+                backSideToggle.classList.add('collapsed');
+                backSideContent.classList.add('collapsed');
+            } else {
+                // Collapse front side
+                frontSideToggle.classList.add('collapsed');
+                frontSideContent.classList.add('collapsed');
+            }
+        });
+
+        // Toggle Back Side
+        backSideToggle.addEventListener('click', () => {
+            const isCollapsed = backSideToggle.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                // Expand back side
+                backSideToggle.classList.remove('collapsed');
+                backSideContent.classList.remove('collapsed');
+
+                // Collapse front side
+                frontSideToggle.classList.add('collapsed');
+                frontSideContent.classList.add('collapsed');
+            } else {
+                // Collapse back side
+                backSideToggle.classList.add('collapsed');
+                backSideContent.classList.add('collapsed');
+            }
         });
     },
 

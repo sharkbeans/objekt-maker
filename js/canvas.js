@@ -31,7 +31,7 @@ const CanvasManager = {
     backClassValue: 'First',
     backSeasonLabel: 'SEASON',
     backSeasonValue: 'Atom02',
-    backFooterText: '©& MODHAUS. All Rights Reserved.',
+    backGroupName: 'tripleS',
 
     /**
      * Initialize canvas manager
@@ -171,7 +171,7 @@ const CanvasManager = {
         if (data.classValue !== undefined) this.backClassValue = data.classValue;
         if (data.seasonLabel !== undefined) this.backSeasonLabel = data.seasonLabel;
         if (data.seasonValue !== undefined) this.backSeasonValue = data.seasonValue;
-        if (data.footerText !== undefined) this.backFooterText = data.footerText;
+        if (data.groupName !== undefined) this.backGroupName = data.groupName;
         // Update back side preview
         this.updateBackSidePreview();
     },
@@ -577,8 +577,45 @@ const CanvasManager = {
         backCtx.save();
         // Draw content panel with rounded corners only on right side (top-right and bottom-right)
         this.createPartiallyRoundedRect(backCtx, rectX, rectY, rectWidth, rectHeight, rectRadius);
-        backCtx.fillStyle = this.accentColor; // Yellow color (inherits from front)
-        backCtx.fill();
+
+        // If border image is set, use it; otherwise use color (same as front side)
+        if (this.borderImage) {
+            // Clip and draw the border image
+            backCtx.clip();
+
+            // Calculate dimensions to cover the info block area (zoom to fill, don't stretch)
+            const blockAspect = rectWidth / rectHeight;
+            const imgAspect = this.borderImage.width / this.borderImage.height;
+
+            let drawWidth, drawHeight;
+            let offsetX = 0, offsetY = 0;
+
+            if (imgAspect > blockAspect) {
+                // Image is wider - fit to height and crop sides
+                drawHeight = rectHeight;
+                drawWidth = drawHeight * imgAspect;
+                offsetX = (rectWidth - drawWidth) / 2;
+            } else {
+                // Image is taller - fit to width and crop top/bottom
+                drawWidth = rectWidth;
+                drawHeight = drawWidth / imgAspect;
+                offsetY = (rectHeight - drawHeight) / 2;
+            }
+
+            // Draw the border image to cover the info block area
+            backCtx.drawImage(
+                this.borderImage,
+                rectX + offsetX,
+                rectY + offsetY,
+                drawWidth,
+                drawHeight
+            );
+        } else {
+            // Use solid color
+            backCtx.fillStyle = this.accentColor; // Yellow color (inherits from front)
+            backCtx.fill();
+        }
+
         backCtx.restore();
 
         // Draw filled hexagonal cube logo at top left
@@ -613,7 +650,7 @@ const CanvasManager = {
         backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + 10);
 
         backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-2px'; // Doubled gap (was -4px, now -2px)
+        backCtx.letterSpacing = '-1px'; // Increased by 50% from -2px (makes spacing less negative)
         // Use stroke to make it slightly thicker than 500 but thinner than 600
         backCtx.strokeStyle = '#000000'; // Purple for debugging, set to black later
         backCtx.lineWidth = 2.2; // Fine tune thickness
@@ -697,9 +734,9 @@ const CanvasManager = {
         backCtx.fillText(this.backNameValue, 0, 0);
         backCtx.restore();
 
-        // Draw "tripleS" text - aligned to bottom corner of info block
+        // Draw group name text (e.g., "tripleS") - aligned to bottom corner of info block
         backCtx.save();
-        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 125); // Moved up 125px
+        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 135); // Position at bottom (moved up 50px: -95 - 50 = -145)
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
@@ -708,7 +745,7 @@ const CanvasManager = {
         backCtx.textBaseline = 'middle';
 
         // Special handling for "tripleS" text with custom letter pair spacing (same as front page)
-        const text = 'tripleS';
+        const text = this.backGroupName;
         const baseSpacing = -1.5; // Base letter spacing for this text
         const extraGap100 = Math.abs(baseSpacing); // 100% increment (doubling the gap)
         const extraGap50 = Math.abs(baseSpacing) * 0.5; // 50% increment
@@ -724,19 +761,22 @@ const CanvasManager = {
             const charWidth = backCtx.measureText(char).width;
             xOffset += charWidth + baseSpacing;
 
-            // Add 100% extra gap after 't' (index 0) and 'r' (index 1)
-            if (i === 0 || i === 1) {
-                xOffset += extraGap100;
-            }
+            // Special spacing adjustments only apply if text is exactly "tripleS"
+            if (text === 'tripleS') {
+                // Add 100% extra gap after 't' (index 0) and 'r' (index 1)
+                if (i === 0 || i === 1) {
+                    xOffset += extraGap100;
+                }
 
-            // Add 50% extra gap after 'l' (index 5)
-            if (i === 5) {
-                xOffset += extraGap50;
-            }
+                // Add 50% extra gap after 'l' (index 5)
+                if (i === 5) {
+                    xOffset += extraGap50;
+                }
 
-            // Reduce gap after 'e' (index 6)
-            if (i === 6) {
-                xOffset -= reducedGap;
+                // Reduce gap after 'e' (index 6)
+                if (i === 6) {
+                    xOffset -= reducedGap;
+                }
             }
         }
 

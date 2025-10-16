@@ -169,6 +169,40 @@ body {
     letter-spacing: 0.05em;
 }
 
+/* Collapsible Section Styles */
+.section-title.collapsible {
+    cursor: pointer;
+    user-select: none;
+    justify-content: space-between;
+    transition: color 0.2s ease;
+}
+
+.section-title.collapsible:hover {
+    color: var(--primary-color);
+}
+
+.section-title.collapsible::after {
+    content: '▼';
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.section-title.collapsible.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
 /* ========================================
    Upload Area
    ======================================== */
