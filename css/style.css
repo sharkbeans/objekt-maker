@@ -647,6 +647,17 @@ input[type="range"]::-moz-range-thumb:hover {
     display: none;
 }
 
+/* Back Side Controls in Canvas Area */
+.back-side-controls-section {
+    width: 100%;
+    max-width: 600px;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
 
 /* ========================================
    Footer
@@ -792,9 +803,15 @@ input[type="range"]::-moz-range-thumb:hover {
         display: block;
     }
 
-    /* Hide adjustment controls in the side panel on mobile */
-    .controls-panel .control-section:has(#zoomSlider) {
+    /* Hide only the Front Side adjustments subsection on mobile, not the entire Front Side section */
+    #frontSideContent .adjustment-controls:has(#zoomSlider) {
         display: none;
+    }
+
+    /* Show mobile action buttons */
+    .mobile-actions {
+        display: flex;
+        flex-direction: column;
     }
 
     /* Make canvas wrapper take appropriate space */

@@ -60,7 +60,7 @@
                 <!-- Front Side Controls (Collapsible) -->
                 <section class="control-section">
                     <h2 class="section-title collapsible" id="frontSideToggle">
-                        <span><i data-lucide="image"></i> Front Side</span>
+                        <span>Front Side</span>
                     </h2>
                     <div class="collapsible-content" id="frontSideContent">
                         <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
@@ -155,10 +155,54 @@
                     </div>
                 </section>
 
-                <!-- Back Side Controls (Collapsible) -->
                 <section class="control-section">
+                    <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
+                    <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
+                </section>
+            </aside>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container" id="canvasContainer">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <div class="preview-label">Front Side</div>
+                    <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                </div>
+
+                <!-- Mobile Adjustment Controls (hidden on desktop) -->
+                <div class="mobile-adjustments" id="mobileAdjustments">
+                    <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Quick Adjustments</h3>
+                    <label>
+                        <span>Zoom:</span>
+                        <div class="slider-group">
+                            <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
+                            <span id="zoomValueMobile">100%</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Pan X:</span>
+                        <div class="slider-group">
+                            <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
+                            <span id="panXValueMobile">0px</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Pan Y:</span>
+                        <div class="slider-group">
+                            <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
+                            <span id="panYValueMobile">0px</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="canvas-wrapper" id="backCanvasWrapper">
+                    <div class="preview-label">Back Side</div>
+                    <canvas id="backCanvas" width="768" height="1186"></canvas>
+                </div>
+
+                <!-- Back Side Controls (below back canvas) -->
+                <section class="control-section back-side-controls-section">
                     <h2 class="section-title collapsible collapsed" id="backSideToggle">
-                        <span><i data-lucide="credit-card"></i> Back Side</span>
+                        <span>Back Side</span>
                     </h2>
                     <div class="collapsible-content collapsed" id="backSideContent">
                         <div class="adjustment-controls">
@@ -200,50 +244,8 @@
                     </div>
                 </section>
 
-                <section class="control-section">
-                    <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
-                    <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
-                </section>
-            </aside>
-
-            <!-- Canvas Area -->
-            <div class="canvas-container" id="canvasContainer">
-                <div class="canvas-wrapper" id="canvasWrapper">
-                    <div class="preview-label">Front Side</div>
-                    <canvas id="mainCanvas" width="768" height="1186"></canvas>
-                </div>
-                <div class="canvas-wrapper" id="backCanvasWrapper">
-                    <div class="preview-label">Back Side</div>
-                    <canvas id="backCanvas" width="768" height="1186"></canvas>
-                </div>
                 <div class="canvas-placeholder" id="canvasPlaceholder">
                     <p>Upload an image to get started</p>
-                </div>
-
-                <!-- Mobile Adjustment Controls (hidden on desktop) -->
-                <div class="mobile-adjustments" id="mobileAdjustments">
-                    <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Quick Adjustments</h3>
-                    <label>
-                        <span>Zoom:</span>
-                        <div class="slider-group">
-                            <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
-                            <span id="zoomValueMobile">100%</span>
-                        </div>
-                    </label>
-                    <label>
-                        <span>Pan X:</span>
-                        <div class="slider-group">
-                            <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
-                            <span id="panXValueMobile">0px</span>
-                        </div>
-                    </label>
-                    <label>
-                        <span>Pan Y:</span>
-                        <div class="slider-group">
-                            <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
-                            <span id="panYValueMobile">0px</span>
-                        </div>
-                    </label>
                 </div>
 
                 <!-- Mobile Action Buttons (hidden on desktop) -->
