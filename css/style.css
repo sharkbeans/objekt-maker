@@ -62,6 +62,19 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
+.header h4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+}
+
+.header h4 i {
+    font-size: 1.75rem;
+    position: relative;
+    top: 2px;
+}
+
 .logo {
     font-size: 2rem;
     font-weight: 700;
@@ -504,6 +517,11 @@ input[type="range"]::-moz-range-thumb:hover {
     background: var(--bg-color);
 }
 
+.btn svg {
+    vertical-align: middle;
+    display: inline-block;
+}
+
 .btn-large {
     width: 100%;
     padding: var(--space-md);
@@ -601,28 +619,39 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .mobile-section-title {
-    font-size: 1rem;
+    font-size: 0.813rem;
     font-weight: 600;
     margin-bottom: var(--space-md);
     color: var(--text-primary);
-}
-
-.mobile-adjustment-controls {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
+    align-items: center;
+    gap: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.mobile-adjustment-controls label {
+.mobile-section-title svg {
+    width: 14px;
+    height: 14px;
+}
+
+.mobile-adjustments label {
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
 }
 
-.mobile-adjustment-controls label > span:first-child {
+.mobile-adjustments label > span:first-child {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-secondary);
+}
+
+.mobile-actions {
+    display: none;
+    width: 100%;
+    margin-top: var(--space-lg);
+    gap: var(--space-md);
 }
 
 .slider-group {

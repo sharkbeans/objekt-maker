@@ -58,7 +58,9 @@ const UIManager = {
 
             // Action buttons
             exportBtn: document.getElementById('exportBtn'),
-            resetBtn: document.getElementById('resetBtn')
+            resetBtn: document.getElementById('resetBtn'),
+            exportBtnMobile: document.getElementById('exportBtnMobile'),
+            resetBtnMobile: document.getElementById('resetBtnMobile')
         };
 
         this.bindEvents();
@@ -201,6 +203,8 @@ const UIManager = {
         // Action buttons
         this.elements.exportBtn.addEventListener('click', () => this.exportImage());
         this.elements.resetBtn.addEventListener('click', () => this.resetAll());
+        this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
+        this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
     },
 
     /**
@@ -662,31 +666,8 @@ const UIManager = {
             return;
         }
 
-        // Reset canvas
-        CanvasManager.reset();
-
-        // Reset controls
-        this.elements.zoomSlider.value = 100;
-        this.elements.zoomValue.textContent = '100%';
-        this.elements.panXSlider.value = 0;
-        this.elements.panXValue.textContent = '0px';
-        this.elements.panYSlider.value = 0;
-        this.elements.panYValue.textContent = '0px';
-        this.elements.topText.value = 'SeoYeon';
-        this.elements.middleText.value = '100A';
-        this.elements.bottomText.value = 'tripleS';
-    this.elements.imageUpload.value = '';
-    this.elements.borderColorHex.value = '#FFD400';
-    CanvasManager.setBorderColor('#FFD400');
-        this.elements.borderImageUpload.value = '';
-        this.elements.clearBorderImage.style.display = 'none';
-        this.elements.textColorPicker.value = '#000000';
-        this.elements.textColorHex.value = '#000000';
-
-        // Hide canvas
-        this.hideCanvas();
-
-        console.log('All reset');
+        // Refresh the page to reset everything
+        location.reload();
     },
 
     /**

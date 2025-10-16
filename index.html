@@ -36,7 +36,7 @@
     <!-- Header -->
     <header class="header">
         <div class="container">
-            <h4>Objektify</h4>
+            <h4><i data-lucide="codesandbox"></i> Objektify</h4>
         </div>
     </header>
 
@@ -79,7 +79,7 @@
                 </section>
                 
                 <section class="control-section">
-                    <h2 class="section-title"><i data-lucide="palette"></i> Notch Color</h2>
+                    <h2 class="section-title"><i data-lucide="credit-card" style="transform: rotate(90deg); display: inline-block;"></i> Border Color</h2>
                     <div class="adjustment-controls">
                         <!-- Notch Color Dropdown: Select from categorized color presets -->
                         <label>
@@ -179,29 +179,33 @@
                 <!-- Mobile Adjustment Controls (hidden on desktop) -->
                 <div class="mobile-adjustments" id="mobileAdjustments">
                     <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Quick Adjustments</h3>
-                    <div class="mobile-adjustment-controls">
-                        <label>
-                            <span>Zoom:</span>
-                            <div class="slider-group">
-                                <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
-                                <span id="zoomValueMobile">100%</span>
-                            </div>
-                        </label>
-                        <label>
-                            <span>Pan X:</span>
-                            <div class="slider-group">
-                                <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
-                                <span id="panXValueMobile">0px</span>
-                            </div>
-                        </label>
-                        <label>
-                            <span>Pan Y:</span>
-                            <div class="slider-group">
-                                <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
-                                <span id="panYValueMobile">0px</span>
-                            </div>
-                        </label>
-                    </div>
+                    <label>
+                        <span>Zoom:</span>
+                        <div class="slider-group">
+                            <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
+                            <span id="zoomValueMobile">100%</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Pan X:</span>
+                        <div class="slider-group">
+                            <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
+                            <span id="panXValueMobile">0px</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Pan Y:</span>
+                        <div class="slider-group">
+                            <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
+                            <span id="panYValueMobile">0px</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Mobile Action Buttons (hidden on desktop) -->
+                <div class="mobile-actions">
+                    <button id="exportBtnMobile" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
+                    <button id="resetBtnMobile" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </div>
             </div>
         </div>
