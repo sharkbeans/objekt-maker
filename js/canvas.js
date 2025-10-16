@@ -382,12 +382,51 @@ const CanvasManager = {
 
         // Draw bottom text (rotated 90° clockwise) - tripleS with increased letter spacing
         this.ctx.save();
-        this.ctx.translate(centerX, this.canvasHeight - 227);
+
+        // Calculate notch boundaries for bottom text positioning
+        const notchY = (this.canvasHeight - this.notchHeight) / 2;
+        const notchBottom = notchY + this.notchHeight;
+        const defaultBottomY = this.canvasHeight - 227;
+
+        // Measure text width to determine if it needs adjustment
+        let textWidth = 0;
+        const baseSpacing = -1.0973;
+
+        if (this.bottomText === 'tripleS') {
+            // Calculate width for special "tripleS" rendering
+            const extraGap100 = Math.abs(baseSpacing);
+            const extraGap50 = Math.abs(baseSpacing) * 0.5;
+            const reducedGap = baseSpacing * 0.15;
+
+            for (let i = 0; i < this.bottomText.length; i++) {
+                const char = this.bottomText[i];
+                const charWidth = this.ctx.measureText(char).width;
+                textWidth += charWidth + baseSpacing;
+
+                if (i === 0 || i === 1) textWidth += extraGap100;
+                if (i === 5) textWidth += extraGap50;
+                if (i === 6) textWidth -= reducedGap;
+            }
+        } else {
+            // Measure standard text width
+            this.ctx.letterSpacing = '-1.0973px';
+            textWidth = this.ctx.measureText(this.bottomText).width;
+        }
+
+        // Calculate Y position, adjusting if text would overflow the notch
+        let bottomTextY = defaultBottomY;
+        const textEnd = defaultBottomY + textWidth; // After rotation, text extends upward (positive direction)
+
+        if (textEnd > notchBottom) {
+            // Text overflows - align to right edge of notch
+            bottomTextY = notchBottom - textWidth;
+        }
+
+        this.ctx.translate(centerX, bottomTextY);
         this.ctx.rotate(Math.PI / 2);
 
         // Special handling for "tripleS" text with custom letter pair spacing
         if (this.bottomText === 'tripleS') {
-            const baseSpacing = -1.0973; // Base letter spacing value
             const extraGap100 = Math.abs(baseSpacing); // 100% increment (doubling the gap)
             const extraGap50 = Math.abs(baseSpacing) * 0.5; // 50% increment
             const reducedGap = baseSpacing * 0.15; // 15% reduction
