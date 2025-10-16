@@ -165,12 +165,40 @@
             </aside>
 
             <!-- Canvas Area -->
-            <div class="canvas-container">
+            <div class="canvas-container" id="canvasContainer">
                 <div class="canvas-wrapper" id="canvasWrapper">
                     <canvas id="mainCanvas" width="768" height="1186"></canvas>
                 </div>
                 <div class="canvas-placeholder" id="canvasPlaceholder">
                     <p>Upload an image to get started</p>
+                </div>
+
+                <!-- Mobile Adjustment Controls (hidden on desktop) -->
+                <div class="mobile-adjustments" id="mobileAdjustments">
+                    <h3 class="mobile-section-title">🔧 Quick Adjustments</h3>
+                    <div class="mobile-adjustment-controls">
+                        <label>
+                            <span>Zoom:</span>
+                            <div class="slider-group">
+                                <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
+                                <span id="zoomValueMobile">100%</span>
+                            </div>
+                        </label>
+                        <label>
+                            <span>Pan X:</span>
+                            <div class="slider-group">
+                                <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
+                                <span id="panXValueMobile">0px</span>
+                            </div>
+                        </label>
+                        <label>
+                            <span>Pan Y:</span>
+                            <div class="slider-group">
+                                <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
+                                <span id="panYValueMobile">0px</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>

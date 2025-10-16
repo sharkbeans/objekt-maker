@@ -17,16 +17,26 @@ const UIManager = {
             imageUpload: document.getElementById('imageUpload'),
 
             // Canvas
+            canvasContainer: document.getElementById('canvasContainer'),
             canvasWrapper: document.getElementById('canvasWrapper'),
             canvasPlaceholder: document.getElementById('canvasPlaceholder'),
 
-            // Adjustment controls
+            // Adjustment controls (desktop)
             zoomSlider: document.getElementById('zoomSlider'),
             zoomValue: document.getElementById('zoomValue'),
             panXSlider: document.getElementById('panXSlider'),
             panXValue: document.getElementById('panXValue'),
             panYSlider: document.getElementById('panYSlider'),
             panYValue: document.getElementById('panYValue'),
+
+            // Mobile adjustment controls
+            zoomSliderMobile: document.getElementById('zoomSliderMobile'),
+            zoomValueMobile: document.getElementById('zoomValueMobile'),
+            panXSliderMobile: document.getElementById('panXSliderMobile'),
+            panXValueMobile: document.getElementById('panXValueMobile'),
+            panYSliderMobile: document.getElementById('panYSliderMobile'),
+            panYValueMobile: document.getElementById('panYValueMobile'),
+            mobileAdjustments: document.getElementById('mobileAdjustments'),
 
             // Notch color controls - Dropdown selectors for category and color
             notchColorGroupSelect: document.getElementById('notchColorGroupSelect'),
@@ -66,24 +76,55 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
 
-        // Adjustment controls
+        // Adjustment controls (desktop)
         this.elements.zoomSlider.addEventListener('input', (e) => {
             const value = e.target.value;
             this.elements.zoomValue.textContent = `${value}%`;
+            this.syncSliderValue('zoom', value);
             CanvasManager.setZoom(value / 100);
         });
 
         this.elements.panXSlider.addEventListener('input', (e) => {
             const value = e.target.value;
             this.elements.panXValue.textContent = `${value}px`;
+            this.syncSliderValue('panX', value);
             CanvasManager.setPan(parseInt(value), CanvasManager.imagePosY);
         });
 
         this.elements.panYSlider.addEventListener('input', (e) => {
             const value = e.target.value;
             this.elements.panYValue.textContent = `${value}px`;
+            this.syncSliderValue('panY', value);
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
         });
+
+        // Mobile adjustment controls
+        if (this.elements.zoomSliderMobile) {
+            this.elements.zoomSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.zoomValueMobile.textContent = `${value}%`;
+                this.syncSliderValue('zoom', value);
+                CanvasManager.setZoom(value / 100);
+            });
+        }
+
+        if (this.elements.panXSliderMobile) {
+            this.elements.panXSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.panXValueMobile.textContent = `${value}px`;
+                this.syncSliderValue('panX', value);
+                CanvasManager.setPan(parseInt(value), CanvasManager.imagePosY);
+            });
+        }
+
+        if (this.elements.panYSliderMobile) {
+            this.elements.panYSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.panYValueMobile.textContent = `${value}px`;
+                this.syncSliderValue('panY', value);
+                CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
+            });
+        }
 
         // Notch color dropdowns - Populate and handle selection changes
         this._initNotchColorDropdowns();
@@ -460,6 +501,47 @@ const UIManager = {
     },
 
     /**
+     * Sync slider values between desktop and mobile versions
+     */
+    syncSliderValue(type, value) {
+        switch(type) {
+            case 'zoom':
+                if (this.elements.zoomSlider) this.elements.zoomSlider.value = value;
+                if (this.elements.zoomValue) this.elements.zoomValue.textContent = `${value}%`;
+                if (this.elements.zoomSliderMobile) this.elements.zoomSliderMobile.value = value;
+                if (this.elements.zoomValueMobile) this.elements.zoomValueMobile.textContent = `${value}%`;
+                break;
+            case 'panX':
+                if (this.elements.panXSlider) this.elements.panXSlider.value = value;
+                if (this.elements.panXValue) this.elements.panXValue.textContent = `${value}px`;
+                if (this.elements.panXSliderMobile) this.elements.panXSliderMobile.value = value;
+                if (this.elements.panXValueMobile) this.elements.panXValueMobile.textContent = `${value}px`;
+                break;
+            case 'panY':
+                if (this.elements.panYSlider) this.elements.panYSlider.value = value;
+                if (this.elements.panYValue) this.elements.panYValue.textContent = `${value}px`;
+                if (this.elements.panYSliderMobile) this.elements.panYSliderMobile.value = value;
+                if (this.elements.panYValueMobile) this.elements.panYValueMobile.textContent = `${value}px`;
+                break;
+        }
+    },
+
+    /**
+     * Scroll to canvas/preview section
+     */
+    scrollToPreview() {
+        if (this.elements.canvasContainer) {
+            // Small delay to ensure canvas is rendered
+            setTimeout(() => {
+                this.elements.canvasContainer.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    },
+
+    /**
      * Handle image file upload
      */
     async handleImageUpload(event) {
@@ -469,6 +551,7 @@ const UIManager = {
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
+            this.scrollToPreview();
             this.showSuccessMessage('Image loaded successfully!');
         } catch (error) {
             this.showErrorMessage(error.message);
@@ -530,6 +613,7 @@ const UIManager = {
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
+            this.scrollToPreview();
             this.showSuccessMessage('Image loaded successfully!');
         } catch (error) {
             this.showErrorMessage(error.message);

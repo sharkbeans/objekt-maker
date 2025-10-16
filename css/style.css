@@ -586,6 +586,63 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ========================================
+   Mobile Adjustments Section (below canvas)
+   ======================================== */
+
+.mobile-adjustments {
+    display: none;
+    width: 100%;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-lg);
+    border: 1px solid var(--border-color);
+}
+
+.mobile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+}
+
+.mobile-adjustment-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.mobile-adjustment-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.mobile-adjustment-controls label > span:first-child {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.slider-group input[type="range"] {
+    flex: 1;
+}
+
+.slider-group span {
+    min-width: 50px;
+    text-align: right;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ========================================
    Responsive Design
    ======================================== */
 
@@ -619,7 +676,7 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .main-content {
-        padding: var(--space-lg) var(--space-md);
+        padding: var(--space-md) var(--space-sm);
     }
 
     .controls-panel {
@@ -628,11 +685,32 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .canvas-container {
-        padding: var(--space-lg);
-        min-height: 400px;
+        padding: var(--space-md);
+        min-height: auto;
+        flex-direction: column;
     }
 
     .section-title {
         font-size: 0.813rem;
+    }
+
+    /* Show mobile adjustments section on mobile */
+    .mobile-adjustments {
+        display: block;
+    }
+
+    /* Hide adjustment controls in the side panel on mobile */
+    .controls-panel .control-section:has(#zoomSlider) {
+        display: none;
+    }
+
+    /* Make canvas wrapper take appropriate space */
+    .canvas-wrapper {
+        max-width: 100%;
+    }
+
+    #mainCanvas {
+        width: 100%;
+        height: auto;
     }
 }
