@@ -363,10 +363,50 @@
                             <span id="panYValueMobile">0px</span>
                         </div>
                     </label>
+                    <label>
+                        <span>Top Text Height:</span>
+                        <div class="slider-group">
+                            <input type="range" id="topTextHeightMobile" min="-100" max="100" value="0" step="1">
+                            <span id="topTextHeightValueMobile">0px</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Middle Text Height:</span>
+                        <div class="slider-group">
+                            <input type="range" id="middleTextHeightMobile" min="-100" max="100" value="0" step="1">
+                            <span id="middleTextHeightValueMobile">0px</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Bottom Text Height:</span>
+                        <div class="slider-group">
+                            <input type="range" id="bottomTextHeightMobile" min="-100" max="100" value="0" step="1">
+                            <span id="bottomTextHeightValueMobile">0px</span>
+                        </div>
+                    </label>
                 </div>
 
                 <div class="canvas-wrapper" id="backCanvasWrapper">
                     <canvas id="backCanvas" width="768" height="1186"></canvas>
+                </div>
+
+                <!-- Mobile Back Side Adjustments (hidden on desktop) -->
+                <div class="mobile-adjustments mobile-back-adjustments" id="mobileBackAdjustments" style="display: none;">
+                    <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Text Height Adjustments</h3>
+                    <label>
+                        <span>Top Text Height:</span>
+                        <div class="slider-group">
+                            <input type="range" id="backTopTextHeightMobileQuick" min="-100" max="100" value="0" step="1">
+                            <span id="backTopTextHeightValueMobileQuick">0px</span>
+                        </div>
+                    </label>
+                    <label>
+                        <span>Bottom Text Height:</span>
+                        <div class="slider-group">
+                            <input type="range" id="backBottomTextHeightMobileQuick" min="-100" max="100" value="0" step="1">
+                            <span id="backBottomTextHeightValueMobileQuick">0px</span>
+                        </div>
+                    </label>
                 </div>
 
                 <!-- Back Side Controls (Mobile - below back canvas) -->
