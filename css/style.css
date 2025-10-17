@@ -647,8 +647,13 @@ input[type="range"]::-moz-range-thumb:hover {
     display: none;
 }
 
-/* Back Side Controls in Canvas Area */
-.back-side-controls-section {
+/* Back Side Controls - Desktop (in sidebar) and Mobile (in canvas area) */
+.back-side-controls-desktop {
+    display: block;
+}
+
+.back-side-controls-mobile {
+    display: none;
     width: 100%;
     max-width: 600px;
     background: var(--bg-color);
@@ -823,5 +828,15 @@ input[type="range"]::-moz-range-thumb:hover {
     #backCanvas {
         width: 100%;
         height: auto;
+    }
+
+    /* Hide desktop back side controls on mobile */
+    .back-side-controls-desktop {
+        display: none;
+    }
+
+    /* Show mobile back side controls on mobile */
+    .back-side-controls-mobile {
+        display: block;
     }
 }

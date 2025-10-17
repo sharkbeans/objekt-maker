@@ -155,6 +155,51 @@
                     </div>
                 </section>
 
+                <!-- Back Side Controls (Desktop - in sidebar) -->
+                <section class="control-section back-side-controls-desktop">
+                    <h2 class="section-title collapsible collapsed" id="backSideToggle">
+                        <span>Back Side</span>
+                    </h2>
+                    <div class="collapsible-content collapsed" id="backSideContent">
+                        <div class="adjustment-controls">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="enableBackSide" style="width: auto;">
+                                <span>Generate Back Side</span>
+                            </label>
+                            <div id="backSideControls" style="display: none;">
+                                <label>
+                                    <span>NAME Label:</span>
+                                    <input type="text" id="backNameLabel" value="NAME" class="text-input">
+                                </label>
+                                <label>
+                                    <span>Name Value:</span>
+                                    <input type="text" id="backNameValue" value="SeoYeon" class="text-input">
+                                </label>
+                                <label>
+                                    <span>CLASS Label:</span>
+                                    <input type="text" id="backClassLabel" value="CLASS" class="text-input">
+                                </label>
+                                <label>
+                                    <span>Class Value:</span>
+                                    <input type="text" id="backClassValue" value="First" class="text-input">
+                                </label>
+                                <label>
+                                    <span>SEASON Label:</span>
+                                    <input type="text" id="backSeasonLabel" value="SEASON" class="text-input">
+                                </label>
+                                <label>
+                                    <span>Season Value:</span>
+                                    <input type="text" id="backSeasonValue" value="Atom02" class="text-input">
+                                </label>
+                                <label>
+                                    <span>Group Name:</span>
+                                    <input type="text" id="backGroupName" value="tripleS" class="text-input">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="control-section">
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
                     <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
@@ -199,45 +244,45 @@
                     <canvas id="backCanvas" width="768" height="1186"></canvas>
                 </div>
 
-                <!-- Back Side Controls (below back canvas) -->
-                <section class="control-section back-side-controls-section">
-                    <h2 class="section-title collapsible collapsed" id="backSideToggle">
+                <!-- Back Side Controls (Mobile - below back canvas) -->
+                <section class="control-section back-side-controls-mobile">
+                    <h2 class="section-title collapsible collapsed" id="backSideToggleMobile">
                         <span>Back Side</span>
                     </h2>
-                    <div class="collapsible-content collapsed" id="backSideContent">
+                    <div class="collapsible-content collapsed" id="backSideContentMobile">
                         <div class="adjustment-controls">
                             <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="enableBackSide" style="width: auto;">
+                                <input type="checkbox" id="enableBackSideMobile" style="width: auto;">
                                 <span>Generate Back Side</span>
                             </label>
-                            <div id="backSideControls" style="display: none;">
+                            <div id="backSideControlsMobile" style="display: none;">
                                 <label>
                                     <span>NAME Label:</span>
-                                    <input type="text" id="backNameLabel" value="NAME" class="text-input">
+                                    <input type="text" id="backNameLabelMobile" value="NAME" class="text-input">
                                 </label>
                                 <label>
                                     <span>Name Value:</span>
-                                    <input type="text" id="backNameValue" value="SeoYeon" class="text-input">
+                                    <input type="text" id="backNameValueMobile" value="SeoYeon" class="text-input">
                                 </label>
                                 <label>
                                     <span>CLASS Label:</span>
-                                    <input type="text" id="backClassLabel" value="CLASS" class="text-input">
+                                    <input type="text" id="backClassLabelMobile" value="CLASS" class="text-input">
                                 </label>
                                 <label>
                                     <span>Class Value:</span>
-                                    <input type="text" id="backClassValue" value="First" class="text-input">
+                                    <input type="text" id="backClassValueMobile" value="First" class="text-input">
                                 </label>
                                 <label>
                                     <span>SEASON Label:</span>
-                                    <input type="text" id="backSeasonLabel" value="SEASON" class="text-input">
+                                    <input type="text" id="backSeasonLabelMobile" value="SEASON" class="text-input">
                                 </label>
                                 <label>
                                     <span>Season Value:</span>
-                                    <input type="text" id="backSeasonValue" value="Atom02" class="text-input">
+                                    <input type="text" id="backSeasonValueMobile" value="Atom02" class="text-input">
                                 </label>
                                 <label>
                                     <span>Group Name:</span>
-                                    <input type="text" id="backGroupName" value="tripleS" class="text-input">
+                                    <input type="text" id="backGroupNameMobile" value="tripleS" class="text-input">
                                 </label>
                             </div>
                         </div>

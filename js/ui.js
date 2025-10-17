@@ -62,7 +62,7 @@ const UIManager = {
             exportBtnMobile: document.getElementById('exportBtnMobile'),
             resetBtnMobile: document.getElementById('resetBtnMobile'),
 
-            // Back side controls
+            // Back side controls (Desktop)
             enableBackSide: document.getElementById('enableBackSide'),
             backSideControls: document.getElementById('backSideControls'),
             backNameLabel: document.getElementById('backNameLabel'),
@@ -71,7 +71,18 @@ const UIManager = {
             backClassValue: document.getElementById('backClassValue'),
             backSeasonLabel: document.getElementById('backSeasonLabel'),
             backSeasonValue: document.getElementById('backSeasonValue'),
-            backGroupName: document.getElementById('backGroupName')
+            backGroupName: document.getElementById('backGroupName'),
+
+            // Back side controls (Mobile)
+            enableBackSideMobile: document.getElementById('enableBackSideMobile'),
+            backSideControlsMobile: document.getElementById('backSideControlsMobile'),
+            backNameLabelMobile: document.getElementById('backNameLabelMobile'),
+            backNameValueMobile: document.getElementById('backNameValueMobile'),
+            backClassLabelMobile: document.getElementById('backClassLabelMobile'),
+            backClassValueMobile: document.getElementById('backClassValueMobile'),
+            backSeasonLabelMobile: document.getElementById('backSeasonLabelMobile'),
+            backSeasonValueMobile: document.getElementById('backSeasonValueMobile'),
+            backGroupNameMobile: document.getElementById('backGroupNameMobile')
         };
 
         this.bindEvents();
@@ -217,40 +228,99 @@ const UIManager = {
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
 
-        // Back side controls
+        // Back side controls (Desktop)
         this.elements.enableBackSide.addEventListener('change', (e) => {
             const enabled = e.target.checked;
             CanvasManager.setBackSideEnabled(enabled);
             this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
+            // Sync with mobile
+            if (this.elements.enableBackSideMobile) {
+                this.elements.enableBackSideMobile.checked = enabled;
+                this.elements.backSideControlsMobile.style.display = enabled ? 'block' : 'none';
+            }
         });
 
         this.elements.backNameLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameLabel: e.target.value });
+            if (this.elements.backNameLabelMobile) this.elements.backNameLabelMobile.value = e.target.value;
         });
 
         this.elements.backNameValue.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameValue: e.target.value });
+            if (this.elements.backNameValueMobile) this.elements.backNameValueMobile.value = e.target.value;
         });
 
         this.elements.backClassLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ classLabel: e.target.value });
+            if (this.elements.backClassLabelMobile) this.elements.backClassLabelMobile.value = e.target.value;
         });
 
         this.elements.backClassValue.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ classValue: e.target.value });
+            if (this.elements.backClassValueMobile) this.elements.backClassValueMobile.value = e.target.value;
         });
 
         this.elements.backSeasonLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ seasonLabel: e.target.value });
+            if (this.elements.backSeasonLabelMobile) this.elements.backSeasonLabelMobile.value = e.target.value;
         });
 
         this.elements.backSeasonValue.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ seasonValue: e.target.value });
+            if (this.elements.backSeasonValueMobile) this.elements.backSeasonValueMobile.value = e.target.value;
         });
 
         this.elements.backGroupName.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ groupName: e.target.value });
+            if (this.elements.backGroupNameMobile) this.elements.backGroupNameMobile.value = e.target.value;
         });
+
+        // Back side controls (Mobile) - Sync to desktop
+        if (this.elements.enableBackSideMobile) {
+            this.elements.enableBackSideMobile.addEventListener('change', (e) => {
+                const enabled = e.target.checked;
+                CanvasManager.setBackSideEnabled(enabled);
+                this.elements.backSideControlsMobile.style.display = enabled ? 'block' : 'none';
+                // Sync with desktop
+                this.elements.enableBackSide.checked = enabled;
+                this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
+            });
+
+            this.elements.backNameLabelMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ nameLabel: e.target.value });
+                this.elements.backNameLabel.value = e.target.value;
+            });
+
+            this.elements.backNameValueMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ nameValue: e.target.value });
+                this.elements.backNameValue.value = e.target.value;
+            });
+
+            this.elements.backClassLabelMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ classLabel: e.target.value });
+                this.elements.backClassLabel.value = e.target.value;
+            });
+
+            this.elements.backClassValueMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ classValue: e.target.value });
+                this.elements.backClassValue.value = e.target.value;
+            });
+
+            this.elements.backSeasonLabelMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ seasonLabel: e.target.value });
+                this.elements.backSeasonLabel.value = e.target.value;
+            });
+
+            this.elements.backSeasonValueMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ seasonValue: e.target.value });
+                this.elements.backSeasonValue.value = e.target.value;
+            });
+
+            this.elements.backGroupNameMobile.addEventListener('input', (e) => {
+                CanvasManager.setBackSideData({ groupName: e.target.value });
+                this.elements.backGroupName.value = e.target.value;
+            });
+        }
 
         // Collapsible section handlers
         this.setupCollapsibleSections();
@@ -264,6 +334,8 @@ const UIManager = {
         const frontSideContent = document.getElementById('frontSideContent');
         const backSideToggle = document.getElementById('backSideToggle');
         const backSideContent = document.getElementById('backSideContent');
+        const backSideToggleMobile = document.getElementById('backSideToggleMobile');
+        const backSideContentMobile = document.getElementById('backSideContentMobile');
 
         if (!frontSideToggle || !backSideToggle) return;
 
@@ -276,7 +348,7 @@ const UIManager = {
                 frontSideToggle.classList.remove('collapsed');
                 frontSideContent.classList.remove('collapsed');
 
-                // Collapse back side
+                // Collapse back side (desktop)
                 backSideToggle.classList.add('collapsed');
                 backSideContent.classList.add('collapsed');
             } else {
@@ -286,27 +358,61 @@ const UIManager = {
             }
         });
 
-        // Toggle Back Side
+        // Toggle Back Side (Desktop)
         backSideToggle.addEventListener('click', () => {
             const isCollapsed = backSideToggle.classList.contains('collapsed');
-            const isMobile = window.innerWidth <= 768;
 
             if (isCollapsed) {
                 // Expand back side
                 backSideToggle.classList.remove('collapsed');
                 backSideContent.classList.remove('collapsed');
 
-                // Collapse front side only on desktop, not on mobile
-                if (!isMobile) {
-                    frontSideToggle.classList.add('collapsed');
-                    frontSideContent.classList.add('collapsed');
+                // Collapse front side on desktop
+                frontSideToggle.classList.add('collapsed');
+                frontSideContent.classList.add('collapsed');
+
+                // Sync mobile toggle state
+                if (backSideToggleMobile && backSideContentMobile) {
+                    backSideToggleMobile.classList.remove('collapsed');
+                    backSideContentMobile.classList.remove('collapsed');
                 }
             } else {
                 // Collapse back side
                 backSideToggle.classList.add('collapsed');
                 backSideContent.classList.add('collapsed');
+
+                // Sync mobile toggle state
+                if (backSideToggleMobile && backSideContentMobile) {
+                    backSideToggleMobile.classList.add('collapsed');
+                    backSideContentMobile.classList.add('collapsed');
+                }
             }
         });
+
+        // Toggle Back Side (Mobile)
+        if (backSideToggleMobile && backSideContentMobile) {
+            backSideToggleMobile.addEventListener('click', () => {
+                const isCollapsed = backSideToggleMobile.classList.contains('collapsed');
+
+                if (isCollapsed) {
+                    // Expand back side
+                    backSideToggleMobile.classList.remove('collapsed');
+                    backSideContentMobile.classList.remove('collapsed');
+
+                    // Sync desktop toggle state
+                    backSideToggle.classList.remove('collapsed');
+                    backSideContent.classList.remove('collapsed');
+                } else {
+                    // Collapse back side
+                    backSideToggleMobile.classList.add('collapsed');
+                    backSideContentMobile.classList.add('collapsed');
+
+                    // Sync desktop toggle state
+                    backSideToggle.classList.add('collapsed');
+                    backSideContent.classList.add('collapsed');
+                }
+            });
+        }
     },
 
     /**
