@@ -576,8 +576,12 @@ input[type="range"]::-moz-range-thumb:hover {
     align-items: center;
     justify-content: flex-start;
     min-height: 600px;
-    position: relative;
+    position: sticky;
+    top: var(--space-lg);
     gap: var(--space-xl);
+    align-self: flex-start;
+    max-height: calc(100vh - var(--space-xl) * 2);
+    overflow-y: auto;
 }
 
 /* Canvas View Toggle Navigation */
@@ -822,6 +826,9 @@ input[type="range"]::-moz-range-thumb:hover {
     .canvas-container {
         padding: var(--space-md);
         min-height: auto;
+        position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .section-title {
@@ -889,6 +896,11 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .collapsible-section {
     margin-bottom: var(--space-lg) !important;
+    transition: margin-bottom 0.2s ease;
+}
+
+.collapsible-section.collapsed {
+    margin-bottom: 0.5rem !important;
 }
 
 .collapsible-header {
