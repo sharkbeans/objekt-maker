@@ -672,7 +672,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .back-side-controls-mobile {
-    display: none;
+    display: none !important; /* Hidden on desktop, shown on mobile via media query */
     width: 100%;
     max-width: 600px;
     background: var(--bg-color);
@@ -854,9 +854,9 @@ input[type="range"]::-moz-range-thumb:hover {
         display: none;
     }
 
-    /* Show mobile back side controls on mobile */
+    /* On mobile, allow JS to control visibility of mobile back side controls */
     .back-side-controls-mobile {
-        display: block;
+        display: none; /* JS will set to block when needed */
     }
 
     /* Mobile-optimized toggle buttons */

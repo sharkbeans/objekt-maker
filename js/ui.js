@@ -5,6 +5,7 @@
 
 const UIManager = {
     elements: {},
+    currentView: 'front', // Track current view ('front' or 'back')
 
     /**
      * Initialize UI manager and bind all event listeners
@@ -69,8 +70,6 @@ const UIManager = {
             resetBtnMobile: document.getElementById('resetBtnMobile'),
 
             // Back side controls (Desktop)
-            enableBackSide: document.getElementById('enableBackSide'),
-            backSideControls: document.getElementById('backSideControls'),
             backNameLabel: document.getElementById('backNameLabel'),
             backNameValue: document.getElementById('backNameValue'),
             backClassLabel: document.getElementById('backClassLabel'),
@@ -80,8 +79,6 @@ const UIManager = {
             backGroupName: document.getElementById('backGroupName'),
 
             // Back side controls (Mobile)
-            enableBackSideMobile: document.getElementById('enableBackSideMobile'),
-            backSideControlsMobile: document.getElementById('backSideControlsMobile'),
             backNameLabelMobile: document.getElementById('backNameLabelMobile'),
             backNameValueMobile: document.getElementById('backNameValueMobile'),
             backClassLabelMobile: document.getElementById('backClassLabelMobile'),
@@ -242,20 +239,7 @@ const UIManager = {
             });
         });
 
-        // Back side controls (Desktop)
-        this.elements.enableBackSide.addEventListener('change', (e) => {
-            const enabled = e.target.checked;
-            CanvasManager.setBackSideEnabled(enabled);
-            this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
-            // Show/hide the toggle navigation based on back side enabled
-            this.updateToggleVisibility(enabled);
-            // Sync with mobile
-            if (this.elements.enableBackSideMobile) {
-                this.elements.enableBackSideMobile.checked = enabled;
-                this.elements.backSideControlsMobile.style.display = enabled ? 'block' : 'none';
-            }
-        });
-
+        // Back side controls (Desktop) - Direct input, no checkbox needed
         this.elements.backNameLabel.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameLabel: e.target.value });
             if (this.elements.backNameLabelMobile) this.elements.backNameLabelMobile.value = e.target.value;
@@ -291,19 +275,8 @@ const UIManager = {
             if (this.elements.backGroupNameMobile) this.elements.backGroupNameMobile.value = e.target.value;
         });
 
-        // Back side controls (Mobile) - Sync to desktop
-        if (this.elements.enableBackSideMobile) {
-            this.elements.enableBackSideMobile.addEventListener('change', (e) => {
-                const enabled = e.target.checked;
-                CanvasManager.setBackSideEnabled(enabled);
-                this.elements.backSideControlsMobile.style.display = enabled ? 'block' : 'none';
-                // Show/hide the toggle navigation based on back side enabled
-                this.updateToggleVisibility(enabled);
-                // Sync with desktop
-                this.elements.enableBackSide.checked = enabled;
-                this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
-            });
-
+        // Back side controls (Mobile) - Sync to desktop (no checkbox needed)
+        if (this.elements.backNameLabelMobile) {
             this.elements.backNameLabelMobile.addEventListener('input', (e) => {
                 CanvasManager.setBackSideData({ nameLabel: e.target.value });
                 this.elements.backNameLabel.value = e.target.value;
@@ -776,7 +749,8 @@ const UIManager = {
     },
 
     /**
-     * Export image
+     * Export image - Downloads only the currently active view (front or back)
+     * Enhanced for iOS devices to save to gallery
      */
     async exportImage() {
         if (!CanvasManager.hasImage()) {
@@ -785,12 +759,103 @@ const UIManager = {
         }
 
         try {
-            await CanvasManager.exportImage([], 'png', 'photocard');
-            this.showSuccessMessage('Photocard downloaded!');
+            // Determine which canvas to export based on current view
+            const canvas = this.currentView === 'front'
+                ? document.getElementById('mainCanvas')
+                : document.getElementById('backCanvas');
+
+            const filename = `objekt-${this.currentView}`;
+
+            // Check if we're on iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if (isIOS) {
+                // iOS-specific download logic for better gallery support
+                await this.exportImageIOS(canvas, filename);
+            } else {
+                // Standard download for desktop and Android
+                await this.exportImageStandard(canvas, filename);
+            }
+
+            this.showSuccessMessage(`${this.currentView === 'front' ? 'Front' : 'Back'} side downloaded!`);
         } catch (error) {
             this.showErrorMessage('Failed to export image');
             console.error(error);
         }
+    },
+
+    /**
+     * Export image for iOS devices - Opens in new tab for "Save to Photos"
+     * @param {HTMLCanvasElement} canvas - The canvas to export
+     * @param {string} filename - Base filename without extension
+     */
+    async exportImageIOS(canvas, filename) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Convert canvas to blob
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        reject(new Error('Failed to create image blob'));
+                        return;
+                    }
+
+                    // Create object URL
+                    const url = URL.createObjectURL(blob);
+
+                    // Open in new tab so user can long-press and "Save to Photos"
+                    const newWindow = window.open(url, '_blank');
+
+                    if (!newWindow) {
+                        // Fallback: Try creating a download link
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${filename}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+
+                    // Clean up after a delay
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url);
+                    }, 10000);
+
+                    resolve(true);
+                }, 'image/png', 0.95);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    /**
+     * Export image using standard download method
+     * @param {HTMLCanvasElement} canvas - The canvas to export
+     * @param {string} filename - Base filename without extension
+     */
+    async exportImageStandard(canvas, filename) {
+        return new Promise((resolve, reject) => {
+            try {
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        reject(new Error('Failed to create image blob'));
+                        return;
+                    }
+
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${filename}.png`;
+                    link.href = url;
+                    link.click();
+
+                    // Clean up
+                    URL.revokeObjectURL(url);
+                    resolve(true);
+                }, 'image/png', 0.95);
+            } catch (error) {
+                reject(error);
+            }
+        });
     },
 
     /**
@@ -827,6 +892,9 @@ const UIManager = {
      * @param {string} view - 'front' or 'back'
      */
     switchCanvasView(view) {
+        // Track current view
+        this.currentView = view;
+
         // Update toggle button states
         this.elements.toggleBtns.forEach(btn => {
             if (btn.dataset.view === view) {
@@ -851,9 +919,17 @@ const UIManager = {
             if (this.elements.backSideSectionMobile) {
                 this.elements.backSideSectionMobile.style.display = 'none';
             }
+            // Show mobile adjustments on front view
+            if (this.elements.mobileAdjustments) {
+                this.elements.mobileAdjustments.style.display = 'block';
+            }
         } else {
             this.elements.canvasWrapper.classList.remove('active');
             this.elements.backCanvasWrapper.classList.add('active');
+
+            // Automatically enable and generate back side when switching to back view
+            CanvasManager.setBackSideEnabled(true);
+            CanvasManager.updateBackSidePreview();
 
             // Hide front side controls, show back side controls
             if (this.elements.frontSideSection) {
@@ -864,6 +940,10 @@ const UIManager = {
             }
             if (this.elements.backSideSectionMobile) {
                 this.elements.backSideSectionMobile.style.display = 'block';
+            }
+            // Hide mobile adjustments on back view
+            if (this.elements.mobileAdjustments) {
+                this.elements.mobileAdjustments.style.display = 'none';
             }
         }
     },
