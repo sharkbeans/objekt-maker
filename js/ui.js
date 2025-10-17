@@ -19,7 +19,13 @@ const UIManager = {
             // Canvas
             canvasContainer: document.getElementById('canvasContainer'),
             canvasWrapper: document.getElementById('canvasWrapper'),
+            backCanvasWrapper: document.getElementById('backCanvasWrapper'),
             canvasPlaceholder: document.getElementById('canvasPlaceholder'),
+            canvasViewToggle: document.getElementById('canvasViewToggle'),
+            toggleBtns: document.querySelectorAll('.toggle-btn'),
+            frontSideSection: document.getElementById('frontSideSection'),
+            backSideSection: document.getElementById('backSideSection'),
+            backSideSectionMobile: document.getElementById('backSideSectionMobile'),
 
             // Adjustment controls (desktop)
             zoomSlider: document.getElementById('zoomSlider'),
@@ -228,11 +234,21 @@ const UIManager = {
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
 
+        // Canvas view toggle buttons
+        this.elements.toggleBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const view = e.currentTarget.dataset.view;
+                this.switchCanvasView(view);
+            });
+        });
+
         // Back side controls (Desktop)
         this.elements.enableBackSide.addEventListener('change', (e) => {
             const enabled = e.target.checked;
             CanvasManager.setBackSideEnabled(enabled);
             this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
+            // Show/hide the toggle navigation based on back side enabled
+            this.updateToggleVisibility(enabled);
             // Sync with mobile
             if (this.elements.enableBackSideMobile) {
                 this.elements.enableBackSideMobile.checked = enabled;
@@ -281,6 +297,8 @@ const UIManager = {
                 const enabled = e.target.checked;
                 CanvasManager.setBackSideEnabled(enabled);
                 this.elements.backSideControlsMobile.style.display = enabled ? 'block' : 'none';
+                // Show/hide the toggle navigation based on back side enabled
+                this.updateToggleVisibility(enabled);
                 // Sync with desktop
                 this.elements.enableBackSide.checked = enabled;
                 this.elements.backSideControls.style.display = enabled ? 'block' : 'none';
@@ -322,97 +340,6 @@ const UIManager = {
             });
         }
 
-        // Collapsible section handlers
-        this.setupCollapsibleSections();
-    },
-
-    /**
-     * Setup collapsible sections for Front Side and Back Side
-     */
-    setupCollapsibleSections() {
-        const frontSideToggle = document.getElementById('frontSideToggle');
-        const frontSideContent = document.getElementById('frontSideContent');
-        const backSideToggle = document.getElementById('backSideToggle');
-        const backSideContent = document.getElementById('backSideContent');
-        const backSideToggleMobile = document.getElementById('backSideToggleMobile');
-        const backSideContentMobile = document.getElementById('backSideContentMobile');
-
-        if (!frontSideToggle || !backSideToggle) return;
-
-        // Toggle Front Side
-        frontSideToggle.addEventListener('click', () => {
-            const isCollapsed = frontSideToggle.classList.contains('collapsed');
-
-            if (isCollapsed) {
-                // Expand front side
-                frontSideToggle.classList.remove('collapsed');
-                frontSideContent.classList.remove('collapsed');
-
-                // Collapse back side (desktop)
-                backSideToggle.classList.add('collapsed');
-                backSideContent.classList.add('collapsed');
-            } else {
-                // Collapse front side
-                frontSideToggle.classList.add('collapsed');
-                frontSideContent.classList.add('collapsed');
-            }
-        });
-
-        // Toggle Back Side (Desktop)
-        backSideToggle.addEventListener('click', () => {
-            const isCollapsed = backSideToggle.classList.contains('collapsed');
-
-            if (isCollapsed) {
-                // Expand back side
-                backSideToggle.classList.remove('collapsed');
-                backSideContent.classList.remove('collapsed');
-
-                // Collapse front side on desktop
-                frontSideToggle.classList.add('collapsed');
-                frontSideContent.classList.add('collapsed');
-
-                // Sync mobile toggle state
-                if (backSideToggleMobile && backSideContentMobile) {
-                    backSideToggleMobile.classList.remove('collapsed');
-                    backSideContentMobile.classList.remove('collapsed');
-                }
-            } else {
-                // Collapse back side
-                backSideToggle.classList.add('collapsed');
-                backSideContent.classList.add('collapsed');
-
-                // Sync mobile toggle state
-                if (backSideToggleMobile && backSideContentMobile) {
-                    backSideToggleMobile.classList.add('collapsed');
-                    backSideContentMobile.classList.add('collapsed');
-                }
-            }
-        });
-
-        // Toggle Back Side (Mobile)
-        if (backSideToggleMobile && backSideContentMobile) {
-            backSideToggleMobile.addEventListener('click', () => {
-                const isCollapsed = backSideToggleMobile.classList.contains('collapsed');
-
-                if (isCollapsed) {
-                    // Expand back side
-                    backSideToggleMobile.classList.remove('collapsed');
-                    backSideContentMobile.classList.remove('collapsed');
-
-                    // Sync desktop toggle state
-                    backSideToggle.classList.remove('collapsed');
-                    backSideContent.classList.remove('collapsed');
-                } else {
-                    // Collapse back side
-                    backSideToggleMobile.classList.add('collapsed');
-                    backSideContentMobile.classList.add('collapsed');
-
-                    // Sync desktop toggle state
-                    backSideToggle.classList.add('collapsed');
-                    backSideContent.classList.add('collapsed');
-                }
-            });
-        }
     },
 
     /**
@@ -893,6 +820,65 @@ const UIManager = {
     showErrorMessage(message) {
         console.error('[ERROR]', message);
         alert(message);
+    },
+
+    /**
+     * Switch between front and back canvas views
+     * @param {string} view - 'front' or 'back'
+     */
+    switchCanvasView(view) {
+        // Update toggle button states
+        this.elements.toggleBtns.forEach(btn => {
+            if (btn.dataset.view === view) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Switch canvas visibility with fade effect
+        if (view === 'front') {
+            this.elements.canvasWrapper.classList.add('active');
+            this.elements.backCanvasWrapper.classList.remove('active');
+
+            // Show front side controls, hide back side controls
+            if (this.elements.frontSideSection) {
+                this.elements.frontSideSection.style.display = 'block';
+            }
+            if (this.elements.backSideSection) {
+                this.elements.backSideSection.style.display = 'none';
+            }
+            if (this.elements.backSideSectionMobile) {
+                this.elements.backSideSectionMobile.style.display = 'none';
+            }
+        } else {
+            this.elements.canvasWrapper.classList.remove('active');
+            this.elements.backCanvasWrapper.classList.add('active');
+
+            // Hide front side controls, show back side controls
+            if (this.elements.frontSideSection) {
+                this.elements.frontSideSection.style.display = 'none';
+            }
+            if (this.elements.backSideSection) {
+                this.elements.backSideSection.style.display = 'block';
+            }
+            if (this.elements.backSideSectionMobile) {
+                this.elements.backSideSectionMobile.style.display = 'block';
+            }
+        }
+    },
+
+    /**
+     * Update toggle navigation visibility based on back side enabled state
+     * Note: Toggle is now always visible, but we keep this for back side generation logic
+     * @param {boolean} enabled - Whether back side is enabled
+     */
+    updateToggleVisibility(enabled) {
+        // Toggle is always visible now, just ensure back canvas is generated
+        if (!enabled) {
+            // Reset to front view when disabling back side generation
+            this.switchCanvasView('front');
+        }
     }
 };
 

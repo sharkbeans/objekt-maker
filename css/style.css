@@ -169,39 +169,7 @@ body {
     letter-spacing: 0.05em;
 }
 
-/* Collapsible Section Styles */
-.section-title.collapsible {
-    cursor: pointer;
-    user-select: none;
-    justify-content: space-between;
-    transition: color 0.2s ease;
-}
-
-.section-title.collapsible:hover {
-    color: var(--primary-color);
-}
-
-.section-title.collapsible::after {
-    content: '▼';
-    font-size: 0.7rem;
-    transition: transform 0.2s ease;
-}
-
-.section-title.collapsible.collapsed::after {
-    transform: rotate(-90deg);
-}
-
-.collapsible-content {
-    max-height: 2000px;
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-    opacity: 1;
-}
-
-.collapsible-content.collapsed {
-    max-height: 0;
-    opacity: 0;
-}
+/* Removed collapsible styles - sections now controlled by view toggle */
 
 /* ========================================
    Upload Area
@@ -606,6 +574,51 @@ input[type="range"]::-moz-range-thumb:hover {
     gap: var(--space-xl);
 }
 
+/* Canvas View Toggle Navigation */
+.canvas-view-toggle {
+    display: flex;
+    gap: var(--space-sm);
+    padding: 4px;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    width: fit-content;
+}
+
+.toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.toggle-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 174, 255, 0.3);
+}
+
+.toggle-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 .canvas-wrapper {
     position: relative;
     display: none;
@@ -613,18 +626,24 @@ input[type="range"]::-moz-range-thumb:hover {
     flex-direction: column;
     align-items: center;
     gap: var(--space-sm);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .canvas-wrapper.active {
     display: flex;
+    animation: fadeIn 0.3s ease forwards;
 }
 
-.preview-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #mainCanvas,
@@ -838,5 +857,23 @@ input[type="range"]::-moz-range-thumb:hover {
     /* Show mobile back side controls on mobile */
     .back-side-controls-mobile {
         display: block;
+    }
+
+    /* Mobile-optimized toggle buttons */
+    .canvas-view-toggle {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .toggle-btn {
+        flex: 1;
+        justify-content: center;
+        padding: var(--space-md) var(--space-sm);
+        font-size: 0.813rem;
+    }
+
+    .toggle-btn svg {
+        width: 18px;
+        height: 18px;
     }
 }

@@ -57,12 +57,12 @@
                     </div>
                 </section>
 
-                <!-- Front Side Controls (Collapsible) -->
-                <section class="control-section">
-                    <h2 class="section-title collapsible" id="frontSideToggle">
+                <!-- Front Side Controls -->
+                <section class="control-section" id="frontSideSection">
+                    <h2 class="section-title">
                         <span>Front Side</span>
                     </h2>
-                    <div class="collapsible-content" id="frontSideContent">
+                    <div id="frontSideContent">
                         <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
                             <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">ADJUSTMENTS</h3>
                             <label>
@@ -156,11 +156,11 @@
                 </section>
 
                 <!-- Back Side Controls (Desktop - in sidebar) -->
-                <section class="control-section back-side-controls-desktop">
-                    <h2 class="section-title collapsible collapsed" id="backSideToggle">
+                <section class="control-section back-side-controls-desktop" id="backSideSection" style="display: none;">
+                    <h2 class="section-title">
                         <span>Back Side</span>
                     </h2>
-                    <div class="collapsible-content collapsed" id="backSideContent">
+                    <div id="backSideContent">
                         <div class="adjustment-controls">
                             <label style="display: flex; align-items: center; gap: 10px;">
                                 <input type="checkbox" id="enableBackSide" style="width: auto;">
@@ -208,8 +208,19 @@
 
             <!-- Canvas Area -->
             <div class="canvas-container" id="canvasContainer">
-                <div class="canvas-wrapper" id="canvasWrapper">
-                    <div class="preview-label">Front Side</div>
+                <!-- Canvas View Toggle Navigation - Always Visible -->
+                <div class="canvas-view-toggle" id="canvasViewToggle">
+                    <button class="toggle-btn active" data-view="front">
+                        <i data-lucide="image"></i>
+                        <span>Front Side</span>
+                    </button>
+                    <button class="toggle-btn" data-view="back">
+                        <i data-lucide="layers"></i>
+                        <span>Back Side</span>
+                    </button>
+                </div>
+
+                <div class="canvas-wrapper active" id="canvasWrapper">
                     <canvas id="mainCanvas" width="768" height="1186"></canvas>
                 </div>
 
@@ -240,16 +251,15 @@
                 </div>
 
                 <div class="canvas-wrapper" id="backCanvasWrapper">
-                    <div class="preview-label">Back Side</div>
                     <canvas id="backCanvas" width="768" height="1186"></canvas>
                 </div>
 
                 <!-- Back Side Controls (Mobile - below back canvas) -->
-                <section class="control-section back-side-controls-mobile">
-                    <h2 class="section-title collapsible collapsed" id="backSideToggleMobile">
+                <section class="control-section back-side-controls-mobile" id="backSideSectionMobile" style="display: none;">
+                    <h2 class="section-title">
                         <span>Back Side</span>
                     </h2>
-                    <div class="collapsible-content collapsed" id="backSideContentMobile">
+                    <div id="backSideContentMobile">
                         <div class="adjustment-controls">
                             <label style="display: flex; align-items: center; gap: 10px;">
                                 <input type="checkbox" id="enableBackSideMobile" style="width: auto;">
