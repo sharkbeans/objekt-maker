@@ -652,7 +652,7 @@ const CanvasManager = {
         backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
         backCtx.letterSpacing = '-1px'; // Increased by 50% from -2px (makes spacing less negative)
         // Use stroke to make it slightly thicker than 500 but thinner than 600
-        backCtx.strokeStyle = '#000000'; // Purple for debugging, set to black later
+        backCtx.strokeStyle = this.textColor;
         backCtx.lineWidth = 2.2; // Fine tune thickness
         backCtx.strokeText(this.backNameValue, leftMargin, divider1Y + 58); // Moved down 7px (was 51)
         backCtx.fillStyle = this.textColor;
@@ -669,7 +669,7 @@ const CanvasManager = {
         backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
         backCtx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
         // Use stroke to make it slightly thicker than 500 but thinner than 600
-        backCtx.strokeStyle = '#000000'; // Purple for debugging
+        backCtx.strokeStyle = this.textColor;
         backCtx.lineWidth = 2.2; // Increased to 3 for visibility
         backCtx.strokeText(this.backClassValue, leftMargin, divider2Y + 58); // Moved down 7px (was 51)
         backCtx.fillStyle = this.textColor;
@@ -861,7 +861,7 @@ const CanvasManager = {
             const numberPart = numberMatch[2]; // e.g., "02"
 
             // Draw text part with stroke + fill for slightly thicker appearance
-            ctx.strokeStyle = '#000000'; // Purple for debugging
+            ctx.strokeStyle = this.textColor;
             ctx.lineWidth = 3; // Increased to 3 for visibility
             ctx.strokeText(textPart, x, y);
             ctx.fillStyle = this.textColor;
