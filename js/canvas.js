@@ -1110,6 +1110,248 @@ const CanvasManager = {
      */
     toDataURL() {
         return this.canvas.toDataURL('image/png');
+    },
+
+    /**
+     * Get bounding boxes for all text areas on the front side
+     * @returns {Array} Array of text bound objects with {type, x, y, width, height}
+     */
+    getTextBounds() {
+        const bounds = [];
+        const accentX = this.canvasWidth - this.accentWidth;
+        const centerX = accentX + this.accentWidth / 2;
+        const padding = 20; // Hit area padding
+
+        // Top text bounds
+        this.ctx.font = '600 40.90875px "Helvetica Neue", sans-serif';
+        const topTextWidth = this.ctx.measureText(this.topText).width;
+        const topTextY = 104 + this.topTextHeight;
+        bounds.push({
+            type: 'top',
+            x: centerX - topTextWidth / 2 - padding,
+            y: topTextY - padding,
+            width: topTextWidth + padding * 2,
+            height: 40.90875 + padding * 2
+        });
+
+        // Middle text bounds
+        this.ctx.font = '550 45px "SF Pro Display", sans-serif';
+        const middleTextWidth = this.ctx.measureText(this.middleText).width;
+        const middleTextY = this.canvasHeight / 2.25 + this.middleTextHeight;
+        bounds.push({
+            type: 'middle',
+            x: centerX - middleTextWidth / 2 - padding,
+            y: middleTextY - padding,
+            width: middleTextWidth + padding * 2,
+            height: 45 + padding * 2
+        });
+
+        // Bottom text bounds (more complex due to rotation and positioning)
+        const notchY = (this.canvasHeight - this.notchHeight) / 2;
+        const notchBottom = notchY + this.notchHeight;
+        const defaultBottomY = this.canvasHeight - 227;
+
+        let textWidth = 0;
+        const baseSpacing = -1.0973;
+
+        if (this.bottomText === 'tripleS') {
+            const extraGap100 = Math.abs(baseSpacing);
+            const extraGap50 = Math.abs(baseSpacing) * 0.5;
+            const reducedGap = baseSpacing * 0.15;
+
+            for (let i = 0; i < this.bottomText.length; i++) {
+                const char = this.bottomText[i];
+                const charWidth = this.ctx.measureText(char).width;
+                textWidth += charWidth + baseSpacing;
+
+                if (i === 0 || i === 1) textWidth += extraGap100;
+                if (i === 5) textWidth += extraGap50;
+                if (i === 6) textWidth -= reducedGap;
+            }
+        } else {
+            this.ctx.letterSpacing = '-1.0973px';
+            textWidth = this.ctx.measureText(this.bottomText).width;
+        }
+
+        const bottomMargin = 20;
+        let bottomTextY = defaultBottomY;
+        const textEnd = defaultBottomY + textWidth;
+
+        if (textEnd > notchBottom - bottomMargin) {
+            bottomTextY = notchBottom - textWidth - bottomMargin;
+        }
+
+        bottomTextY += this.bottomTextHeight;
+
+        bounds.push({
+            type: 'bottom',
+            x: centerX - padding,
+            y: bottomTextY - padding,
+            width: 45 + padding * 2,
+            height: textWidth + padding * 2
+        });
+
+        return bounds;
+    },
+
+    /**
+     * Get which text area was clicked (if any)
+     * @param {number} x - Click X coordinate relative to canvas
+     * @param {number} y - Click Y coordinate relative to canvas
+     * @returns {string|null} Text type ('top', 'middle', 'bottom') or null
+     */
+    getClickedText(x, y) {
+        const bounds = this.getTextBounds();
+
+        for (const bound of bounds) {
+            if (x >= bound.x && x <= bound.x + bound.width &&
+                y >= bound.y && y <= bound.y + bound.height) {
+                return bound.type;
+            }
+        }
+
+        return null;
+    },
+
+    /**
+     * Get bounding boxes for all text areas on the back side
+     * @returns {Array} Array of text bound objects with {type, x, y, width, height}
+     */
+    getBackTextBounds() {
+        const bounds = [];
+        const ctx = document.createElement('canvas').getContext('2d');
+        const padding = 30; // Hit area padding for easier clicking
+
+        // Calculate dimensions used in back side rendering
+        const whiteBackgroundWidth = this.accentWidth * 0.8378;
+        const rectWidth = this.canvasWidth - whiteBackgroundWidth;
+        const whiteBackgroundHeight = this.accentWidth * 0.84375;
+        const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
+        const rectX = 0;
+        const rectY = whiteBackgroundHeight;
+
+        const leftMargin = 47;
+
+        // Calculate divider positions
+        const divider1Y = rectY + (rectHeight * 0.175);
+        const divider2Y = rectY + (rectHeight * 0.325);
+        const divider3Y = rectY + (rectHeight * 0.475);
+        const divider4Y = rectY + (rectHeight * 0.625);
+
+        // NAME Label
+        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        const nameLabelWidth = ctx.measureText(this.backNameLabel).width;
+        bounds.push({
+            type: 'nameLabel',
+            x: leftMargin - padding,
+            y: divider1Y + 10 - padding,
+            width: nameLabelWidth + padding * 2,
+            height: 29.828 + padding * 2
+        });
+
+        // NAME Value
+        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        const nameValueWidth = ctx.measureText(this.backNameValue).width;
+        bounds.push({
+            type: 'nameValue',
+            x: leftMargin - padding,
+            y: divider1Y + 58 - padding,
+            width: nameValueWidth + padding * 2,
+            height: 88 + padding * 2
+        });
+
+        // CLASS Label
+        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        const classLabelWidth = ctx.measureText(this.backClassLabel).width;
+        bounds.push({
+            type: 'classLabel',
+            x: leftMargin - padding,
+            y: divider2Y + 10 - padding,
+            width: classLabelWidth + padding * 2,
+            height: 29.828 + padding * 2
+        });
+
+        // CLASS Value
+        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        const classValueWidth = ctx.measureText(this.backClassValue).width;
+        bounds.push({
+            type: 'classValue',
+            x: leftMargin - padding,
+            y: divider2Y + 58 - padding,
+            width: classValueWidth + padding * 2,
+            height: 88 + padding * 2
+        });
+
+        // SEASON Label
+        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        const seasonLabelWidth = ctx.measureText(this.backSeasonLabel).width;
+        bounds.push({
+            type: 'seasonLabel',
+            x: leftMargin - padding,
+            y: divider3Y + 10 - padding,
+            width: seasonLabelWidth + padding * 2,
+            height: 29.828 + padding * 2
+        });
+
+        // SEASON Value
+        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        const seasonValueWidth = ctx.measureText(this.backSeasonValue).width;
+        bounds.push({
+            type: 'seasonValue',
+            x: leftMargin - padding,
+            y: divider3Y + 56 - padding,
+            width: seasonValueWidth + padding * 2,
+            height: 88 + padding * 2
+        });
+
+        // Rotated text on the right side
+        const rightGap = rectWidth * 0.04;
+        const textX = rectWidth - rightGap - 18;
+        const topGap = rectHeight * 0.04;
+
+        // Top rotated text (name value) - rotated 90 degrees
+        ctx.font = '600 41.18px "Helvetica Neue", sans-serif';
+        const topRotatedWidth = ctx.measureText(this.backNameValue).width;
+        // Since it's rotated 90 degrees, x and y are swapped for hit detection
+        bounds.push({
+            type: 'topRotated',
+            x: textX - 41.18 / 2 - padding,
+            y: rectY + topGap - 10 + this.backTopTextHeight - padding,
+            width: 41.18 + padding * 2,
+            height: topRotatedWidth + padding * 2
+        });
+
+        // Bottom rotated text (group name) - rotated 90 degrees
+        const bottomGap = 30;
+        const bottomRotatedWidth = ctx.measureText(this.backGroupName).width;
+        bounds.push({
+            type: 'bottomRotated',
+            x: textX - 41.18 / 2 - padding,
+            y: rectY + rectHeight - bottomGap - 135 + this.backBottomTextHeight - padding,
+            width: 41.18 + padding * 2,
+            height: bottomRotatedWidth + padding * 2
+        });
+
+        return bounds;
+    },
+
+    /**
+     * Get which back side text area was clicked (if any)
+     * @param {number} x - Click X coordinate relative to canvas
+     * @param {number} y - Click Y coordinate relative to canvas
+     * @returns {string|null} Text type or null
+     */
+    getClickedBackText(x, y) {
+        const bounds = this.getBackTextBounds();
+
+        for (const bound of bounds) {
+            if (x >= bound.x && x <= bound.x + bound.width &&
+                y >= bound.y && y <= bound.y + bound.height) {
+                return bound.type;
+            }
+        }
+
+        return null;
     }
 };
 

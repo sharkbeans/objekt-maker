@@ -677,6 +677,9 @@ const UIManager = {
         // Collapsible sections functionality
         this.initCollapsibleSections();
 
+        // Canvas text click event - for inline editing
+        this.initCanvasTextEditor();
+
     },
 
     /**
@@ -1538,6 +1541,408 @@ const UIManager = {
             // Reset to front view when disabling back side generation
             this.switchCanvasView('front');
         }
+    },
+
+    /**
+     * Initialize canvas text editor for inline text editing
+     * Allows clicking text on canvas previews to edit them directly
+     */
+    initCanvasTextEditor() {
+        // Get both canvas wrappers
+        const frontWrapper = document.getElementById('canvasWrapper');
+        const backWrapper = document.getElementById('backCanvasWrapper');
+
+        if (!frontWrapper || !backWrapper) return;
+
+        // Add click/touch listener to front canvas
+        const frontCanvas = document.getElementById('mainCanvas');
+        if (frontCanvas) {
+            frontCanvas.addEventListener('click', (e) => this.handleCanvasClick(e, 'front'));
+            frontCanvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.handleCanvasClick(e, 'front');
+            });
+            frontCanvas.style.cursor = 'pointer';
+        }
+
+        // Add click/touch listener to back canvas
+        const backCanvas = document.getElementById('backCanvas');
+        if (backCanvas) {
+            backCanvas.addEventListener('click', (e) => this.handleCanvasClick(e, 'back'));
+            backCanvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.handleCanvasClick(e, 'back');
+            });
+            backCanvas.style.cursor = 'pointer';
+        }
+    },
+
+    /**
+     * Handle click on canvas to detect text area clicks
+     * @param {MouseEvent|TouchEvent} event - Click or touch event
+     * @param {string} side - 'front' or 'back'
+     */
+    handleCanvasClick(event, side) {
+        const canvas = event.target;
+        const rect = canvas.getBoundingClientRect();
+
+        // Get clientX and clientY from touch or mouse event
+        let clientX, clientY;
+        if (event.type === 'touchend' && event.changedTouches && event.changedTouches.length > 0) {
+            clientX = event.changedTouches[0].clientX;
+            clientY = event.changedTouches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
+        // Calculate click position relative to canvas (accounting for canvas scaling)
+        const scaleX = CanvasManager.canvasWidth / rect.width;
+        const scaleY = CanvasManager.canvasHeight / rect.height;
+        const x = (clientX - rect.left) * scaleX;
+        const y = (clientY - rect.top) * scaleY;
+
+        let clickedTextType = null;
+
+        if (side === 'front') {
+            clickedTextType = CanvasManager.getClickedText(x, y);
+            if (clickedTextType) {
+                this.showTextEditor(canvas, rect, clickedTextType, side);
+            }
+        } else if (side === 'back') {
+            clickedTextType = CanvasManager.getClickedBackText(x, y);
+            if (clickedTextType) {
+                this.showTextEditor(canvas, rect, clickedTextType, side);
+            }
+        }
+    },
+
+    /**
+     * Show inline text editor at clicked position
+     * @param {HTMLCanvasElement} canvas - Canvas element
+     * @param {DOMRect} canvasRect - Canvas bounding rect
+     * @param {string} textType - Type of text clicked
+     * @param {string} side - 'front' or 'back'
+     */
+    showTextEditor(canvas, canvasRect, textType, side) {
+        // Remove any existing editor
+        this.removeTextEditor();
+
+        // Create editor container
+        const editor = document.createElement('div');
+        editor.className = 'canvas-text-editor-overlay';
+        editor.id = 'canvasTextEditor';
+
+        // Create input element
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'canvas-text-editor-input';
+
+        // Get current value and height info based on side and text type
+        let currentValue = '';
+        let inputElement = null;
+        let hasHeightSlider = false;
+        let currentHeight = 0;
+        let heightSliderElement = null;
+
+        if (side === 'front') {
+            switch (textType) {
+                case 'top':
+                    currentValue = CanvasManager.topText;
+                    inputElement = this.elements.topText;
+                    hasHeightSlider = true;
+                    currentHeight = CanvasManager.topTextHeight;
+                    heightSliderElement = this.elements.topTextHeight;
+                    break;
+                case 'middle':
+                    currentValue = CanvasManager.middleText;
+                    inputElement = this.elements.middleText;
+                    hasHeightSlider = true;
+                    currentHeight = CanvasManager.middleTextHeight;
+                    heightSliderElement = this.elements.middleTextHeight;
+                    break;
+                case 'bottom':
+                    currentValue = CanvasManager.bottomText;
+                    inputElement = this.elements.bottomText;
+                    hasHeightSlider = true;
+                    currentHeight = CanvasManager.bottomTextHeight;
+                    heightSliderElement = this.elements.bottomTextHeight;
+                    break;
+            }
+        } else if (side === 'back') {
+            switch (textType) {
+                case 'nameLabel':
+                    currentValue = CanvasManager.backNameLabel;
+                    inputElement = this.elements.backNameLabel;
+                    break;
+                case 'nameValue':
+                    currentValue = CanvasManager.backNameValue;
+                    inputElement = this.elements.backNameValue;
+                    break;
+                case 'classLabel':
+                    currentValue = CanvasManager.backClassLabel;
+                    inputElement = this.elements.backClassLabel;
+                    break;
+                case 'classValue':
+                    currentValue = CanvasManager.backClassValue;
+                    inputElement = this.elements.backClassValue;
+                    break;
+                case 'seasonLabel':
+                    currentValue = CanvasManager.backSeasonLabel;
+                    inputElement = this.elements.backSeasonLabel;
+                    break;
+                case 'seasonValue':
+                    currentValue = CanvasManager.backSeasonValue;
+                    inputElement = this.elements.backSeasonValue;
+                    break;
+                case 'topRotated':
+                    currentValue = CanvasManager.backNameValue;
+                    inputElement = this.elements.backNameValue;
+                    hasHeightSlider = true;
+                    currentHeight = CanvasManager.backTopTextHeight;
+                    heightSliderElement = this.elements.backTopTextHeight;
+                    break;
+                case 'bottomRotated':
+                    currentValue = CanvasManager.backGroupName;
+                    inputElement = this.elements.backGroupName;
+                    hasHeightSlider = true;
+                    currentHeight = CanvasManager.backBottomTextHeight;
+                    heightSliderElement = this.elements.backBottomTextHeight;
+                    break;
+            }
+        }
+
+        input.value = currentValue;
+        input.placeholder = 'Enter text...';
+
+        // Create editor content container
+        const editorContent = document.createElement('div');
+        editorContent.className = 'canvas-text-editor';
+
+        // Add text input
+        editorContent.appendChild(input);
+
+        // Add height slider if applicable
+        let heightSlider = null;
+        let heightValueDisplay = null;
+        if (hasHeightSlider) {
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'canvas-editor-slider-container';
+
+            const sliderLabel = document.createElement('label');
+            sliderLabel.className = 'canvas-editor-slider-label';
+            sliderLabel.textContent = 'Text Height';
+
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.className = 'canvas-editor-slider-wrapper';
+
+            heightSlider = document.createElement('input');
+            heightSlider.type = 'range';
+            heightSlider.className = 'canvas-editor-slider';
+            heightSlider.min = '-200';
+            heightSlider.max = '200';
+            heightSlider.value = currentHeight;
+
+            heightValueDisplay = document.createElement('span');
+            heightValueDisplay.className = 'canvas-editor-slider-value';
+            heightValueDisplay.textContent = `${currentHeight}px`;
+
+            sliderWrapper.appendChild(heightSlider);
+            sliderWrapper.appendChild(heightValueDisplay);
+
+            sliderContainer.appendChild(sliderLabel);
+            sliderContainer.appendChild(sliderWrapper);
+            editorContent.appendChild(sliderContainer);
+
+            // Handle slider input
+            heightSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                heightValueDisplay.textContent = `${value}px`;
+
+                // Update canvas in real-time
+                if (side === 'front') {
+                    CanvasManager.setTextHeight(textType, value);
+                    // Sync to sliders
+                    if (heightSliderElement) heightSliderElement.value = value;
+                    if (textType === 'top' && this.elements.topTextHeightValue) {
+                        this.elements.topTextHeightValue.textContent = `${value}px`;
+                    } else if (textType === 'middle' && this.elements.middleTextHeightValue) {
+                        this.elements.middleTextHeightValue.textContent = `${value}px`;
+                    } else if (textType === 'bottom' && this.elements.bottomTextHeightValue) {
+                        this.elements.bottomTextHeightValue.textContent = `${value}px`;
+                    }
+                    // Sync to mobile
+                    if (textType === 'top' && this.elements.topTextHeightMobile) {
+                        this.elements.topTextHeightMobile.value = value;
+                        this.elements.topTextHeightValueMobile.textContent = `${value}px`;
+                    } else if (textType === 'middle' && this.elements.middleTextHeightMobile) {
+                        this.elements.middleTextHeightMobile.value = value;
+                        this.elements.middleTextHeightValueMobile.textContent = `${value}px`;
+                    } else if (textType === 'bottom' && this.elements.bottomTextHeightMobile) {
+                        this.elements.bottomTextHeightMobile.value = value;
+                        this.elements.bottomTextHeightValueMobile.textContent = `${value}px`;
+                    }
+                } else if (side === 'back') {
+                    const position = textType === 'topRotated' ? 'top' : 'bottom';
+                    CanvasManager.setBackTextHeight(position, value);
+                    // Sync to sliders
+                    if (heightSliderElement) heightSliderElement.value = value;
+                    if (textType === 'topRotated' && this.elements.backTopTextHeightValue) {
+                        this.elements.backTopTextHeightValue.textContent = `${value}px`;
+                    } else if (textType === 'bottomRotated' && this.elements.backBottomTextHeightValue) {
+                        this.elements.backBottomTextHeightValue.textContent = `${value}px`;
+                    }
+                    // Sync to mobile
+                    if (textType === 'topRotated') {
+                        if (this.elements.backTopTextHeightMobile) {
+                            this.elements.backTopTextHeightMobile.value = value;
+                            this.elements.backTopTextHeightValueMobile.textContent = `${value}px`;
+                        }
+                        if (this.elements.backTopTextHeightMobileQuick) {
+                            this.elements.backTopTextHeightMobileQuick.value = value;
+                            this.elements.backTopTextHeightValueMobileQuick.textContent = `${value}px`;
+                        }
+                    } else if (textType === 'bottomRotated') {
+                        if (this.elements.backBottomTextHeightMobile) {
+                            this.elements.backBottomTextHeightMobile.value = value;
+                            this.elements.backBottomTextHeightValueMobile.textContent = `${value}px`;
+                        }
+                        if (this.elements.backBottomTextHeightMobileQuick) {
+                            this.elements.backBottomTextHeightMobileQuick.value = value;
+                            this.elements.backBottomTextHeightValueMobileQuick.textContent = `${value}px`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create hint text
+        const hint = document.createElement('div');
+        hint.className = 'canvas-text-editor-hint';
+        hint.textContent = 'Press Enter to save, Esc to cancel';
+
+        editorContent.appendChild(hint);
+        editor.appendChild(editorContent);
+
+        // Create and add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'canvas-text-editor-backdrop';
+        backdrop.id = 'canvasTextEditorBackdrop';
+        backdrop.addEventListener('click', () => this.removeTextEditor());
+
+        document.body.appendChild(backdrop);
+        document.body.appendChild(editor);
+
+        // Focus input and select all text
+        input.focus();
+        input.select();
+
+        // Handle input events
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                // Save changes
+                const newValue = input.value;
+
+                if (side === 'front') {
+                    switch (textType) {
+                        case 'top':
+                            CanvasManager.setText(newValue, undefined, undefined);
+                            if (inputElement) inputElement.value = newValue;
+                            break;
+                        case 'middle':
+                            CanvasManager.setText(undefined, newValue, undefined);
+                            if (inputElement) inputElement.value = newValue;
+                            break;
+                        case 'bottom':
+                            CanvasManager.setText(undefined, undefined, newValue);
+                            if (inputElement) inputElement.value = newValue;
+                            break;
+                    }
+                } else if (side === 'back') {
+                    const updateData = {};
+                    switch (textType) {
+                        case 'nameLabel':
+                            updateData.nameLabel = newValue;
+                            break;
+                        case 'nameValue':
+                            updateData.nameValue = newValue;
+                            break;
+                        case 'classLabel':
+                            updateData.classLabel = newValue;
+                            break;
+                        case 'classValue':
+                            updateData.classValue = newValue;
+                            break;
+                        case 'seasonLabel':
+                            updateData.seasonLabel = newValue;
+                            break;
+                        case 'seasonValue':
+                            updateData.seasonValue = newValue;
+                            break;
+                        case 'topRotated':
+                            updateData.nameValue = newValue;
+                            break;
+                        case 'bottomRotated':
+                            updateData.groupName = newValue;
+                            break;
+                    }
+                    CanvasManager.setBackSideData(updateData);
+                    if (inputElement) inputElement.value = newValue;
+
+                    // Sync to mobile if needed
+                    if (textType === 'nameValue' && this.elements.backNameValueMobile) {
+                        this.elements.backNameValueMobile.value = newValue;
+                    } else if (textType === 'nameLabel' && this.elements.backNameLabelMobile) {
+                        this.elements.backNameLabelMobile.value = newValue;
+                    } else if (textType === 'classValue' && this.elements.backClassValueMobile) {
+                        this.elements.backClassValueMobile.value = newValue;
+                    } else if (textType === 'classLabel' && this.elements.backClassLabelMobile) {
+                        this.elements.backClassLabelMobile.value = newValue;
+                    } else if (textType === 'seasonValue' && this.elements.backSeasonValueMobile) {
+                        this.elements.backSeasonValueMobile.value = newValue;
+                    } else if (textType === 'seasonLabel' && this.elements.backSeasonLabelMobile) {
+                        this.elements.backSeasonLabelMobile.value = newValue;
+                    } else if (textType === 'bottomRotated' && this.elements.backGroupNameMobile) {
+                        this.elements.backGroupNameMobile.value = newValue;
+                    }
+                }
+
+                this.removeTextEditor();
+            } else if (e.key === 'Escape') {
+                // Cancel
+                this.removeTextEditor();
+            }
+        });
+
+        // Remove editor when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', this.handleOutsideClick, true);
+        }, 10);
+    },
+
+    /**
+     * Handle clicks outside the text editor
+     */
+    handleOutsideClick(event) {
+        const editor = document.getElementById('canvasTextEditor');
+        if (editor && !editor.contains(event.target)) {
+            UIManager.removeTextEditor();
+        }
+    },
+
+    /**
+     * Remove the text editor overlay
+     */
+    removeTextEditor() {
+        const editor = document.getElementById('canvasTextEditor');
+        const backdrop = document.getElementById('canvasTextEditorBackdrop');
+        if (editor) {
+            editor.remove();
+        }
+        if (backdrop) {
+            backdrop.remove();
+        }
+        document.removeEventListener('click', this.handleOutsideClick, true);
     }
 };
 
