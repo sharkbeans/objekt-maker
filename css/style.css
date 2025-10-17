@@ -140,9 +140,16 @@ body {
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     border: 1px solid var(--border-color);
-    height: fit-content;
+    max-height: calc(100vh - 2 * var(--space-lg));
+    overflow-y: auto;
     position: sticky;
     top: var(--space-lg);
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.controls-panel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .control-section {
