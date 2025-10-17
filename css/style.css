@@ -577,11 +577,9 @@ input[type="range"]::-moz-range-thumb:hover {
     justify-content: flex-start;
     min-height: 600px;
     position: sticky;
-    top: var(--space-lg);
+    top: 20px;
     gap: var(--space-xl);
     align-self: flex-start;
-    max-height: calc(100vh - var(--space-xl) * 2);
-    overflow-y: auto;
 }
 
 /* Canvas View Toggle Navigation */
