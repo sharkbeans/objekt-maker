@@ -957,7 +957,7 @@ input[type="range"]::-moz-range-thumb:hover {
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(1px);
     animation: fadeIn 0.2s ease;
 }
 
