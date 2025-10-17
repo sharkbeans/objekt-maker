@@ -1059,7 +1059,7 @@ const UIManager = {
 
     /**
      * Export image - Downloads only the currently active view (front or back)
-     * Enhanced for iOS devices to save to gallery
+     * Enhanced for mobile devices to save directly to gallery
      */
     async exportImage() {
         if (!CanvasManager.hasImage()) {
@@ -1073,16 +1073,16 @@ const UIManager = {
                 ? document.getElementById('mainCanvas')
                 : document.getElementById('backCanvas');
 
-            const filename = `objekt-${this.currentView}`;
+            const filename = `objekt-${this.currentView}.png`;
 
-            // Check if we're on iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            // Check if we're on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-            if (isIOS) {
-                // iOS-specific download logic for better gallery support
-                await this.exportImageIOS(canvas, filename);
+            if (isMobile && navigator.canShare) {
+                // Try Web Share API for mobile devices - allows saving to gallery
+                await this.exportImageShare(canvas, filename);
             } else {
-                // Standard download for desktop and Android
+                // Standard download for desktop
                 await this.exportImageStandard(canvas, filename);
             }
 
@@ -1094,42 +1094,48 @@ const UIManager = {
     },
 
     /**
-     * Export image for iOS devices - Opens in new tab for "Save to Photos"
+     * Export image using Web Share API - Allows saving to gallery on mobile
      * @param {HTMLCanvasElement} canvas - The canvas to export
-     * @param {string} filename - Base filename without extension
+     * @param {string} filename - Filename with extension
      */
-    async exportImageIOS(canvas, filename) {
+    async exportImageShare(canvas, filename) {
         return new Promise((resolve, reject) => {
             try {
                 // Convert canvas to blob
-                canvas.toBlob((blob) => {
+                canvas.toBlob(async (blob) => {
                     if (!blob) {
                         reject(new Error('Failed to create image blob'));
                         return;
                     }
 
-                    // Create object URL
-                    const url = URL.createObjectURL(blob);
+                    try {
+                        // Create a File object from the blob
+                        const file = new File([blob], filename, { type: 'image/png' });
 
-                    // Open in new tab so user can long-press and "Save to Photos"
-                    const newWindow = window.open(url, '_blank');
-
-                    if (!newWindow) {
-                        // Fallback: Try creating a download link
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = `${filename}.png`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                        // Check if the browser supports sharing files
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Objekt Image',
+                                text: 'Download your objekt image'
+                            });
+                            resolve(true);
+                        } else {
+                            // Fallback to standard download if file sharing not supported
+                            await this.exportImageStandard(canvas, filename);
+                            resolve(true);
+                        }
+                    } catch (shareError) {
+                        // User cancelled share or error occurred - try standard download
+                        if (shareError.name === 'AbortError') {
+                            console.log('Share cancelled by user');
+                            resolve(false);
+                        } else {
+                            console.warn('Share failed, falling back to download:', shareError);
+                            await this.exportImageStandard(canvas, filename);
+                            resolve(true);
+                        }
                     }
-
-                    // Clean up after a delay
-                    setTimeout(() => {
-                        URL.revokeObjectURL(url);
-                    }, 10000);
-
-                    resolve(true);
                 }, 'image/png', 0.95);
             } catch (error) {
                 reject(error);
@@ -1140,7 +1146,7 @@ const UIManager = {
     /**
      * Export image using standard download method
      * @param {HTMLCanvasElement} canvas - The canvas to export
-     * @param {string} filename - Base filename without extension
+     * @param {string} filename - Filename with extension
      */
     async exportImageStandard(canvas, filename) {
         return new Promise((resolve, reject) => {
@@ -1153,7 +1159,7 @@ const UIManager = {
 
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    link.download = `${filename}.png`;
+                    link.download = filename;
                     link.href = url;
                     link.click();
 
