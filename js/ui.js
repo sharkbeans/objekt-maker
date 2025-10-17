@@ -16,6 +16,7 @@ const UIManager = {
             // Upload
             uploadArea: document.getElementById('uploadArea'),
             imageUpload: document.getElementById('imageUpload'),
+            uploadSection: document.querySelector('.control-section:has(#uploadArea)'),
 
             // Canvas
             canvasContainer: document.getElementById('canvasContainer'),
@@ -70,6 +71,15 @@ const UIManager = {
             resetBtnMobile: document.getElementById('resetBtnMobile'),
 
             // Back side controls (Desktop)
+            notchColorGroupSelectBack: document.getElementById('notchColorGroupSelectBack'),
+            notchColorSelectBack: document.getElementById('notchColorSelectBack'),
+            notchColorPickerBack: document.getElementById('notchColorPickerBack'),
+            borderColorHexBack: document.getElementById('borderColorHexBack'),
+            borderImageUploadBack: document.getElementById('borderImageUploadBack'),
+            clearBorderImageBack: document.getElementById('clearBorderImageBack'),
+            textColorPickerBack: document.getElementById('textColorPickerBack'),
+            textColorHexBack: document.getElementById('textColorHexBack'),
+            presetColorsTextBack: document.querySelectorAll('.preset-color-text-back'),
             backNameLabel: document.getElementById('backNameLabel'),
             backNameValue: document.getElementById('backNameValue'),
             backClassLabel: document.getElementById('backClassLabel'),
@@ -79,6 +89,9 @@ const UIManager = {
             backGroupName: document.getElementById('backGroupName'),
 
             // Back side controls (Mobile)
+            borderColorHexBackMobile: document.getElementById('borderColorHexBackMobile'),
+            textColorPickerBackMobile: document.getElementById('textColorPickerBackMobile'),
+            textColorHexBackMobile: document.getElementById('textColorHexBackMobile'),
             backNameLabelMobile: document.getElementById('backNameLabelMobile'),
             backNameValueMobile: document.getElementById('backNameValueMobile'),
             backClassLabelMobile: document.getElementById('backClassLabelMobile'),
@@ -238,6 +251,128 @@ const UIManager = {
                 this.switchCanvasView(view);
             });
         });
+
+        // Back side color controls (Desktop)
+        this._initNotchColorDropdownsBack();
+
+        // Color picker for back side
+        if (this.elements.notchColorPickerBack) {
+            this.elements.notchColorPickerBack.addEventListener('input', (e) => {
+                const color = e.target.value.toUpperCase();
+                this._updateColorPreviewBack(color);
+                this.elements.borderColorHexBack.value = color;
+                CanvasManager.setBorderColor(color);
+                this._syncDropdownWithColorBack(color);
+                // Sync to front
+                this._syncFrontColors(color, null);
+            });
+        }
+
+        // Hex input for back side
+        if (this.elements.borderColorHexBack) {
+            this.elements.borderColorHexBack.addEventListener('input', (e) => {
+                let color = e.target.value.trim();
+                if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                    color = color.toUpperCase();
+                    this._updateColorPreviewBack(color);
+                    CanvasManager.setBorderColor(color);
+                    this._syncDropdownWithColorBack(color);
+                    // Sync to front
+                    this._syncFrontColors(color, null);
+                }
+            });
+        }
+
+        // Border image upload for back side
+        if (this.elements.borderImageUploadBack) {
+            this.elements.borderImageUploadBack.addEventListener('change', (e) => this.handleBorderImageUploadBack(e));
+        }
+        if (this.elements.clearBorderImageBack) {
+            this.elements.clearBorderImageBack.addEventListener('click', () => this.clearBorderImageBack());
+        }
+
+        // Text color controls for back side
+        if (this.elements.textColorPickerBack) {
+            this.elements.textColorPickerBack.addEventListener('input', (e) => {
+                const color = e.target.value.toUpperCase();
+                this.elements.textColorHexBack.value = color;
+                CanvasManager.setTextColor(color);
+                // Sync to front
+                this._syncFrontColors(null, color);
+            });
+        }
+
+        if (this.elements.textColorHexBack) {
+            this.elements.textColorHexBack.addEventListener('input', (e) => {
+                let color = e.target.value.trim();
+                if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                    color = color.toUpperCase();
+                    this.elements.textColorPickerBack.value = color;
+                    CanvasManager.setTextColor(color);
+                    // Sync to front
+                    this._syncFrontColors(null, color);
+                }
+            });
+        }
+
+        // Preset text color buttons for back side
+        if (this.elements.presetColorsTextBack) {
+            this.elements.presetColorsTextBack.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const color = e.target.dataset.color;
+                    this.elements.textColorPickerBack.value = color;
+                    this.elements.textColorHexBack.value = color;
+                    CanvasManager.setTextColor(color);
+                    // Sync to front
+                    this._syncFrontColors(null, color);
+                });
+            });
+        }
+
+        // Mobile back side color controls
+        if (this.elements.borderColorHexBackMobile) {
+            this.elements.borderColorHexBackMobile.addEventListener('input', (e) => {
+                let color = e.target.value.trim();
+                if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                    color = color.toUpperCase();
+                    CanvasManager.setBorderColor(color);
+                    // Sync to desktop back
+                    if (this.elements.borderColorHexBack) this.elements.borderColorHexBack.value = color;
+                    if (this.elements.notchColorPickerBack) this.elements.notchColorPickerBack.value = color;
+                    // Sync to front
+                    this._syncFrontColors(color, null);
+                }
+            });
+        }
+
+        if (this.elements.textColorPickerBackMobile) {
+            this.elements.textColorPickerBackMobile.addEventListener('input', (e) => {
+                const color = e.target.value.toUpperCase();
+                this.elements.textColorHexBackMobile.value = color;
+                CanvasManager.setTextColor(color);
+                // Sync to desktop back
+                if (this.elements.textColorPickerBack) this.elements.textColorPickerBack.value = color;
+                if (this.elements.textColorHexBack) this.elements.textColorHexBack.value = color;
+                // Sync to front
+                this._syncFrontColors(null, color);
+            });
+        }
+
+        if (this.elements.textColorHexBackMobile) {
+            this.elements.textColorHexBackMobile.addEventListener('input', (e) => {
+                let color = e.target.value.trim();
+                if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                    color = color.toUpperCase();
+                    this.elements.textColorPickerBackMobile.value = color;
+                    CanvasManager.setTextColor(color);
+                    // Sync to desktop back
+                    if (this.elements.textColorPickerBack) this.elements.textColorPickerBack.value = color;
+                    if (this.elements.textColorHexBack) this.elements.textColorHexBack.value = color;
+                    // Sync to front
+                    this._syncFrontColors(null, color);
+                }
+            });
+        }
 
         // Back side controls (Desktop) - Direct input, no checkbox needed
         this.elements.backNameLabel.addEventListener('input', (e) => {
@@ -613,6 +748,180 @@ const UIManager = {
     },
 
     /**
+     * Initialize back side notch color dropdowns
+     */
+    _initNotchColorDropdownsBack() {
+        const groupSelect = this.elements.notchColorGroupSelectBack;
+        const colorSelect = this.elements.notchColorSelectBack;
+
+        if (!groupSelect || !colorSelect) return;
+
+        // Populate category dropdown
+        const groupNames = Object.keys(this.notchColorGroups);
+        groupSelect.innerHTML = '';
+        groupNames.forEach((name, idx) => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            if (idx === 0) option.selected = true;
+            groupSelect.appendChild(option);
+        });
+
+        // Populate colors for initially selected category
+        this._populateColorDropdownBack(groupNames[0]);
+
+        // Initialize with current color from front side
+        if (CanvasManager && CanvasManager.accentColor) {
+            this._updateColorPreviewBack(CanvasManager.accentColor);
+            this.elements.borderColorHexBack.value = CanvasManager.accentColor;
+        }
+
+        // Event: Category selection changes
+        groupSelect.addEventListener('change', (e) => {
+            this._populateColorDropdownBack(e.target.value);
+        });
+
+        // Event: Color selection changes
+        colorSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const color = selectedOption.value.toUpperCase();
+                this._updateColorPreviewBack(color);
+                this.elements.borderColorHexBack.value = color;
+                CanvasManager.setBorderColor(color);
+                this._syncFrontColors(color, null);
+            }
+        });
+    },
+
+    /**
+     * Populate back side color dropdown
+     */
+    _populateColorDropdownBack(groupName) {
+        const colorSelect = this.elements.notchColorSelectBack;
+        const colors = this.notchColorGroups[groupName] || [];
+
+        colorSelect.innerHTML = '<option value="">Select a color</option>';
+
+        colors.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.color;
+            option.textContent = `■ ${item.title}`;
+            option.title = `${item.title} - ${item.color}`;
+            option.dataset.color = item.color;
+            option.dataset.title = item.title;
+            colorSelect.appendChild(option);
+        });
+
+        this._styleColorOptions(colorSelect);
+    },
+
+    /**
+     * Update color preview for back side
+     */
+    _updateColorPreviewBack(color) {
+        if (this.elements.notchColorPickerBack) {
+            this.elements.notchColorPickerBack.value = color;
+        }
+    },
+
+    /**
+     * Sync dropdown selection for back side
+     */
+    _syncDropdownWithColorBack(color) {
+        const colorSelect = this.elements.notchColorSelectBack;
+        if (!colorSelect) return;
+
+        const normalizedColor = color.toUpperCase();
+
+        for (let i = 0; i < colorSelect.options.length; i++) {
+            if (colorSelect.options[i].value.toUpperCase() === normalizedColor) {
+                colorSelect.selectedIndex = i;
+                return;
+            }
+        }
+
+        colorSelect.selectedIndex = 0;
+    },
+
+    /**
+     * Sync colors from back side to front side
+     * @param {string} borderColor - Border color to sync (null to skip)
+     * @param {string} textColor - Text color to sync (null to skip)
+     */
+    _syncFrontColors(borderColor, textColor) {
+        if (borderColor) {
+            if (this.elements.borderColorHex) this.elements.borderColorHex.value = borderColor;
+            if (this.elements.notchColorPicker) this.elements.notchColorPicker.value = borderColor;
+            this._syncDropdownWithColor(borderColor);
+        }
+        if (textColor) {
+            if (this.elements.textColorPicker) this.elements.textColorPicker.value = textColor;
+            if (this.elements.textColorHex) this.elements.textColorHex.value = textColor;
+        }
+    },
+
+    /**
+     * Sync front side colors to back side (called on load/switch)
+     */
+    syncBackColors() {
+        // Sync border color
+        const borderColor = CanvasManager.accentColor;
+        if (borderColor) {
+            if (this.elements.borderColorHexBack) this.elements.borderColorHexBack.value = borderColor;
+            if (this.elements.notchColorPickerBack) this.elements.notchColorPickerBack.value = borderColor;
+            if (this.elements.borderColorHexBackMobile) this.elements.borderColorHexBackMobile.value = borderColor;
+            this._syncDropdownWithColorBack(borderColor);
+        }
+
+        // Sync text color
+        const textColor = CanvasManager.textColor;
+        if (textColor) {
+            if (this.elements.textColorPickerBack) this.elements.textColorPickerBack.value = textColor;
+            if (this.elements.textColorHexBack) this.elements.textColorHexBack.value = textColor;
+            if (this.elements.textColorPickerBackMobile) this.elements.textColorPickerBackMobile.value = textColor;
+            if (this.elements.textColorHexBackMobile) this.elements.textColorHexBackMobile.value = textColor;
+        }
+    },
+
+    /**
+     * Handle border image upload for back side
+     */
+    async handleBorderImageUploadBack(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadBorderImage(file);
+            this.elements.clearBorderImageBack.style.display = 'block';
+            // Also update front side button
+            if (this.elements.clearBorderImage) {
+                this.elements.clearBorderImage.style.display = 'block';
+            }
+            this.showSuccessMessage('Border image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear border image from back side
+     */
+    clearBorderImageBack() {
+        CanvasManager.clearBorderImage();
+        this.elements.borderImageUploadBack.value = '';
+        this.elements.clearBorderImageBack.style.display = 'none';
+        // Also update front side
+        if (this.elements.borderImageUpload) {
+            this.elements.borderImageUpload.value = '';
+        }
+        if (this.elements.clearBorderImage) {
+            this.elements.clearBorderImage.style.display = 'none';
+        }
+        console.log('Border image cleared');
+    },
+
+    /**
      * Sync slider values between desktop and mobile versions
      */
     syncSliderValue(type, value) {
@@ -909,6 +1218,11 @@ const UIManager = {
             this.elements.canvasWrapper.classList.add('active');
             this.elements.backCanvasWrapper.classList.remove('active');
 
+            // Show upload section on front view
+            if (this.elements.uploadSection) {
+                this.elements.uploadSection.style.display = 'block';
+            }
+
             // Show front side controls, hide back side controls
             if (this.elements.frontSideSection) {
                 this.elements.frontSideSection.style.display = 'block';
@@ -919,17 +1233,25 @@ const UIManager = {
             if (this.elements.backSideSectionMobile) {
                 this.elements.backSideSectionMobile.style.display = 'none';
             }
-            // Show mobile adjustments on front view
+            // Show mobile adjustments on front view (only on mobile)
             if (this.elements.mobileAdjustments) {
-                this.elements.mobileAdjustments.style.display = 'block';
+                this.elements.mobileAdjustments.style.removeProperty('display');
             }
         } else {
             this.elements.canvasWrapper.classList.remove('active');
             this.elements.backCanvasWrapper.classList.add('active');
 
+            // Hide upload section on back view
+            if (this.elements.uploadSection) {
+                this.elements.uploadSection.style.display = 'none';
+            }
+
             // Automatically enable and generate back side when switching to back view
             CanvasManager.setBackSideEnabled(true);
             CanvasManager.updateBackSidePreview();
+
+            // Sync colors from front to back
+            this.syncBackColors();
 
             // Hide front side controls, show back side controls
             if (this.elements.frontSideSection) {
@@ -941,9 +1263,9 @@ const UIManager = {
             if (this.elements.backSideSectionMobile) {
                 this.elements.backSideSectionMobile.style.display = 'block';
             }
-            // Hide mobile adjustments on back view
+            // Hide mobile adjustments on back view (not needed for back side)
             if (this.elements.mobileAdjustments) {
-                this.elements.mobileAdjustments.style.display = 'none';
+                this.elements.mobileAdjustments.style.setProperty('display', 'none', 'important');
             }
         }
     },

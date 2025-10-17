@@ -144,11 +144,9 @@
                                     <button class="preset-color-text" data-color="#000000" style="background-color: #000000;" title="#000000"></button>
                                     <button class="preset-color-text" data-color="#FFFFFF" style="background-color: #FFFFFF; border: 1px solid #333;" title="#FFFFFF"></button>
                                     <button class="preset-color-text" data-color="#FF0000" style="background-color: #FF0000;" title="#FF0000"></button>
-                                    <button class="preset-color-text" data-color="#00FF00" style="background-color: #00FF00;" title="#00FF00"></button>
                                     <button class="preset-color-text" data-color="#0000FF" style="background-color: #0000FF;" title="#0000FF"></button>
                                     <button class="preset-color-text" data-color="#FFD400" style="background-color: #FFD400;" title="#FFD400"></button>
                                     <button class="preset-color-text" data-color="#FF6B9D" style="background-color: #FF6B9D;" title="#FF6B9D"></button>
-                                    <button class="preset-color-text" data-color="#9D4EDD" style="background-color: #9D4EDD;" title="#9D4EDD"></button>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +159,65 @@
                         <span>Back Side</span>
                     </h2>
                     <div id="backSideContent">
+                        <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">BORDER COLOR</h3>
+                            <label>
+                                <span>Category:</span>
+                                <select id="notchColorGroupSelectBack" class="dropdown-select"></select>
+                            </label>
+                            <label>
+                                <span>Color:</span>
+                                <div class="color-dropdown-wrapper">
+                                    <input type="color" id="notchColorPickerBack" class="color-picker" value="#FFD400">
+                                    <select id="notchColorSelectBack" class="dropdown-select dropdown-with-preview">
+                                        <option value="">Select a color</option>
+                                    </select>
+                                </div>
+                            </label>
+                            <label>
+                                <span>Custom Hex:</span>
+                                <input type="text" id="borderColorHexBack" value="#FFD400" class="text-input color-hex-input" placeholder="#FFD400" maxlength="7">
+                            </label>
+                        </div>
+
+                        <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">BORDER IMAGE</h3>
+                            <div class="border-image-upload">
+                                <input type="file" id="borderImageUploadBack" accept="image/png,image/jpeg,image/jpg" hidden>
+                                <label for="borderImageUploadBack" class="btn btn-secondary btn-small">
+                                    <i data-lucide="folder-open"></i> Upload Border Image
+                                </label>
+                                <button id="clearBorderImageBack" class="btn btn-secondary btn-small" style="display: none;">
+                                    <i data-lucide="x"></i> Clear Image
+                                </button>
+                            </div>
+                            <p class="upload-hint">Upload an image to replace the colored border</p>
+                        </div>
+
+                        <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">TEXT COLOR</h3>
+                            <label>
+                                <span>Text Color:</span>
+                                <div class="color-input-group">
+                                    <input type="color" id="textColorPickerBack" value="#000000" class="color-picker">
+                                    <input type="text" id="textColorHexBack" value="#000000" class="text-input color-hex-input" placeholder="#000000" maxlength="7">
+                                </div>
+                            </label>
+                            <div class="color-presets">
+                                <span class="presets-label">Presets:</span>
+                                <div class="preset-colors">
+                                    <button class="preset-color-text-back" data-color="#000000" style="background-color: #000000;" title="#000000"></button>
+                                    <button class="preset-color-text-back" data-color="#FFFFFF" style="background-color: #FFFFFF; border: 1px solid #333;" title="#FFFFFF"></button>
+                                    <button class="preset-color-text-back" data-color="#FF0000" style="background-color: #FF0000;" title="#FF0000"></button>
+                                    <button class="preset-color-text-back" data-color="#0000FF" style="background-color: #0000FF;" title="#0000FF"></button>
+                                    <button class="preset-color-text-back" data-color="#FFD400" style="background-color: #FFD400;" title="#FFD400"></button>
+                                    <button class="preset-color-text-back" data-color="#FF6B9D" style="background-color: #FF6B9D;" title="#FF6B9D"></button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="adjustment-controls">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">BACK SIDE CONTENT</h3>
                             <label>
                                 <span>NAME Label:</span>
                                 <input type="text" id="backNameLabel" value="NAME" class="text-input">
@@ -254,7 +310,27 @@
                         <span>Back Side</span>
                     </h2>
                     <div id="backSideContentMobile">
+                        <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">BORDER COLOR</h3>
+                            <label>
+                                <span>Custom Hex:</span>
+                                <input type="text" id="borderColorHexBackMobile" value="#FFD400" class="text-input color-hex-input" placeholder="#FFD400" maxlength="7">
+                            </label>
+                        </div>
+
+                        <div class="adjustment-controls" style="margin-bottom: var(--space-lg);">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">TEXT COLOR</h3>
+                            <label>
+                                <span>Text Color:</span>
+                                <div class="color-input-group">
+                                    <input type="color" id="textColorPickerBackMobile" value="#000000" class="color-picker">
+                                    <input type="text" id="textColorHexBackMobile" value="#000000" class="text-input color-hex-input" placeholder="#000000" maxlength="7">
+                                </div>
+                            </label>
+                        </div>
+
                         <div class="adjustment-controls">
+                            <h3 style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">BACK SIDE CONTENT</h3>
                             <label>
                                 <span>NAME Label:</span>
                                 <input type="text" id="backNameLabelMobile" value="NAME" class="text-input">
