@@ -23,6 +23,11 @@ const CanvasManager = {
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
 
+    // Text height offsets (Front side)
+    topTextHeight: 0,
+    middleTextHeight: 0,
+    bottomTextHeight: 0,
+
     // Back side settings
     enableBackSide: false,
     backNameLabel: 'NAME',
@@ -32,6 +37,10 @@ const CanvasManager = {
     backSeasonLabel: 'SEASON',
     backSeasonValue: 'Atom02',
     backGroupName: 'tripleS',
+
+    // Back side text height offsets
+    backTopTextHeight: 0,
+    backBottomTextHeight: 0,
 
     /**
      * Initialize canvas manager
@@ -147,6 +156,29 @@ const CanvasManager = {
     setTextColor(color) {
         this.textColor = color;
         this.render();
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set text height offset for front side
+     * @param {string} position - 'top', 'middle', or 'bottom'
+     * @param {number} offset - Y offset in pixels
+     */
+    setTextHeight(position, offset) {
+        if (position === 'top') this.topTextHeight = offset;
+        else if (position === 'middle') this.middleTextHeight = offset;
+        else if (position === 'bottom') this.bottomTextHeight = offset;
+        this.render();
+    },
+
+    /**
+     * Set back side text height offset
+     * @param {string} position - 'top' or 'bottom'
+     * @param {number} offset - Y offset in pixels
+     */
+    setBackTextHeight(position, offset) {
+        if (position === 'top') this.backTopTextHeight = offset;
+        else if (position === 'bottom') this.backBottomTextHeight = offset;
         this.updateBackSidePreview();
     },
 
@@ -430,7 +462,7 @@ const CanvasManager = {
         // Draw top text (rotated 90° counterclockwise + 180° flip) - SeoYeon with reduced letter spacing
         this.ctx.save();
         this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
-        this.ctx.translate(centerX, 104);
+        this.ctx.translate(centerX, 104 + this.topTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
         this.ctx.restore();
@@ -439,7 +471,7 @@ const CanvasManager = {
         this.ctx.save();
         this.ctx.font = '550 45px "SF Pro Display", sans-serif';
         this.ctx.letterSpacing = '-1.975px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
-        this.ctx.translate(centerX, this.canvasHeight / 2.25);
+        this.ctx.translate(centerX, this.canvasHeight / 2.25 + this.middleTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.middleText, 0, 0);
         this.ctx.restore();
@@ -487,7 +519,7 @@ const CanvasManager = {
             bottomTextY = notchBottom - textWidth - bottomMargin;
         }
 
-        this.ctx.translate(centerX, bottomTextY);
+        this.ctx.translate(centerX, bottomTextY + this.bottomTextHeight);
         this.ctx.rotate(Math.PI / 2);
 
         // Special handling for "tripleS" text with custom letter pair spacing
@@ -723,7 +755,7 @@ const CanvasManager = {
         const bottomGap = 30; // Gap from bottom of info block
 
         // Draw "SeoYeon" (name) - aligned to top corner of info block
-        backCtx.translate(textX, rectY2 + topGap - 10); // Moved up 10px
+        backCtx.translate(textX, rectY2 + topGap - 10 + this.backTopTextHeight); // Moved up 10px + height offset
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
@@ -736,7 +768,7 @@ const CanvasManager = {
 
         // Draw group name text (e.g., "tripleS") - aligned to bottom corner of info block
         backCtx.save();
-        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 135); // Position at bottom (moved up 50px: -95 - 50 = -145)
+        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 135 + this.backBottomTextHeight); // Position at bottom + height offset
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;

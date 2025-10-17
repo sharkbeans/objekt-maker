@@ -64,6 +64,14 @@ const UIManager = {
             textColorHex: document.getElementById('textColorHex'),
             presetColorsText: document.querySelectorAll('.preset-color-text'),
 
+            // Text height sliders (Front)
+            topTextHeight: document.getElementById('topTextHeight'),
+            topTextHeightValue: document.getElementById('topTextHeightValue'),
+            middleTextHeight: document.getElementById('middleTextHeight'),
+            middleTextHeightValue: document.getElementById('middleTextHeightValue'),
+            bottomTextHeight: document.getElementById('bottomTextHeight'),
+            bottomTextHeightValue: document.getElementById('bottomTextHeightValue'),
+
             // Action buttons
             exportBtn: document.getElementById('exportBtn'),
             resetBtn: document.getElementById('resetBtn'),
@@ -98,7 +106,19 @@ const UIManager = {
             backClassValueMobile: document.getElementById('backClassValueMobile'),
             backSeasonLabelMobile: document.getElementById('backSeasonLabelMobile'),
             backSeasonValueMobile: document.getElementById('backSeasonValueMobile'),
-            backGroupNameMobile: document.getElementById('backGroupNameMobile')
+            backGroupNameMobile: document.getElementById('backGroupNameMobile'),
+
+            // Back side text height sliders (Desktop)
+            backTopTextHeight: document.getElementById('backTopTextHeight'),
+            backTopTextHeightValue: document.getElementById('backTopTextHeightValue'),
+            backBottomTextHeight: document.getElementById('backBottomTextHeight'),
+            backBottomTextHeightValue: document.getElementById('backBottomTextHeightValue'),
+
+            // Back side text height sliders (Mobile)
+            backTopTextHeightMobile: document.getElementById('backTopTextHeightMobile'),
+            backTopTextHeightValueMobile: document.getElementById('backTopTextHeightValueMobile'),
+            backBottomTextHeightMobile: document.getElementById('backBottomTextHeightMobile'),
+            backBottomTextHeightValueMobile: document.getElementById('backBottomTextHeightValueMobile')
         };
 
         this.bindEvents();
@@ -237,6 +257,31 @@ const UIManager = {
                 CanvasManager.setTextColor(color);
             });
         });
+
+        // Text height sliders (Front)
+        if (this.elements.topTextHeight) {
+            this.elements.topTextHeight.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.topTextHeightValue.textContent = `${value}px`;
+                CanvasManager.setTextHeight('top', parseInt(value));
+            });
+        }
+
+        if (this.elements.middleTextHeight) {
+            this.elements.middleTextHeight.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.middleTextHeightValue.textContent = `${value}px`;
+                CanvasManager.setTextHeight('middle', parseInt(value));
+            });
+        }
+
+        if (this.elements.bottomTextHeight) {
+            this.elements.bottomTextHeight.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.bottomTextHeightValue.textContent = `${value}px`;
+                CanvasManager.setTextHeight('bottom', parseInt(value));
+            });
+        }
 
         // Action buttons
         this.elements.exportBtn.addEventListener('click', () => this.exportImage());
@@ -448,6 +493,77 @@ const UIManager = {
             });
         }
 
+        // Back side text height sliders (Desktop)
+        if (this.elements.backTopTextHeight) {
+            this.elements.backTopTextHeight.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backTopTextHeightValue.textContent = `${value}px`;
+                // Sync to mobile
+                if (this.elements.backTopTextHeightMobile) {
+                    this.elements.backTopTextHeightMobile.value = value;
+                    this.elements.backTopTextHeightValueMobile.textContent = `${value}px`;
+                }
+                CanvasManager.setBackTextHeight('top', parseInt(value));
+            });
+        }
+
+        if (this.elements.backBottomTextHeight) {
+            this.elements.backBottomTextHeight.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backBottomTextHeightValue.textContent = `${value}px`;
+                // Sync to mobile
+                if (this.elements.backBottomTextHeightMobile) {
+                    this.elements.backBottomTextHeightMobile.value = value;
+                    this.elements.backBottomTextHeightValueMobile.textContent = `${value}px`;
+                }
+                CanvasManager.setBackTextHeight('bottom', parseInt(value));
+            });
+        }
+
+        // Back side text height sliders (Mobile)
+        if (this.elements.backTopTextHeightMobile) {
+            this.elements.backTopTextHeightMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backTopTextHeightValueMobile.textContent = `${value}px`;
+                // Sync to desktop
+                if (this.elements.backTopTextHeight) {
+                    this.elements.backTopTextHeight.value = value;
+                    this.elements.backTopTextHeightValue.textContent = `${value}px`;
+                }
+                CanvasManager.setBackTextHeight('top', parseInt(value));
+            });
+        }
+
+        if (this.elements.backBottomTextHeightMobile) {
+            this.elements.backBottomTextHeightMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backBottomTextHeightValueMobile.textContent = `${value}px`;
+                // Sync to desktop
+                if (this.elements.backBottomTextHeight) {
+                    this.elements.backBottomTextHeight.value = value;
+                    this.elements.backBottomTextHeightValue.textContent = `${value}px`;
+                }
+                CanvasManager.setBackTextHeight('bottom', parseInt(value));
+            });
+        }
+
+        // Collapsible sections functionality
+        this.initCollapsibleSections();
+
+    },
+
+    /**
+     * Initialize collapsible section toggle functionality
+     */
+    initCollapsibleSections() {
+        const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+
+        collapsibleHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.closest('.collapsible-section');
+                section.classList.toggle('collapsed');
+            });
+        });
     },
 
     /**

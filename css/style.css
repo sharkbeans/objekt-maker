@@ -883,3 +883,46 @@ input[type="range"]::-moz-range-thumb:hover {
         height: 18px;
     }
 }
+/* ========================================
+   Collapsible Sections
+   ======================================== */
+
+.collapsible-section {
+    margin-bottom: var(--space-lg) !important;
+}
+
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+.collapsible-header:hover {
+    color: var(--text-primary) !important;
+}
+
+.collapse-icon {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.collapsible-section.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-height: 2000px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0 !important;
+}
