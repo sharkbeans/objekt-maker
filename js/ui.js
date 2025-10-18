@@ -168,7 +168,11 @@ const UIManager = {
             backTopTextHeightMobileQuick: document.getElementById('backTopTextHeightMobileQuick'),
             backTopTextHeightValueMobileQuick: document.getElementById('backTopTextHeightValueMobileQuick'),
             backBottomTextHeightMobileQuick: document.getElementById('backBottomTextHeightMobileQuick'),
-            backBottomTextHeightValueMobileQuick: document.getElementById('backBottomTextHeightValueMobileQuick')
+            backBottomTextHeightValueMobileQuick: document.getElementById('backBottomTextHeightValueMobileQuick'),
+
+            // QR Code controls
+            qrCodeLink: document.getElementById('qrCodeLink'),
+            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile')
         };
 
         this.bindEvents();
@@ -667,6 +671,14 @@ const UIManager = {
             if (this.elements.backGroupNameMobile) this.elements.backGroupNameMobile.value = e.target.value;
         });
 
+        // QR Code controls (Desktop)
+        if (this.elements.qrCodeLink) {
+            this.elements.qrCodeLink.addEventListener('input', async (e) => {
+                await CanvasManager.setQRCodeLink(e.target.value);
+                if (this.elements.qrCodeLinkMobile) this.elements.qrCodeLinkMobile.value = e.target.value;
+            });
+        }
+
         // Back side controls (Mobile) - Sync to desktop (no checkbox needed)
         if (this.elements.backNameLabelMobile) {
             this.elements.backNameLabelMobile.addEventListener('input', (e) => {
@@ -703,6 +715,14 @@ const UIManager = {
                 CanvasManager.setBackSideData({ groupName: e.target.value });
                 this.elements.backGroupName.value = e.target.value;
             });
+
+            // QR Code controls (Mobile)
+            if (this.elements.qrCodeLinkMobile) {
+                this.elements.qrCodeLinkMobile.addEventListener('input', async (e) => {
+                    await CanvasManager.setQRCodeLink(e.target.value);
+                    this.elements.qrCodeLink.value = e.target.value;
+                });
+            }
         }
 
         // Back side text height sliders (Desktop)
@@ -1810,7 +1830,15 @@ const UIManager = {
 
             // Automatically enable and generate back side when switching to back view
             CanvasManager.setBackSideEnabled(true);
-            CanvasManager.updateBackSidePreview();
+
+            // Generate QR code if not already generated
+            if (!CanvasManager.qrCodeImage) {
+                CanvasManager.generateQRCode().then(() => {
+                    CanvasManager.updateBackSidePreview();
+                });
+            } else {
+                CanvasManager.updateBackSidePreview();
+            }
 
             // Sync colors from front to back
             this.syncBackColors();
@@ -1921,11 +1949,110 @@ const UIManager = {
                 // If signature area is clicked, open signature modal instead of text editor
                 if (clickedTextType === 'signature') {
                     this.openSignatureModal();
+                } else if (clickedTextType === 'qrcode') {
+                    // If QR code area is clicked, show QR code editor
+                    this.showQRCodeEditor();
                 } else {
                     this.showTextEditor(canvas, rect, clickedTextType, side);
                 }
             }
         }
+    },
+
+    /**
+     * Show QR code editor modal
+     */
+    showQRCodeEditor() {
+        // Remove any existing editor
+        this.removeTextEditor();
+
+        // Create backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'canvas-text-editor-backdrop';
+        backdrop.id = 'qrCodeEditorBackdrop';
+
+        // Create editor container
+        const editor = document.createElement('div');
+        editor.className = 'canvas-text-editor';
+        editor.id = 'qrCodeEditor';
+        editor.style.position = 'fixed';
+        editor.style.top = '50%';
+        editor.style.left = '50%';
+        editor.style.transform = 'translate(-50%, -50%)';
+        editor.style.zIndex = '1000';
+
+        // Create title
+        const title = document.createElement('div');
+        title.style.fontWeight = '600';
+        title.style.marginBottom = 'var(--space-sm)';
+        title.textContent = 'Edit QR Code Link';
+
+        // Create input element
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'text-input';
+        input.value = CanvasManager.qrCodeLink || '';
+        input.placeholder = 'https://sharkbeans.github.io/objekt-maker/';
+        input.style.width = '100%';
+        input.style.marginBottom = 'var(--space-sm)';
+
+        // Create hint text
+        const hint = document.createElement('div');
+        hint.className = 'upload-hint';
+        hint.textContent = 'Enter a URL to generate a QR code';
+        hint.style.textAlign = 'center';
+        hint.style.marginTop = 'var(--space-xs)';
+
+        // Append elements
+        editor.appendChild(title);
+        editor.appendChild(input);
+        editor.appendChild(hint);
+
+        // Add to document
+        document.body.appendChild(backdrop);
+        document.body.appendChild(editor);
+
+        // Focus input and select all
+        input.focus();
+        input.select();
+
+        // Handle input changes
+        const updateQRCode = async () => {
+            await CanvasManager.setQRCodeLink(input.value);
+            // Update toolbar inputs
+            const toolbarInput = document.getElementById('qrCodeLink');
+            const toolbarInputMobile = document.getElementById('qrCodeLinkMobile');
+            if (toolbarInput) toolbarInput.value = input.value;
+            if (toolbarInputMobile) toolbarInputMobile.value = input.value;
+        };
+
+        // Handle enter key
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                await updateQRCode();
+                this.removeQRCodeEditor();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.removeQRCodeEditor();
+            }
+        });
+
+        // Handle backdrop click (close editor)
+        backdrop.addEventListener('click', async () => {
+            await updateQRCode();
+            this.removeQRCodeEditor();
+        });
+    },
+
+    /**
+     * Remove QR code editor
+     */
+    removeQRCodeEditor() {
+        const editor = document.getElementById('qrCodeEditor');
+        const backdrop = document.getElementById('qrCodeEditorBackdrop');
+        if (editor) editor.remove();
+        if (backdrop) backdrop.remove();
     },
 
     /**

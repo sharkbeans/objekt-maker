@@ -46,6 +46,10 @@ const CanvasManager = {
     backTopTextHeight: 0,
     backBottomTextHeight: 0,
 
+    // QR Code settings
+    qrCodeLink: 'https://sharkbeans.github.io/objekt-maker/',
+    qrCodeImage: null, // Cached QR code image
+
     /**
      * Initialize canvas manager
      * @param {HTMLCanvasElement} canvasElement - The canvas element
@@ -157,9 +161,13 @@ const CanvasManager = {
      * Set text color (applies to all text)
      * @param {string} color - Hex color value
      */
-    setTextColor(color) {
+    async setTextColor(color) {
         this.textColor = color;
         this.render();
+        // Regenerate QR code with new color
+        if (this.qrCodeImage) {
+            await this.generateQRCode();
+        }
         this.updateBackSidePreview();
     },
 
@@ -354,6 +362,53 @@ const CanvasManager = {
         this.imagePosX = x;
         this.imagePosY = y;
         this.render();
+    },
+
+    /**
+     * Set QR code link and regenerate QR code
+     * @param {string} link - URL for the QR code
+     */
+    async setQRCodeLink(link) {
+        this.qrCodeLink = link;
+        await this.generateQRCode();
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Generate QR code image from the current link
+     * @returns {Promise<void>}
+     */
+    async generateQRCode() {
+        if (!this.qrCodeLink || typeof QRCode === 'undefined') {
+            this.qrCodeImage = null;
+            return;
+        }
+
+        try {
+            // Create a temporary canvas for QR code generation
+            const qrCanvas = document.createElement('canvas');
+            await QRCode.toCanvas(qrCanvas, this.qrCodeLink, {
+                width: 256,
+                height: 256,
+                margin: 1,
+                color: {
+                    dark: this.textColor,
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'M'
+            });
+
+            // Convert canvas to image
+            const img = new Image();
+            img.src = qrCanvas.toDataURL();
+            await new Promise((resolve) => {
+                img.onload = resolve;
+            });
+            this.qrCodeImage = img;
+        } catch (error) {
+            console.error('Failed to generate QR code:', error);
+            this.qrCodeImage = null;
+        }
     },
 
     /**
@@ -817,6 +872,17 @@ const CanvasManager = {
         backCtx.strokeStyle = this.textColor;
         backCtx.lineWidth = 1;
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
+
+        // Draw QR code inside the white square
+        if (this.qrCodeImage) {
+            // Add padding inside the white box for the QR code
+            const qrPadding = squareSize * 0.1; // 10% padding
+            const qrSize = squareSize - (qrPadding * 2);
+            const qrX = whiteBoxX + qrPadding;
+            const qrY = whiteBoxY + qrPadding;
+
+            backCtx.drawImage(this.qrCodeImage, qrX, qrY, qrSize, qrSize);
+        }
 
         // Horizontal divider 5 at bottom (1px solid line)
         backCtx.fillStyle = this.textColor;
@@ -1470,12 +1536,43 @@ const CanvasManager = {
             }
         }
 
+        // Check QR code area
+        if (this.isQRCodeAreaClicked(x, y)) {
+            return 'qrcode';
+        }
+
         // Check signature area
         if (this.isSignatureAreaClicked(x, y)) {
             return 'signature';
         }
 
         return null;
+    },
+
+    /**
+     * Check if the QR code (white box) area was clicked
+     * @param {number} x - Click X coordinate relative to canvas
+     * @param {number} y - Click Y coordinate relative to canvas
+     * @returns {boolean} True if QR code area was clicked
+     */
+    isQRCodeAreaClicked(x, y) {
+        // Calculate QR code area bounds (same as in renderBackSide)
+        const whiteBackgroundWidth = this.accentWidth * 0.8378;
+        const rectWidth = this.canvasWidth - whiteBackgroundWidth;
+        const whiteBackgroundHeight = this.accentWidth * 0.84375;
+        const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
+        const rectY = whiteBackgroundHeight;
+
+        const divider4Y = rectY + (rectHeight * 0.625);
+        const divider5Y = rectY + (rectHeight * 0.835);
+        const squareSize = divider5Y - divider4Y;
+
+        const whiteBoxX = (rectWidth * 0.52);
+        const whiteBoxY = divider4Y;
+
+        // Check if click is within the white box area
+        return x >= whiteBoxX && x <= whiteBoxX + squareSize &&
+               y >= whiteBoxY && y <= whiteBoxY + squareSize;
     },
 
     /**

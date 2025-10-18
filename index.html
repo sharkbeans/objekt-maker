@@ -31,6 +31,9 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -301,6 +304,20 @@
                             </div>
                         </div>
 
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span>QR CODE</span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <label>
+                                    <span>QR Link:</span>
+                                    <input type="text" id="qrCodeLink" value="https://sharkbeans.github.io/objekt-maker/" class="text-input" placeholder="https://sharkbeans.github.io/objekt-maker/">
+                                </label>
+                                <p class="upload-hint">Click QR code on back side to edit</p>
+                            </div>
+                        </div>
+
                         <div class="adjustment-controls collapsible-section collapsed">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span>BACK SIDE CONTENT</span>
@@ -496,6 +513,20 @@
                                         </div>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span>QR CODE</span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <label>
+                                    <span>QR Link:</span>
+                                    <input type="text" id="qrCodeLinkMobile" value="https://sharkbeans.github.io/objekt-maker/" class="text-input" placeholder="https://sharkbeans.github.io/objekt-maker/">
+                                </label>
+                                <p class="upload-hint">Click QR code on back side to edit</p>
                             </div>
                         </div>
 

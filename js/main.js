@@ -27,6 +27,10 @@ const App = {
             UIManager.init();
             console.log('[OK] UIManager initialized');
 
+            // Generate initial QR code
+            await CanvasManager.generateQRCode();
+            console.log('[OK] QR Code generated');
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 
