@@ -16,6 +16,10 @@ const CanvasManager = {
     accentWidth: 82.61793, // Reduced by 10% from 91.7977 (91.7977 × 0.9)
     accentColor: '#FFD400',
     borderImage: null, // Custom border/notch image
+    signatureImage: null, // Custom signature image
+    signatureZoom: 1, // Signature zoom level (1 = 100%)
+    signaturePosX: 0, // Signature X position offset
+    signaturePosY: 0, // Signature Y position offset
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
@@ -262,6 +266,82 @@ const CanvasManager = {
     clearBorderImage() {
         this.borderImage = null;
         this.render();
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Load a signature image from file
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>} Success status
+     */
+    async loadSignatureImage(file) {
+        return new Promise((resolve, reject) => {
+            // Validate file type - only accept PNG for transparency support
+            if (!file.type.match('image/png')) {
+                reject(new Error('Please upload a PNG image with transparent background'));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.signatureImage = img;
+                    console.log('Signature image loaded:', img.width, 'x', img.height);
+                    this.updateBackSidePreview();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load signature image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the signature image and use default signature instead
+     */
+    clearSignatureImage() {
+        this.signatureImage = null;
+        this.signatureZoom = 1;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set signature zoom level
+     * @param {number} zoom - Zoom level (1 = 100%)
+     */
+    setSignatureZoom(zoom) {
+        this.signatureZoom = zoom;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set signature position
+     * @param {number} x - X offset
+     * @param {number} y - Y offset
+     */
+    setSignaturePosition(x, y) {
+        this.signaturePosX = x;
+        this.signaturePosY = y;
         this.updateBackSidePreview();
     },
 
@@ -927,47 +1007,82 @@ const CanvasManager = {
      * @param {number} height - Signature area height
      */
     drawSignature(ctx, x, y, _width, height) {
-        // Draw a stylized signature similar to the reference
         ctx.save();
-        ctx.strokeStyle = this.textColor;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
 
-        const centerY = y + height / 2;
+        // If a signature image is uploaded, use it
+        if (this.signatureImage) {
+            const baseWidth = 220; // Base width for signature at 100% zoom
+            const maxHeight = height; // Use available height as reference
 
-        // Draw a flowing cursive signature
-        ctx.beginPath();
+            // Calculate dimensions to fit signature while maintaining aspect ratio
+            const imgAspect = this.signatureImage.width / this.signatureImage.height;
+            let drawWidth, drawHeight;
 
-        // First swooping curve
-        ctx.moveTo(x, centerY - 10);
-        ctx.bezierCurveTo(
-            x + 30, centerY - 35,
-            x + 50, centerY + 20,
-            x + 80, centerY - 5
-        );
+            if (imgAspect > baseWidth / maxHeight) {
+                // Image is wider - fit to width
+                drawWidth = baseWidth;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                // Image is taller - fit to height
+                drawHeight = maxHeight;
+                drawWidth = drawHeight * imgAspect;
+            }
 
-        // Middle flowing part
-        ctx.bezierCurveTo(
-            x + 110, centerY - 25,
-            x + 130, centerY + 15,
-            x + 160, centerY + 5
-        );
+            // Apply zoom
+            drawWidth *= this.signatureZoom;
+            drawHeight *= this.signatureZoom;
 
-        // Final tail
-        ctx.bezierCurveTo(
-            x + 180, centerY - 10,
-            x + 200, centerY + 10,
-            x + 220, centerY
-        );
+            // Center the signature vertically in the available space (before zoom)
+            // This allows the signature to overflow and overlap divider lines
+            // Apply position offsets
+            const drawX = x + this.signaturePosX;
+            const drawY = y + (height - drawHeight) / 2 + this.signaturePosY;
 
-        ctx.stroke();
+            // Draw the signature image with transparency preserved
+            // No clipping - allow overflow
+            ctx.drawImage(this.signatureImage, drawX, drawY, drawWidth, drawHeight);
+        } else {
+            // Draw default procedural signature
+            ctx.strokeStyle = this.textColor;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
 
-        // Add a subtle underline below the signature
-        ctx.beginPath();
-        ctx.moveTo(x + 10, centerY + 40);
-        ctx.lineTo(x + 200, centerY + 40);
-        ctx.stroke();
+            const centerY = y + height / 2;
+
+            // Draw a flowing cursive signature
+            ctx.beginPath();
+
+            // First swooping curve
+            ctx.moveTo(x, centerY - 10);
+            ctx.bezierCurveTo(
+                x + 30, centerY - 35,
+                x + 50, centerY + 20,
+                x + 80, centerY - 5
+            );
+
+            // Middle flowing part
+            ctx.bezierCurveTo(
+                x + 110, centerY - 25,
+                x + 130, centerY + 15,
+                x + 160, centerY + 5
+            );
+
+            // Final tail
+            ctx.bezierCurveTo(
+                x + 180, centerY - 10,
+                x + 200, centerY + 10,
+                x + 220, centerY
+            );
+
+            ctx.stroke();
+
+            // Add a subtle underline below the signature
+            ctx.beginPath();
+            ctx.moveTo(x + 10, centerY + 40);
+            ctx.lineTo(x + 200, centerY + 40);
+            ctx.stroke();
+        }
 
         ctx.restore();
     },
@@ -1091,6 +1206,10 @@ const CanvasManager = {
         this.bottomText = 'tripleS';
         this.accentColor = '#FFD400';
         this.borderImage = null;
+        this.signatureImage = null;
+        this.signatureZoom = 1;
+        this.signaturePosX = 0;
+        this.signaturePosY = 0;
         this.textColor = '#000000';
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
@@ -1351,7 +1470,43 @@ const CanvasManager = {
             }
         }
 
+        // Check signature area
+        if (this.isSignatureAreaClicked(x, y)) {
+            return 'signature';
+        }
+
         return null;
+    },
+
+    /**
+     * Check if the signature area was clicked
+     * @param {number} x - Click X coordinate relative to canvas
+     * @param {number} y - Click Y coordinate relative to canvas
+     * @returns {boolean} True if signature area was clicked
+     */
+    isSignatureAreaClicked(x, y) {
+        // Calculate signature area bounds (same as in renderBackSide)
+        const whiteBackgroundWidth = this.accentWidth * 0.8378;
+        const rectWidth = this.canvasWidth - whiteBackgroundWidth;
+        const whiteBackgroundHeight = this.accentWidth * 0.84375;
+        const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
+        const rectY = whiteBackgroundHeight;
+
+        const divider4Y = rectY + (rectHeight * 0.625);
+        const divider5Y = rectY + (rectHeight * 0.835);
+        const squareSize = divider5Y - divider4Y;
+
+        const leftMargin = 47;
+        const signatureX = leftMargin + 30;
+        const signatureY = divider4Y + (squareSize - squareSize) / 2;
+        const signatureWidth = 220;
+        const signatureHeight = squareSize;
+
+        // Generous padding for easier clicking
+        const padding = 20;
+
+        return x >= signatureX - padding && x <= signatureX + signatureWidth + padding &&
+               y >= signatureY - padding && y <= signatureY + signatureHeight + padding;
     }
 };
 

@@ -56,6 +56,41 @@ const UIManager = {
             borderImageUpload: document.getElementById('borderImageUpload'),
             clearBorderImage: document.getElementById('clearBorderImage'),
 
+            // Signature modal controls
+            signatureModal: document.getElementById('signatureModal'),
+            openSignatureModal: document.getElementById('openSignatureModal'),
+            openSignatureModalMobile: document.getElementById('openSignatureModalMobile'),
+            closeSignatureModal: document.getElementById('closeSignatureModal'),
+            signatureModalDone: document.getElementById('signatureModalDone'),
+            signatureImageUpload: document.getElementById('signatureImageUpload'),
+            signatureZoomSlider: document.getElementById('signatureZoomSlider'),
+            signatureZoomValue: document.getElementById('signatureZoomValue'),
+            signaturePosXSlider: document.getElementById('signaturePosXSlider'),
+            signaturePosXValue: document.getElementById('signaturePosXValue'),
+            signaturePosYSlider: document.getElementById('signaturePosYSlider'),
+            signaturePosYValue: document.getElementById('signaturePosYValue'),
+            signatureZoomSection: document.getElementById('signatureZoomSection'),
+            clearSignatureImage: document.getElementById('clearSignatureImage'),
+            clearSignatureImageMobile: document.getElementById('clearSignatureImageMobile'),
+
+            // Signature toolbar controls (desktop)
+            signatureToolbarControls: document.getElementById('signatureToolbarControls'),
+            signatureZoomToolbar: document.getElementById('signatureZoomToolbar'),
+            signatureZoomToolbarValue: document.getElementById('signatureZoomToolbarValue'),
+            signaturePosXToolbar: document.getElementById('signaturePosXToolbar'),
+            signaturePosXToolbarValue: document.getElementById('signaturePosXToolbarValue'),
+            signaturePosYToolbar: document.getElementById('signaturePosYToolbar'),
+            signaturePosYToolbarValue: document.getElementById('signaturePosYToolbarValue'),
+
+            // Signature toolbar controls (mobile)
+            signatureToolbarControlsMobile: document.getElementById('signatureToolbarControlsMobile'),
+            signatureZoomToolbarMobile: document.getElementById('signatureZoomToolbarMobile'),
+            signatureZoomToolbarValueMobile: document.getElementById('signatureZoomToolbarValueMobile'),
+            signaturePosXToolbarMobile: document.getElementById('signaturePosXToolbarMobile'),
+            signaturePosXToolbarValueMobile: document.getElementById('signaturePosXToolbarValueMobile'),
+            signaturePosYToolbarMobile: document.getElementById('signaturePosYToolbarMobile'),
+            signaturePosYToolbarValueMobile: document.getElementById('signaturePosYToolbarValueMobile'),
+
             // Text controls
             topText: document.getElementById('topText'),
             middleText: document.getElementById('middleText'),
@@ -231,6 +266,113 @@ const UIManager = {
         // Border image upload
         this.elements.borderImageUpload.addEventListener('change', (e) => this.handleBorderImageUpload(e));
         this.elements.clearBorderImage.addEventListener('click', () => this.clearBorderImage());
+
+        // Signature modal controls
+        if (this.elements.openSignatureModal) {
+            this.elements.openSignatureModal.addEventListener('click', () => this.openSignatureModal());
+        }
+        if (this.elements.openSignatureModalMobile) {
+            this.elements.openSignatureModalMobile.addEventListener('click', () => this.openSignatureModal());
+        }
+        if (this.elements.closeSignatureModal) {
+            this.elements.closeSignatureModal.addEventListener('click', () => this.closeSignatureModal());
+        }
+        if (this.elements.signatureModalDone) {
+            this.elements.signatureModalDone.addEventListener('click', () => this.closeSignatureModal());
+        }
+        if (this.elements.signatureImageUpload) {
+            this.elements.signatureImageUpload.addEventListener('change', (e) => this.handleSignatureImageUpload(e));
+        }
+        if (this.elements.signatureZoomSlider) {
+            this.elements.signatureZoomSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signatureZoomValue.textContent = `${value}%`;
+                this.syncSignatureSliderValue('zoom', value);
+                CanvasManager.setSignatureZoom(value / 100);
+            });
+        }
+        if (this.elements.signaturePosXSlider) {
+            this.elements.signaturePosXSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosXValue.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posX', value);
+                CanvasManager.setSignaturePosition(value, CanvasManager.signaturePosY);
+            });
+        }
+        if (this.elements.signaturePosYSlider) {
+            this.elements.signaturePosYSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosYValue.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posY', value);
+                CanvasManager.setSignaturePosition(CanvasManager.signaturePosX, value);
+            });
+        }
+        if (this.elements.clearSignatureImage) {
+            this.elements.clearSignatureImage.addEventListener('click', () => this.clearSignatureImage());
+        }
+        if (this.elements.clearSignatureImageMobile) {
+            this.elements.clearSignatureImageMobile.addEventListener('click', () => this.clearSignatureImageMobile());
+        }
+
+        // Click backdrop to close modal
+        if (this.elements.signatureModal) {
+            const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', () => this.closeSignatureModal());
+            }
+        }
+
+        // Signature toolbar controls (desktop)
+        if (this.elements.signatureZoomToolbar) {
+            this.elements.signatureZoomToolbar.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signatureZoomToolbarValue.textContent = `${value}%`;
+                this.syncSignatureSliderValue('zoom', value);
+                CanvasManager.setSignatureZoom(value / 100);
+            });
+        }
+        if (this.elements.signaturePosXToolbar) {
+            this.elements.signaturePosXToolbar.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosXToolbarValue.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posX', value);
+                CanvasManager.setSignaturePosition(value, CanvasManager.signaturePosY);
+            });
+        }
+        if (this.elements.signaturePosYToolbar) {
+            this.elements.signaturePosYToolbar.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosYToolbarValue.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posY', value);
+                CanvasManager.setSignaturePosition(CanvasManager.signaturePosX, value);
+            });
+        }
+
+        // Signature toolbar controls (mobile)
+        if (this.elements.signatureZoomToolbarMobile) {
+            this.elements.signatureZoomToolbarMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signatureZoomToolbarValueMobile.textContent = `${value}%`;
+                this.syncSignatureSliderValue('zoom', value);
+                CanvasManager.setSignatureZoom(value / 100);
+            });
+        }
+        if (this.elements.signaturePosXToolbarMobile) {
+            this.elements.signaturePosXToolbarMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosXToolbarValueMobile.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posX', value);
+                CanvasManager.setSignaturePosition(value, CanvasManager.signaturePosY);
+            });
+        }
+        if (this.elements.signaturePosYToolbarMobile) {
+            this.elements.signaturePosYToolbarMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.signaturePosYToolbarValueMobile.textContent = `${value}px`;
+                this.syncSignatureSliderValue('posY', value);
+                CanvasManager.setSignaturePosition(CanvasManager.signaturePosX, value);
+            });
+        }
 
         // Text controls
         this.elements.topText.addEventListener('input', (e) => {
@@ -1194,6 +1336,47 @@ const UIManager = {
     },
 
     /**
+     * Sync signature slider values between modal and toolbar
+     */
+    syncSignatureSliderValue(type, value) {
+        switch(type) {
+            case 'zoom':
+                // Modal
+                if (this.elements.signatureZoomSlider) this.elements.signatureZoomSlider.value = value;
+                if (this.elements.signatureZoomValue) this.elements.signatureZoomValue.textContent = `${value}%`;
+                // Toolbar desktop
+                if (this.elements.signatureZoomToolbar) this.elements.signatureZoomToolbar.value = value;
+                if (this.elements.signatureZoomToolbarValue) this.elements.signatureZoomToolbarValue.textContent = `${value}%`;
+                // Toolbar mobile
+                if (this.elements.signatureZoomToolbarMobile) this.elements.signatureZoomToolbarMobile.value = value;
+                if (this.elements.signatureZoomToolbarValueMobile) this.elements.signatureZoomToolbarValueMobile.textContent = `${value}%`;
+                break;
+            case 'posX':
+                // Modal
+                if (this.elements.signaturePosXSlider) this.elements.signaturePosXSlider.value = value;
+                if (this.elements.signaturePosXValue) this.elements.signaturePosXValue.textContent = `${value}px`;
+                // Toolbar desktop
+                if (this.elements.signaturePosXToolbar) this.elements.signaturePosXToolbar.value = value;
+                if (this.elements.signaturePosXToolbarValue) this.elements.signaturePosXToolbarValue.textContent = `${value}px`;
+                // Toolbar mobile
+                if (this.elements.signaturePosXToolbarMobile) this.elements.signaturePosXToolbarMobile.value = value;
+                if (this.elements.signaturePosXToolbarValueMobile) this.elements.signaturePosXToolbarValueMobile.textContent = `${value}px`;
+                break;
+            case 'posY':
+                // Modal
+                if (this.elements.signaturePosYSlider) this.elements.signaturePosYSlider.value = value;
+                if (this.elements.signaturePosYValue) this.elements.signaturePosYValue.textContent = `${value}px`;
+                // Toolbar desktop
+                if (this.elements.signaturePosYToolbar) this.elements.signaturePosYToolbar.value = value;
+                if (this.elements.signaturePosYToolbarValue) this.elements.signaturePosYToolbarValue.textContent = `${value}px`;
+                // Toolbar mobile
+                if (this.elements.signaturePosYToolbarMobile) this.elements.signaturePosYToolbarMobile.value = value;
+                if (this.elements.signaturePosYToolbarValueMobile) this.elements.signaturePosYToolbarValueMobile.textContent = `${value}px`;
+                break;
+        }
+    },
+
+    /**
      * Scroll to canvas/preview section
      */
     scrollToPreview() {
@@ -1249,6 +1432,129 @@ const UIManager = {
         this.elements.borderImageUpload.value = '';
         this.elements.clearBorderImage.style.display = 'none';
         console.log('Border image cleared');
+    },
+
+    /**
+     * Open signature modal
+     */
+    openSignatureModal() {
+        if (!this.elements.signatureModal) return;
+
+        // Show zoom controls if signature is already uploaded
+        if (CanvasManager.signatureImage) {
+            this.elements.signatureZoomSection.style.display = 'block';
+            // Set current values
+            const currentZoom = Math.round(CanvasManager.signatureZoom * 100);
+            const currentPosX = CanvasManager.signaturePosX;
+            const currentPosY = CanvasManager.signaturePosY;
+
+            this.elements.signatureZoomSlider.value = currentZoom;
+            this.elements.signatureZoomValue.textContent = `${currentZoom}%`;
+            this.elements.signaturePosXSlider.value = currentPosX;
+            this.elements.signaturePosXValue.textContent = `${currentPosX}px`;
+            this.elements.signaturePosYSlider.value = currentPosY;
+            this.elements.signaturePosYValue.textContent = `${currentPosY}px`;
+        } else {
+            this.elements.signatureZoomSection.style.display = 'none';
+        }
+
+        // Show modal
+        this.elements.signatureModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+        // Re-initialize icons for modal content
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    },
+
+    /**
+     * Close signature modal
+     */
+    closeSignatureModal() {
+        if (!this.elements.signatureModal) return;
+
+        this.elements.signatureModal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scroll
+    },
+
+    /**
+     * Handle signature image upload
+     */
+    async handleSignatureImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadSignatureImage(file);
+
+            // Show zoom controls in modal
+            this.elements.signatureZoomSection.style.display = 'block';
+
+            // Reset zoom and position to defaults
+            this.syncSignatureSliderValue('zoom', 100);
+            this.syncSignatureSliderValue('posX', 0);
+            this.syncSignatureSliderValue('posY', 0);
+            CanvasManager.setSignatureZoom(1);
+            CanvasManager.setSignaturePosition(0, 0);
+
+            // Show clear buttons
+            this.elements.clearSignatureImage.style.display = 'block';
+            if (this.elements.clearSignatureImageMobile) {
+                this.elements.clearSignatureImageMobile.style.display = 'block';
+            }
+
+            // Show toolbar controls
+            if (this.elements.signatureToolbarControls) {
+                this.elements.signatureToolbarControls.style.display = 'block';
+            }
+            if (this.elements.signatureToolbarControlsMobile) {
+                this.elements.signatureToolbarControlsMobile.style.display = 'block';
+            }
+
+            this.showSuccessMessage('Signature image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear signature image
+     */
+    clearSignatureImage() {
+        CanvasManager.clearSignatureImage();
+        this.elements.signatureImageUpload.value = '';
+        this.elements.clearSignatureImage.style.display = 'none';
+        if (this.elements.clearSignatureImageMobile) {
+            this.elements.clearSignatureImageMobile.style.display = 'none';
+        }
+
+        // Hide zoom section and reset values
+        if (this.elements.signatureZoomSection) {
+            this.elements.signatureZoomSection.style.display = 'none';
+        }
+
+        // Reset all values to defaults
+        this.syncSignatureSliderValue('zoom', 100);
+        this.syncSignatureSliderValue('posX', 0);
+        this.syncSignatureSliderValue('posY', 0);
+
+        // Hide toolbar controls
+        if (this.elements.signatureToolbarControls) {
+            this.elements.signatureToolbarControls.style.display = 'none';
+        }
+        if (this.elements.signatureToolbarControlsMobile) {
+            this.elements.signatureToolbarControlsMobile.style.display = 'none';
+        }
+
+        console.log('Signature image cleared');
+    },
+
+    /**
+     * Clear signature image (Mobile - just calls the main clear function)
+     */
+    clearSignatureImageMobile() {
+        this.clearSignatureImage();
     },
 
     /**
@@ -1612,7 +1918,12 @@ const UIManager = {
         } else if (side === 'back') {
             clickedTextType = CanvasManager.getClickedBackText(x, y);
             if (clickedTextType) {
-                this.showTextEditor(canvas, rect, clickedTextType, side);
+                // If signature area is clicked, open signature modal instead of text editor
+                if (clickedTextType === 'signature') {
+                    this.openSignatureModal();
+                } else {
+                    this.showTextEditor(canvas, rect, clickedTextType, side);
+                }
             }
         }
     },

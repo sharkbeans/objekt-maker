@@ -266,6 +266,41 @@
                             </div>
                         </div>
 
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span>SIGNATURE IMAGE</span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="border-image-upload">
+                                    <button id="openSignatureModal" class="btn btn-secondary btn-small">
+                                        <i data-lucide="pen-tool"></i> Manage Signature
+                                    </button>
+                                    <button id="clearSignatureImage" class="btn btn-secondary btn-small" style="display: none;">
+                                        <i data-lucide="x"></i> Clear Signature
+                                    </button>
+                                </div>
+                                <p class="upload-hint">Upload and adjust signature with zoom control</p>
+                                <div id="signatureToolbarControls" style="display: none; margin-top: var(--space-md);">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <input type="range" id="signatureZoomToolbar" min="50" max="300" value="100" step="5">
+                                        <span id="signatureZoomToolbarValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <input type="range" id="signaturePosXToolbar" min="-200" max="200" value="0" step="5">
+                                        <span id="signaturePosXToolbarValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <input type="range" id="signaturePosYToolbar" min="-200" max="200" value="0" step="5">
+                                        <span id="signaturePosYToolbarValue">0px</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="adjustment-controls collapsible-section collapsed">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span>BACK SIDE CONTENT</span>
@@ -423,6 +458,47 @@
                             </div>
                         </div>
 
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span>SIGNATURE IMAGE</span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="border-image-upload">
+                                    <button id="openSignatureModalMobile" class="btn btn-secondary btn-small">
+                                        <i data-lucide="pen-tool"></i> Manage Signature
+                                    </button>
+                                    <button id="clearSignatureImageMobile" class="btn btn-secondary btn-small" style="display: none;">
+                                        <i data-lucide="x"></i> Clear Signature
+                                    </button>
+                                </div>
+                                <p class="upload-hint">Upload and adjust signature with zoom control</p>
+                                <div id="signatureToolbarControlsMobile" style="display: none; margin-top: var(--space-md);">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="signatureZoomToolbarMobile" min="50" max="300" value="100" step="5">
+                                            <span id="signatureZoomToolbarValueMobile">100%</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="signaturePosXToolbarMobile" min="-200" max="200" value="0" step="5">
+                                            <span id="signaturePosXToolbarValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="signaturePosYToolbarMobile" min="-200" max="200" value="0" step="5">
+                                            <span id="signaturePosYToolbarValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="adjustment-controls collapsible-section collapsed">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span>BACK SIDE CONTENT</span>
@@ -491,6 +567,64 @@
             <p>&copy; 2025 Photocard Maker | All processing happens in your browser</p>
         </div>
     </footer>
+
+    <!-- Signature Upload Modal -->
+    <div id="signatureModal" class="signature-modal" style="display: none;">
+        <div class="signature-modal-backdrop"></div>
+        <div class="signature-modal-content">
+            <div class="signature-modal-header">
+                <h3><i data-lucide="pen-tool"></i> Signature Settings</h3>
+                <button class="signature-modal-close" id="closeSignatureModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="signature-modal-body">
+                <div class="signature-upload-section">
+                    <input type="file" id="signatureImageUpload" accept="image/png" hidden>
+                    <label for="signatureImageUpload" class="btn btn-primary btn-large" style="width: 100%; margin-bottom: var(--space-md);">
+                        <i data-lucide="upload"></i> Upload Signature Image
+                    </label>
+                    <p class="upload-hint" style="text-align: center; margin-bottom: var(--space-lg);">PNG with transparent background recommended</p>
+                </div>
+
+                <div class="signature-zoom-section" id="signatureZoomSection" style="display: none;">
+                    <label style="display: block; margin-bottom: var(--space-md);">
+                        <span style="font-weight: 600;">Signature Zoom:</span>
+                        <input type="range" id="signatureZoomSlider" min="50" max="300" value="100" step="5" style="width: 100%; margin-top: var(--space-sm);">
+                        <div style="display: flex; justify-content: space-between; margin-top: var(--space-xs);">
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">50%</span>
+                            <span id="signatureZoomValue" style="font-weight: 600;">100%</span>
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">300%</span>
+                        </div>
+                    </label>
+                    <label style="display: block; margin-bottom: var(--space-md);">
+                        <span style="font-weight: 600;">Position X:</span>
+                        <input type="range" id="signaturePosXSlider" min="-200" max="200" value="0" step="5" style="width: 100%; margin-top: var(--space-sm);">
+                        <div style="display: flex; justify-content: space-between; margin-top: var(--space-xs);">
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">-200px</span>
+                            <span id="signaturePosXValue" style="font-weight: 600;">0px</span>
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">200px</span>
+                        </div>
+                    </label>
+                    <label style="display: block; margin-bottom: var(--space-sm);">
+                        <span style="font-weight: 600;">Position Y:</span>
+                        <input type="range" id="signaturePosYSlider" min="-200" max="200" value="0" step="5" style="width: 100%; margin-top: var(--space-sm);">
+                        <div style="display: flex; justify-content: space-between; margin-top: var(--space-xs);">
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">-200px</span>
+                            <span id="signaturePosYValue" style="font-weight: 600;">0px</span>
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">200px</span>
+                        </div>
+                    </label>
+                    <p class="upload-hint" style="text-align: center; margin-top: var(--space-sm);">Signature can overflow and overlap divider lines</p>
+                </div>
+            </div>
+            <div class="signature-modal-footer">
+                <button id="signatureModalDone" class="btn btn-primary">
+                    <i data-lucide="check"></i> Done
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript Modules -->
     <script src="js/canvas.js"></script>
