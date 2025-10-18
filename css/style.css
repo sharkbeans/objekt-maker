@@ -1268,7 +1268,7 @@ input[type="range"]::-moz-range-thumb:hover {
     z-index: 1001;
     pointer-events: all;
     animation: tooltipSlideIn 0.3s ease;
-    max-width: 280px;
+    max-width: 360px;
     min-width: 240px;
 }
 
@@ -1300,7 +1300,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .tooltip-text {
     margin: 0;
-    font-size: 1.075rem;
+    font-size: 1.050rem;
     font-weight: 500;
     line-height: 1.4;
     text-align: center;

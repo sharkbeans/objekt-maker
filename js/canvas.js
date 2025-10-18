@@ -825,7 +825,7 @@ const CanvasManager = {
         backCtx.letterSpacing = '-1px'; // Increased by 50% from -2px (makes spacing less negative)
         // Use stroke to make it slightly thicker than 500 but thinner than 600
         backCtx.strokeStyle = this.textColor;
-        backCtx.lineWidth = 2.2; // Fine tune thickness
+        backCtx.lineWidth = 2; // Fine tune thickness
         backCtx.strokeText(this.backNameValue, leftMargin, divider1Y + 58); // Moved down 7px (was 51)
         backCtx.fillStyle = this.textColor;
         backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 58);
@@ -842,7 +842,7 @@ const CanvasManager = {
         backCtx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
         // Use stroke to make it slightly thicker than 500 but thinner than 600
         backCtx.strokeStyle = this.textColor;
-        backCtx.lineWidth = 2.2; // Increased to 3 for visibility
+        backCtx.lineWidth = 2; 
         backCtx.strokeText(this.backClassValue, leftMargin, divider2Y + 58); // Moved down 7px (was 51)
         backCtx.fillStyle = this.textColor;
         backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 58);
