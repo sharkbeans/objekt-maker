@@ -2469,7 +2469,7 @@ const UIManager = {
             // Auto-hide after 5 seconds
             this.tooltipTimeout = setTimeout(() => {
                 this.hideTopTextTooltip();
-            }, 5000);
+            }, 6500);
         }, 1000);
 
         // Close button click handler
