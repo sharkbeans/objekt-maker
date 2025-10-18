@@ -172,10 +172,7 @@ const UIManager = {
 
             // QR Code controls
             qrCodeLink: document.getElementById('qrCodeLink'),
-            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile'),
-
-            // Mobile scroll to preview button
-            scrollToPreviewBtn: document.getElementById('scrollToPreviewBtn')
+            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile')
         };
 
         this.bindEvents();
@@ -1654,18 +1651,7 @@ const UIManager = {
      */
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
-        this.elements.canvasPlaceholder.classList.add('hidden');
-
-        // Show scroll to preview button on mobile after a short delay
-        if (this.elements.scrollToPreviewBtn && window.innerWidth <= 600) {
-            setTimeout(() => {
-                this.elements.scrollToPreviewBtn.style.display = 'flex';
-                // Re-initialize Lucide icons for the chevron
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            }, 500);
-        }
+        this.elements.canvasPlaceholder.classList.add('hidden');  
     },
 
     /**
@@ -2526,3 +2512,58 @@ window.UIManager = UIManager;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIManager;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const scrollBtn = document.getElementById('scrollToPreviewBtn');
+
+    if (!scrollBtn) {
+        console.error('[ScrollToPreview] Button not found');
+        return;
+    }
+
+    // Ensure button doesn’t submit forms accidentally
+    scrollBtn.type = 'button';
+
+    // Common preview targets — adjust to match your layout
+    const possibleTargets = [
+        'previewContainer',
+        'canvasContainer',
+        'canvasWrapper',
+        'backCanvasWrapper',
+        'canvasPlaceholder',
+        'preview'
+    ];
+
+    const previewTarget = possibleTargets
+        .map(id => document.getElementById(id))
+        .find(el => el !== null);
+
+    if (!previewTarget) {
+        console.warn('[ScrollToPreview] No preview element found — will scroll down instead.');
+    }
+
+    // Attach click event
+    scrollBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Small visual feedback (button click animation)
+        scrollBtn.style.transform = 'scale(0.96)';
+        setTimeout(() => (scrollBtn.style.transform = ''), 150);
+
+        // Scroll smoothly to target if found
+        if (previewTarget) {
+            previewTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            // Fallback scroll if no target element exists
+            window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+        }
+    });
+
+    // Make sure Lucide icons render
+    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+    }
+
+    console.info('[ScrollToPreview] Initialized successfully');
+});
+
