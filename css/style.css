@@ -1350,29 +1350,49 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 /* ========================================
-   Mobile Scroll to Preview Button
+    Mobile Scroll to Preview Button
    ======================================== */
 
 .scroll-to-preview-btn {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 56px;
-    height: 56px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(34, 174, 255, 0.4);
-    z-index: 100;
-    transition: all 0.3s ease;
-    animation: bounceDown 2s ease-in-out infinite;
+  display: none; /* hidden by default */
+  margin: 12px auto;
+  padding: 10px 16px; /* rectangular shape */
+  background: var(--primary, #007bff);
+  color: white;
+  border: none;
+  border-radius: 12px; /* smooth corners */
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(34, 174, 255, 0.3);
+  transition: all 0.25s ease;
 }
+
+.scroll-to-preview-btn:hover {
+  background: var(--primary-hover, #005fcc);
+  box-shadow: 0 6px 14px rgba(34, 174, 255, 0.4);
+}
+
+.scroll-to-preview-btn:active {
+  transform: scale(0.97);
+}
+
+.scroll-to-preview-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 768px) {
+  .scroll-to-preview-btn {
+    display: flex; /* show only on mobile */
+  }
+}
+
+
 
 @keyframes bounceDown {
     0%, 100% {

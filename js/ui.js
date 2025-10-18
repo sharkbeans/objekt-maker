@@ -510,7 +510,9 @@ const UIManager = {
 
         // Mobile scroll to preview button
         if (this.elements.scrollToPreviewBtn) {
-            this.elements.scrollToPreviewBtn.addEventListener('click', () => this.scrollToPreview());
+            this.elements.scrollToPreviewBtn.addEventListener('click', () => {
+            this.scrollToPreview();
+        });
 
             // Show/hide scroll button based on scroll position on mobile
             window.addEventListener('scroll', () => {
@@ -1654,13 +1656,15 @@ const UIManager = {
         this.elements.canvasWrapper.classList.add('active');
         this.elements.canvasPlaceholder.classList.add('hidden');
 
-        // Re-initialize Lucide icons on mobile
-        if (window.innerWidth <= 768 && typeof lucide !== 'undefined') {
+        // Show scroll to preview button on mobile after a short delay
+        if (this.elements.scrollToPreviewBtn && window.innerWidth <= 600) {
             setTimeout(() => {
-                lucide.createIcons();
-                // Trigger a scroll event check to update button visibility
-                window.dispatchEvent(new Event('scroll'));
-            }, 100);
+                this.elements.scrollToPreviewBtn.style.display = 'flex';
+                // Re-initialize Lucide icons for the chevron
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }, 500);
         }
     },
 
