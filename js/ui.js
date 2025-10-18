@@ -511,6 +511,28 @@ const UIManager = {
         // Mobile scroll to preview button
         if (this.elements.scrollToPreviewBtn) {
             this.elements.scrollToPreviewBtn.addEventListener('click', () => this.scrollToPreview());
+
+            // Show/hide scroll button based on scroll position on mobile
+            window.addEventListener('scroll', () => {
+                if (window.innerWidth <= 768 && CanvasManager.hasImage()) {
+                    const canvasContainer = this.elements.canvasContainer;
+                    if (canvasContainer) {
+                        const canvasRect = canvasContainer.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+
+                        // Show button if canvas/preview is mostly out of view (user is in toolbar area)
+                        // Canvas is considered "out of view" if its top is above the viewport
+                        // or if less than 30% of it is visible
+                        const isCanvasOutOfView = canvasRect.top < 0 && canvasRect.bottom < viewportHeight * 0.3;
+
+                        if (isCanvasOutOfView) {
+                            this.elements.scrollToPreviewBtn.style.display = 'flex';
+                        } else {
+                            this.elements.scrollToPreviewBtn.style.display = 'none';
+                        }
+                    }
+                }
+            });
         }
 
         // Canvas view toggle buttons
@@ -1415,11 +1437,7 @@ const UIManager = {
                     behavior: 'smooth',
                     block: 'start'
                 });
-
-                // Hide scroll button after scrolling on mobile
-                if (this.elements.scrollToPreviewBtn && window.innerWidth <= 768) {
-                    this.elements.scrollToPreviewBtn.style.display = 'none';
-                }
+                // Note: Button visibility is now controlled by scroll event listener
             }, 100);
         }
     },
@@ -1636,15 +1654,13 @@ const UIManager = {
         this.elements.canvasWrapper.classList.add('active');
         this.elements.canvasPlaceholder.classList.add('hidden');
 
-        // Show scroll to preview button on mobile after a short delay
-        if (this.elements.scrollToPreviewBtn && window.innerWidth <= 768) {
+        // Re-initialize Lucide icons on mobile
+        if (window.innerWidth <= 768 && typeof lucide !== 'undefined') {
             setTimeout(() => {
-                this.elements.scrollToPreviewBtn.style.display = 'flex';
-                // Re-initialize Lucide icons for the chevron
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            }, 500);
+                lucide.createIcons();
+                // Trigger a scroll event check to update button visibility
+                window.dispatchEvent(new Event('scroll'));
+            }, 100);
         }
     },
 
