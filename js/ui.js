@@ -1819,16 +1819,91 @@ const UIManager = {
         // Create hint text
         const hint = document.createElement('div');
         hint.className = 'canvas-text-editor-hint';
-        hint.textContent = 'Press Enter to save, Esc to cancel';
+        hint.textContent = 'Press Enter or click outside to save, Esc to cancel';
 
         editorContent.appendChild(hint);
         editor.appendChild(editorContent);
+
+        // Create save function with access to all necessary variables
+        const saveTextChanges = () => {
+            const newValue = input.value;
+
+            if (side === 'front') {
+                switch (textType) {
+                    case 'top':
+                        CanvasManager.setText(newValue, undefined, undefined);
+                        if (inputElement) inputElement.value = newValue;
+                        break;
+                    case 'middle':
+                        CanvasManager.setText(undefined, newValue, undefined);
+                        if (inputElement) inputElement.value = newValue;
+                        break;
+                    case 'bottom':
+                        CanvasManager.setText(undefined, undefined, newValue);
+                        if (inputElement) inputElement.value = newValue;
+                        break;
+                }
+            } else if (side === 'back') {
+                const updateData = {};
+                switch (textType) {
+                    case 'nameLabel':
+                        updateData.nameLabel = newValue;
+                        break;
+                    case 'nameValue':
+                        updateData.nameValue = newValue;
+                        break;
+                    case 'classLabel':
+                        updateData.classLabel = newValue;
+                        break;
+                    case 'classValue':
+                        updateData.classValue = newValue;
+                        break;
+                    case 'seasonLabel':
+                        updateData.seasonLabel = newValue;
+                        break;
+                    case 'seasonValue':
+                        updateData.seasonValue = newValue;
+                        break;
+                    case 'topRotated':
+                        updateData.nameValue = newValue;
+                        break;
+                    case 'bottomRotated':
+                        updateData.groupName = newValue;
+                        break;
+                }
+                CanvasManager.setBackSideData(updateData);
+                if (inputElement) inputElement.value = newValue;
+
+                // Sync to mobile if needed
+                if (textType === 'nameValue' && this.elements.backNameValueMobile) {
+                    this.elements.backNameValueMobile.value = newValue;
+                } else if (textType === 'nameLabel' && this.elements.backNameLabelMobile) {
+                    this.elements.backNameLabelMobile.value = newValue;
+                } else if (textType === 'classValue' && this.elements.backClassValueMobile) {
+                    this.elements.backClassValueMobile.value = newValue;
+                } else if (textType === 'classLabel' && this.elements.backClassLabelMobile) {
+                    this.elements.backClassLabelMobile.value = newValue;
+                } else if (textType === 'seasonValue' && this.elements.backSeasonValueMobile) {
+                    this.elements.backSeasonValueMobile.value = newValue;
+                } else if (textType === 'seasonLabel' && this.elements.backSeasonLabelMobile) {
+                    this.elements.backSeasonLabelMobile.value = newValue;
+                } else if (textType === 'bottomRotated' && this.elements.backGroupNameMobile) {
+                    this.elements.backGroupNameMobile.value = newValue;
+                }
+            }
+        };
+
+        // Store save function for access from outside click handler
+        this._currentEditorSaveFunction = saveTextChanges;
 
         // Create and add backdrop
         const backdrop = document.createElement('div');
         backdrop.className = 'canvas-text-editor-backdrop';
         backdrop.id = 'canvasTextEditorBackdrop';
-        backdrop.addEventListener('click', () => this.removeTextEditor());
+        backdrop.addEventListener('click', () => {
+            saveTextChanges();
+            this.removeTextEditor();
+        });
 
         document.body.appendChild(backdrop);
         document.body.appendChild(editor);
@@ -1841,75 +1916,10 @@ const UIManager = {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 // Save changes
-                const newValue = input.value;
-
-                if (side === 'front') {
-                    switch (textType) {
-                        case 'top':
-                            CanvasManager.setText(newValue, undefined, undefined);
-                            if (inputElement) inputElement.value = newValue;
-                            break;
-                        case 'middle':
-                            CanvasManager.setText(undefined, newValue, undefined);
-                            if (inputElement) inputElement.value = newValue;
-                            break;
-                        case 'bottom':
-                            CanvasManager.setText(undefined, undefined, newValue);
-                            if (inputElement) inputElement.value = newValue;
-                            break;
-                    }
-                } else if (side === 'back') {
-                    const updateData = {};
-                    switch (textType) {
-                        case 'nameLabel':
-                            updateData.nameLabel = newValue;
-                            break;
-                        case 'nameValue':
-                            updateData.nameValue = newValue;
-                            break;
-                        case 'classLabel':
-                            updateData.classLabel = newValue;
-                            break;
-                        case 'classValue':
-                            updateData.classValue = newValue;
-                            break;
-                        case 'seasonLabel':
-                            updateData.seasonLabel = newValue;
-                            break;
-                        case 'seasonValue':
-                            updateData.seasonValue = newValue;
-                            break;
-                        case 'topRotated':
-                            updateData.nameValue = newValue;
-                            break;
-                        case 'bottomRotated':
-                            updateData.groupName = newValue;
-                            break;
-                    }
-                    CanvasManager.setBackSideData(updateData);
-                    if (inputElement) inputElement.value = newValue;
-
-                    // Sync to mobile if needed
-                    if (textType === 'nameValue' && this.elements.backNameValueMobile) {
-                        this.elements.backNameValueMobile.value = newValue;
-                    } else if (textType === 'nameLabel' && this.elements.backNameLabelMobile) {
-                        this.elements.backNameLabelMobile.value = newValue;
-                    } else if (textType === 'classValue' && this.elements.backClassValueMobile) {
-                        this.elements.backClassValueMobile.value = newValue;
-                    } else if (textType === 'classLabel' && this.elements.backClassLabelMobile) {
-                        this.elements.backClassLabelMobile.value = newValue;
-                    } else if (textType === 'seasonValue' && this.elements.backSeasonValueMobile) {
-                        this.elements.backSeasonValueMobile.value = newValue;
-                    } else if (textType === 'seasonLabel' && this.elements.backSeasonLabelMobile) {
-                        this.elements.backSeasonLabelMobile.value = newValue;
-                    } else if (textType === 'bottomRotated' && this.elements.backGroupNameMobile) {
-                        this.elements.backGroupNameMobile.value = newValue;
-                    }
-                }
-
+                saveTextChanges();
                 this.removeTextEditor();
             } else if (e.key === 'Escape') {
-                // Cancel
+                // Cancel without saving
                 this.removeTextEditor();
             }
         });
@@ -1922,10 +1932,18 @@ const UIManager = {
 
     /**
      * Handle clicks outside the text editor
+     * Saves changes before closing
      */
     handleOutsideClick(event) {
         const editor = document.getElementById('canvasTextEditor');
-        if (editor && !editor.contains(event.target)) {
+        const backdrop = document.getElementById('canvasTextEditorBackdrop');
+
+        // Check if click is outside editor (but allow backdrop clicks to be handled by backdrop listener)
+        if (editor && !editor.contains(event.target) && event.target !== backdrop) {
+            // Save changes before removing
+            if (UIManager._currentEditorSaveFunction) {
+                UIManager._currentEditorSaveFunction();
+            }
             UIManager.removeTextEditor();
         }
     },
@@ -1943,6 +1961,8 @@ const UIManager = {
             backdrop.remove();
         }
         document.removeEventListener('click', this.handleOutsideClick, true);
+        // Clean up save function reference
+        this._currentEditorSaveFunction = null;
     }
 };
 
