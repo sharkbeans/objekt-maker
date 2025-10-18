@@ -1249,3 +1249,158 @@ input[type="range"]::-moz-range-thumb:hover {
         padding: var(--space-md);
     }
 }
+
+/* ========================================
+   Text Field Tooltip Styles
+   ======================================== */
+
+.text-field-tooltip {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-md) var(--space-lg);
+    padding-right: calc(var(--space-lg) + 32px);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    pointer-events: all;
+    animation: tooltipSlideIn 0.3s ease;
+    max-width: 280px;
+    min-width: 240px;
+}
+
+@keyframes tooltipSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.text-field-tooltip.fade-out {
+    animation: tooltipFadeOut 0.3s ease forwards;
+}
+
+@keyframes tooltipFadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+}
+
+.tooltip-text {
+    margin: 0;
+    font-size: 1.075rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.tooltip-close {
+    position: absolute;
+    top: 50%;
+    right: var(--space-sm);
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: var(--space-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+    width: 24px;
+    height: 24px;
+}
+
+.tooltip-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Mobile responsive tooltip */
+@media (max-width: 768px) {
+    .text-field-tooltip {
+        top: 10%;
+        max-width: calc(100% - 2rem);
+        min-width: unset;
+        padding: var(--space-sm) var(--space-md);
+        padding-right: calc(var(--space-md) + 32px);
+    }
+
+    .tooltip-text {
+        font-size: 0.813rem;
+    }
+}
+
+/* ========================================
+   Mobile Scroll to Preview Button
+   ======================================== */
+
+.scroll-to-preview-btn {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(34, 174, 255, 0.4);
+    z-index: 100;
+    transition: all 0.3s ease;
+    animation: bounceDown 2s ease-in-out infinite;
+}
+
+@keyframes bounceDown {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(8px);
+    }
+}
+
+.scroll-to-preview-btn:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 20px rgba(34, 174, 255, 0.5);
+    animation: none;
+}
+
+.scroll-to-preview-btn:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.scroll-to-preview-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Show scroll button on mobile only */
+@media (max-width: 768px) {
+    .scroll-to-preview-btn {
+        display: flex;
+    }
+}

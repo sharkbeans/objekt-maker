@@ -172,7 +172,10 @@ const UIManager = {
 
             // QR Code controls
             qrCodeLink: document.getElementById('qrCodeLink'),
-            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile')
+            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile'),
+
+            // Mobile scroll to preview button
+            scrollToPreviewBtn: document.getElementById('scrollToPreviewBtn')
         };
 
         this.bindEvents();
@@ -504,6 +507,11 @@ const UIManager = {
         this.elements.resetBtn.addEventListener('click', () => this.resetAll());
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
+
+        // Mobile scroll to preview button
+        if (this.elements.scrollToPreviewBtn) {
+            this.elements.scrollToPreviewBtn.addEventListener('click', () => this.scrollToPreview());
+        }
 
         // Canvas view toggle buttons
         this.elements.toggleBtns.forEach(btn => {
@@ -1407,6 +1415,11 @@ const UIManager = {
                     behavior: 'smooth',
                     block: 'start'
                 });
+
+                // Hide scroll button after scrolling on mobile
+                if (this.elements.scrollToPreviewBtn && window.innerWidth <= 768) {
+                    this.elements.scrollToPreviewBtn.style.display = 'none';
+                }
             }, 100);
         }
     },
@@ -1423,6 +1436,9 @@ const UIManager = {
             this.showCanvas();
             this.scrollToPreview();
             this.showSuccessMessage('Image loaded successfully!');
+
+            // Show tooltip for top text field (only once per session)
+            this.showTopTextTooltip();
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -1619,6 +1635,17 @@ const UIManager = {
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
         this.elements.canvasPlaceholder.classList.add('hidden');
+
+        // Show scroll to preview button on mobile after a short delay
+        if (this.elements.scrollToPreviewBtn && window.innerWidth <= 768) {
+            setTimeout(() => {
+                this.elements.scrollToPreviewBtn.style.display = 'flex';
+                // Re-initialize Lucide icons for the chevron
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }, 500);
+        }
     },
 
     /**
@@ -1627,6 +1654,11 @@ const UIManager = {
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
         this.elements.canvasPlaceholder.classList.remove('hidden');
+
+        // Hide scroll button when canvas is hidden
+        if (this.elements.scrollToPreviewBtn) {
+            this.elements.scrollToPreviewBtn.style.display = 'none';
+        }
     },
 
     /**
@@ -2401,6 +2433,69 @@ const UIManager = {
         document.removeEventListener('click', this.handleOutsideClick, true);
         // Clean up save function reference
         this._currentEditorSaveFunction = null;
+    },
+
+    /**
+     * Show tooltip for top text field
+     */
+    showTopTextTooltip() {
+        const tooltip = document.getElementById('topTextTooltip');
+        const closeBtn = document.getElementById('closeTooltip');
+
+        if (!tooltip) return;
+
+        // Only show tooltip once per session
+        const tooltipShown = sessionStorage.getItem('topTextTooltipShown');
+        if (tooltipShown) return;
+
+        // Show tooltip after a short delay
+        setTimeout(() => {
+            tooltip.style.display = 'block';
+
+            // Re-initialize Lucide icons for the close button
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Mark as shown
+            sessionStorage.setItem('topTextTooltipShown', 'true');
+
+            // Auto-hide after 5 seconds
+            this.tooltipTimeout = setTimeout(() => {
+                this.hideTopTextTooltip();
+            }, 5000);
+        }, 1000);
+
+        // Close button click handler
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.hideTopTextTooltip();
+            });
+        }
+    },
+
+    /**
+     * Hide tooltip for top text field
+     */
+    hideTopTextTooltip() {
+        const tooltip = document.getElementById('topTextTooltip');
+
+        if (!tooltip) return;
+
+        // Add fade-out class for smooth animation
+        tooltip.classList.add('fade-out');
+
+        // Remove after animation completes
+        setTimeout(() => {
+            tooltip.style.display = 'none';
+            tooltip.classList.remove('fade-out');
+        }, 300);
+
+        // Clear timeout if exists
+        if (this.tooltipTimeout) {
+            clearTimeout(this.tooltipTimeout);
+            this.tooltipTimeout = null;
+        }
     }
 };
 

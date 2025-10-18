@@ -389,6 +389,13 @@
 
                 <div class="canvas-wrapper active" id="canvasWrapper">
                     <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                    <!-- Tooltip for top text field -->
+                    <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
+                        <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
+                            <i data-lucide="x"></i>
+                        </button>
+                        <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
+                    </div>
                 </div>
 
                 <!-- Mobile Adjustment Controls (hidden on desktop) -->
@@ -588,6 +595,11 @@
                     <button id="exportBtnMobile" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
                     <button id="resetBtnMobile" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </div>
+
+                <!-- Mobile Scroll to Preview Button (hidden on desktop) -->
+                <button id="scrollToPreviewBtn" class="scroll-to-preview-btn" style="display: none;" aria-label="Scroll to preview">
+                    <i data-lucide="chevron-down"></i>
+                </button>
             </div>
         </div>
     </main>
