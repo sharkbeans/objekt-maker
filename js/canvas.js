@@ -381,6 +381,7 @@ const CanvasManager = {
     async generateQRCode() {
         if (!this.qrCodeLink || typeof QRCode === 'undefined') {
             this.qrCodeImage = null;
+            console.warn('QR Code library not loaded or no link provided');
             return;
         }
 
@@ -405,6 +406,10 @@ const CanvasManager = {
                 img.onload = resolve;
             });
             this.qrCodeImage = img;
+            console.log('QR Code generated successfully');
+
+            // Update back side preview if it's enabled
+            this.updateBackSidePreview();
         } catch (error) {
             console.error('Failed to generate QR code:', error);
             this.qrCodeImage = null;

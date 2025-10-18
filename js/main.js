@@ -27,9 +27,8 @@ const App = {
             UIManager.init();
             console.log('[OK] UIManager initialized');
 
-            // Generate initial QR code
-            await CanvasManager.generateQRCode();
-            console.log('[OK] QR Code generated');
+            // Generate initial QR code (with retry for library loading)
+            await this.initializeQRCode();
 
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
@@ -41,6 +40,26 @@ const App = {
             console.error('Failed to initialize app:', error);
             // Removed alert - error logged to console only
         }
+    },
+
+    /**
+     * Initialize QR code with retry logic for library loading
+     */
+    async initializeQRCode() {
+        // Wait for QRCode library to be available
+        let retries = 0;
+        while (typeof QRCode === 'undefined' && retries < 20) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries++;
+        }
+
+        if (typeof QRCode === 'undefined') {
+            console.error('QRCode library failed to load');
+            return;
+        }
+
+        await CanvasManager.generateQRCode();
+        console.log('[OK] QR Code generated');
     },
 
     /**

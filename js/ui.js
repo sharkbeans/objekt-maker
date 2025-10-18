@@ -1950,8 +1950,8 @@ const UIManager = {
                 if (clickedTextType === 'signature') {
                     this.openSignatureModal();
                 } else if (clickedTextType === 'qrcode') {
-                    // If QR code area is clicked, show QR code editor
-                    this.showQRCodeEditor();
+                    // QR code area is disabled for now
+                    // this.showQRCodeEditor();
                 } else {
                     this.showTextEditor(canvas, rect, clickedTextType, side);
                 }
