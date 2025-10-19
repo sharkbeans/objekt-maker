@@ -534,6 +534,22 @@ const UIManager = {
             });
         }
 
+        // New mobile preview buttons in navigation
+        const scrollToPreviewBtnMobile = document.getElementById('scrollToPreviewBtnMobile');
+        const scrollToPreviewBtnMobileBack = document.getElementById('scrollToPreviewBtnMobileBack');
+        
+        if (scrollToPreviewBtnMobile) {
+            scrollToPreviewBtnMobile.addEventListener('click', () => {
+                this.scrollToPreview();
+            });
+        }
+        
+        if (scrollToPreviewBtnMobileBack) {
+            scrollToPreviewBtnMobileBack.addEventListener('click', () => {
+                this.scrollToPreview();
+            });
+        }
+
         // Canvas view toggle buttons
         this.elements.toggleBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
