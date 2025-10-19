@@ -2482,10 +2482,10 @@ const UIManager = {
             // Mark as shown
             sessionStorage.setItem('topTextTooltipShown', 'true');
 
-            // Auto-hide after 5 seconds
+            // Auto-hide after 60 seconds
             this.tooltipTimeout = setTimeout(() => {
                 this.hideTopTextTooltip();
-            }, 6500);
+            }, 60000);
         }, 1000);
 
         // Close button click handler
