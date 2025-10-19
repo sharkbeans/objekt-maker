@@ -1271,8 +1271,8 @@ input[type="range"]::-moz-range-thumb:hover {
     z-index: 1001;
     pointer-events: all;
     animation: tooltipSlideIn 0.3s ease;
-    max-width: 360px;
-    min-width: 240px;
+    max-width: 420px;
+    min-width: 360px;
 }
 
 @keyframes tooltipSlideIn {
