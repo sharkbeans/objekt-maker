@@ -10,8 +10,8 @@
 
 :root {
     /* Color Palette - Dark Mode */
-    --primary-color: #22AEFF;
-    --primary-hover: #1a8fdb;
+    --primary-color: #297aff;
+    --primary-hover: #1f5fcc;
     --secondary-color: #9200FF;
     --bg-color: #000000;
     --surface-color: #1a1a1a;
@@ -195,7 +195,7 @@ body {
 .upload-area:hover,
 .upload-area.drag-over {
     border-color: var(--primary-color);
-    background: rgba(34, 174, 255, 0.04);
+    background: rgba(41, 122, 255, 0.04);
 }
 
 .upload-label {
@@ -333,7 +333,7 @@ input[type="range"]::-moz-range-thumb:hover {
 .dropdown-select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(34, 174, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(41, 122, 255, 0.1);
 }
 
 /* Dropdown options styling - Color preview shown inline with text */
@@ -447,7 +447,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .preset-color.active {
-    box-shadow: 0 0 0 3px rgba(34,174,255,0.18), 0 0 0 1px var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(41,122,255,0.18), 0 0 0 1px var(--primary-color);
     transform: scale(1.05);
 }
 
@@ -534,7 +534,7 @@ input[type="range"]::-moz-range-thumb:hover {
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(34, 174, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(41, 122, 255, 0.3);
 }
 
 .btn-secondary {
@@ -626,7 +626,7 @@ input[type="range"]::-moz-range-thumb:hover {
 .toggle-btn.active {
     background: var(--primary-color);
     color: white;
-    box-shadow: 0 2px 8px rgba(34, 174, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(41, 122, 255, 0.3);
 }
 
 .toggle-btn svg {
@@ -1359,10 +1359,10 @@ input[type="range"]::-moz-range-thumb:hover {
   display: none; /* hidden on desktop */
   width: auto;
   padding: 10px 18px;
-  background: var(--primary, #007bff);
+  background: transparent;
   color: white;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid white;
+  border-radius: 6px;
   font-size: 0.95rem;
   font-weight: 500;
   display: flex;
@@ -1371,13 +1371,12 @@ input[type="range"]::-moz-range-thumb:hover {
   gap: 8px;
   margin: 16px auto;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
   transition: all 0.25s ease;
 }
 
 .scroll-to-preview-btn:hover {
-  background: var(--primary-hover, #005fcc);
-  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .scroll-to-preview-btn:active {
