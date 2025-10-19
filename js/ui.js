@@ -2567,3 +2567,122 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info('[ScrollToPreview] Initialized successfully');
 });
 
+// Bottom Navigation Functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const bottomNav = document.getElementById('bottomNav');
+    const frontNavSection = document.getElementById('frontNavSection');
+    const backNavSection = document.getElementById('backNavSection');
+    const navBtns = document.querySelectorAll('.nav-btn');
+
+    if (!bottomNav) return;
+
+    // Map navigation targets to their corresponding sections
+    const sectionMap = {
+        'upload': () => {
+            const uploadSection = document.querySelector('.control-section:has(#uploadArea)');
+            if (uploadSection) {
+                uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'border-color': () => {
+            const section = document.querySelector('.collapsible-section:has(#notchColorSelect)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'border-image': () => {
+            const section = document.querySelector('.collapsible-section:has(#borderImageUpload)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'text': () => {
+            const section = document.querySelector('.collapsible-section:has(#topText)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'border-color-back': () => {
+            const section = document.querySelector('.collapsible-section:has(#notchColorSelectBack)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'border-image-back': () => {
+            const section = document.querySelector('.collapsible-section:has(#borderImageUploadBack)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'text-back': () => {
+            const section = document.querySelector('.collapsible-section:has(#textColorPickerBack)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'signature': () => {
+            const section = document.querySelector('.collapsible-section:has(#openSignatureModal)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'content': () => {
+            const section = document.querySelector('.collapsible-section:has(#backClassLabel)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    };
+
+    // Handle navigation button clicks
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = btn.dataset.target;
+            
+            // Remove active state from all buttons
+            navBtns.forEach(b => b.classList.remove('active'));
+            // Add active state to clicked button
+            btn.classList.add('active');
+            
+            // Execute navigation action
+            if (sectionMap[target]) {
+                sectionMap[target]();
+            }
+        });
+    });
+
+    // Update navigation visibility based on current view
+    const updateNavVisibility = (view) => {
+        if (view === 'front') {
+            frontNavSection.style.display = 'flex';
+            backNavSection.style.display = 'none';
+        } else {
+            frontNavSection.style.display = 'none';
+            backNavSection.style.display = 'flex';
+        }
+        // Clear active states when switching views
+        navBtns.forEach(btn => btn.classList.remove('active'));
+    };
+
+    // Listen for canvas view changes
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            updateNavVisibility(view);
+        });
+    });
+
+    // Initialize with front view
+    updateNavVisibility('front');
+});
+

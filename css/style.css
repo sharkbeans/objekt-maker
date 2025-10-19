@@ -1394,3 +1394,82 @@ input[type="range"]::-moz-range-thumb:hover {
     display: flex;
   }
 }
+
+/* ========================================
+   Bottom Footer Navigation
+   ======================================== */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-sm) var(--space-md);
+    z-index: 1000;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.nav-section {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    gap: var(--space-xs);
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: var(--space-xs) var(--space-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+    min-width: 60px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.nav-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-btn.active {
+    color: var(--primary-color);
+    background: rgba(41, 122, 255, 0.1);
+}
+
+.nav-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-btn span {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+/* Add bottom padding to body to prevent content from being hidden behind nav */
+body {
+    padding-bottom: 80px;
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+    .bottom-nav {
+        display: none;
+    }
+    
+    body {
+        padding-bottom: 0;
+    }
+}
