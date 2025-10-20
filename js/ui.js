@@ -894,6 +894,9 @@ const UIManager = {
         
         // Initialize swipe gestures
         this.initSwipeGestures();
+        
+        // Initialize desktop navigation arrows
+        this.initDesktopArrows();
 
     },
 
@@ -1840,7 +1843,7 @@ const UIManager = {
      * Switch between front and back canvas views
      * @param {string} view - 'front' or 'back'
      */
-    switchCanvasView(view) {
+    switchCanvasView(view, direction = null) {
         // Track current view
         const previousView = this.currentView;
         this.currentView = view;
@@ -1862,20 +1865,35 @@ const UIManager = {
 
         // Only animate if switching between different views
         if (previousView && previousView !== view) {
+            // Determine rotation direction
+            let outClass = 'rotating-out';
+            let inAnimation = 'rotateIn';
+            
+            if (direction === 'left') {
+                outClass = 'rotating-out-left';
+                inAnimation = 'rotateInFromRight';
+            } else if (direction === 'right') {
+                outClass = 'rotating-out-right';
+                inAnimation = 'rotateIn';
+            }
+            
             // Start rotation out animation for current wrapper
-            currentWrapper.classList.add('rotating-out');
+            currentWrapper.classList.add(outClass);
             
             // After rotation out completes, switch to new wrapper
             setTimeout(() => {
                 // Hide current wrapper
-                currentWrapper.classList.remove('active', 'rotating-out');
+                currentWrapper.classList.remove('active', 'rotating-out', 'rotating-out-left', 'rotating-out-right');
                 
                 // Show target wrapper with rotation in animation
                 targetWrapper.classList.add('active');
+                targetWrapper.style.animation = `${inAnimation} 0.3s ease forwards`;
                 
-                // Clean up any existing animation classes
-                targetWrapper.classList.remove('rotating-out');
-            }, 250); // Match the rotateOut animation duration
+                // Clean up animation after completion
+                setTimeout(() => {
+                    targetWrapper.style.animation = '';
+                }, 300);
+            }, 150); // Match the rotateOut animation duration
         } else {
             // First time or same view - just show without animation
             if (view === 'front') {
@@ -1886,6 +1904,9 @@ const UIManager = {
                 frontWrapper.classList.remove('active');
             }
         }
+
+        // Update mobile navigation
+        this.updateMobileNavigation(view);
 
         // Switch canvas visibility and controls
         if (view === 'front') {
@@ -2557,6 +2578,50 @@ const UIManager = {
     },
 
     /**
+     * Update mobile navigation visibility
+     */
+    updateMobileNavigation(view) {
+        const frontNavSection = document.getElementById('frontNavSection');
+        const backNavSection = document.getElementById('backNavSection');
+        
+        if (frontNavSection && backNavSection) {
+            if (view === 'front') {
+                frontNavSection.style.display = 'flex';
+                backNavSection.style.display = 'none';
+            } else {
+                frontNavSection.style.display = 'none';
+                backNavSection.style.display = 'flex';
+            }
+        }
+    },
+
+    /**
+     * Initialize desktop navigation arrows
+     */
+    initDesktopArrows() {
+        const canvasContainer = document.querySelector('.canvas-container');
+        if (!canvasContainer) return;
+        
+        // Create left arrow
+        const leftArrow = document.createElement('button');
+        leftArrow.className = 'canvas-nav-arrow left';
+        leftArrow.innerHTML = '<i data-lucide="chevron-left"></i>';
+        leftArrow.addEventListener('click', () => this.switchCanvasView('front', 'right'));
+        
+        // Create right arrow
+        const rightArrow = document.createElement('button');
+        rightArrow.className = 'canvas-nav-arrow right';
+        rightArrow.innerHTML = '<i data-lucide="chevron-right"></i>';
+        rightArrow.addEventListener('click', () => this.switchCanvasView('back', 'left'));
+        
+        canvasContainer.appendChild(leftArrow);
+        canvasContainer.appendChild(rightArrow);
+        
+        // Initialize icons
+        if (window.lucide) lucide.createIcons();
+    },
+
+    /**
      * Initialize swipe gestures for canvas flipping
      */
     initSwipeGestures() {
@@ -2593,10 +2658,12 @@ const UIManager = {
                 
                 if (deltaX > 0) {
                     // Swipe right - show front
-                    this.switchCanvasView('front');
+                    this.switchCanvasView('front', 'right');
+                    this.updateMobileNavigation('front');
                 } else {
                     // Swipe left - show back
-                    this.switchCanvasView('back');
+                    this.switchCanvasView('back', 'left');
+                    this.updateMobileNavigation('back');
                 }
             }
         }, { passive: true });

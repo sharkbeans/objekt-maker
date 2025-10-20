@@ -656,6 +656,14 @@ input[type="range"]::-moz-range-thumb:hover {
     animation: rotateOut 0.15s ease forwards;
 }
 
+.canvas-wrapper.rotating-out-left {
+    animation: rotateOutLeft 0.15s ease forwards;
+}
+
+.canvas-wrapper.rotating-out-right {
+    animation: rotateOutRight 0.15s ease forwards;
+}
+
 @keyframes rotateIn {
     from {
         opacity: 0;
@@ -667,7 +675,40 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 }
 
+@keyframes rotateInFromRight {
+    from {
+        opacity: 0;
+        transform: rotateY(90deg);
+    }
+    to {
+        opacity: 1;
+        transform: rotateY(0deg);
+    }
+}
+
 @keyframes rotateOut {
+    from {
+        opacity: 1;
+        transform: rotateY(0deg);
+    }
+    to {
+        opacity: 0;
+        transform: rotateY(90deg);
+    }
+}
+
+@keyframes rotateOutLeft {
+    from {
+        opacity: 1;
+        transform: rotateY(0deg);
+    }
+    to {
+        opacity: 0;
+        transform: rotateY(-90deg);
+    }
+}
+
+@keyframes rotateOutRight {
     from {
         opacity: 1;
         transform: rotateY(0deg);
@@ -1496,6 +1537,39 @@ body {
     padding-bottom: 80px;
 }
 
+.canvas-nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    opacity: 0.7;
+}
+
+.canvas-nav-arrow:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.canvas-nav-arrow.left {
+    left: 160px;
+}
+
+.canvas-nav-arrow.right {
+    right: 160px;
+}
+
 /* Hide on desktop */
 @media (min-width: 769px) {
     .bottom-nav {
@@ -1504,5 +1578,11 @@ body {
     
     body {
         padding-bottom: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .canvas-nav-arrow {
+        display: none;
     }
 }
