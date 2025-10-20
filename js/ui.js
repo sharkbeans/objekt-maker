@@ -1843,7 +1843,7 @@ const UIManager = {
      * Switch between front and back canvas views
      * @param {string} view - 'front' or 'back'
      */
-    switchCanvasView(view, direction = null) {
+    async switchCanvasView(view, direction = null) {
         // Track current view
         const previousView = this.currentView;
         this.currentView = view;
@@ -1863,8 +1863,31 @@ const UIManager = {
         const currentWrapper = previousView === 'front' ? frontWrapper : backWrapper;
         const targetWrapper = view === 'front' ? frontWrapper : backWrapper;
 
+        // Prepare back canvas operations before animation if switching to back
+        const prepareBackCanvas = async () => {
+            if (view === 'back') {
+                CanvasManager.setBackSideEnabled(true);
+                if (!CanvasManager.qrCodeImage) {
+                    await CanvasManager.generateQRCode();
+                }
+                CanvasManager.updateBackSidePreview();
+                this.syncBackColors();
+            }
+        };
+
         // Only animate if switching between different views
         if (previousView && previousView !== view) {
+            // Hide mobile adjustments immediately and keep them hidden during animation
+            if (this.elements.mobileAdjustments) {
+                this.elements.mobileAdjustments.style.setProperty('display', 'none', 'important');
+            }
+            if (this.elements.mobileBackAdjustments) {
+                this.elements.mobileBackAdjustments.style.setProperty('display', 'none', 'important');
+            }
+            
+            // Prepare back canvas before animation starts
+            await prepareBackCanvas();
+            
             // Determine rotation direction
             let outClass = 'rotating-out';
             let inAnimation = 'rotateIn';
@@ -1882,20 +1905,29 @@ const UIManager = {
             
             // After rotation out completes, switch to new wrapper
             setTimeout(() => {
-                // Hide current wrapper
+                // Hide current wrapper completely
                 currentWrapper.classList.remove('active', 'rotating-out', 'rotating-out-left', 'rotating-out-right');
                 
-                // Show target wrapper with rotation in animation
+                // Show target wrapper and immediately start in animation
                 targetWrapper.classList.add('active');
-                targetWrapper.style.animation = `${inAnimation} 0.3s ease forwards`;
+                // Force a reflow to ensure the element is rendered before animation
+                targetWrapper.offsetHeight;
+                targetWrapper.style.animation = `${inAnimation} 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
                 
                 // Clean up animation after completion
                 setTimeout(() => {
                     targetWrapper.style.animation = '';
-                }, 300);
-            }, 150); // Match the rotateOut animation duration
+                }, 400);
+            }, 250); // Match the rotateOut animation duration
+            
+            // Show mobile adjustments after complete animation (700ms total)
+            setTimeout(() => {
+                this.updateControlsVisibility(view);
+            }, 700);
         } else {
             // First time or same view - just show without animation
+            await prepareBackCanvas();
+            
             if (view === 'front') {
                 frontWrapper.classList.add('active');
                 backWrapper.classList.remove('active');
@@ -1908,7 +1940,17 @@ const UIManager = {
         // Update mobile navigation
         this.updateMobileNavigation(view);
 
-        // Switch canvas visibility and controls
+        // Only update controls immediately if no animation is running
+        if (!previousView || previousView === view) {
+            this.updateControlsVisibility(view);
+        }
+    },
+
+    /**
+     * Update controls visibility based on current view
+     * @param {string} view - 'front' or 'back'
+     */
+    updateControlsVisibility(view) {
         if (view === 'front') {
             // Show upload section on front view
             if (this.elements.uploadSection) {
@@ -1938,21 +1980,6 @@ const UIManager = {
             if (this.elements.uploadSection) {
                 this.elements.uploadSection.style.display = 'none';
             }
-
-            // Automatically enable and generate back side when switching to back view
-            CanvasManager.setBackSideEnabled(true);
-
-            // Generate QR code if not already generated
-            if (!CanvasManager.qrCodeImage) {
-                CanvasManager.generateQRCode().then(() => {
-                    CanvasManager.updateBackSidePreview();
-                });
-            } else {
-                CanvasManager.updateBackSidePreview();
-            }
-
-            // Sync colors from front to back
-            this.syncBackColors();
 
             // Hide front side controls, show back side controls
             if (this.elements.frontSideSection) {

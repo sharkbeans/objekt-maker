@@ -649,73 +649,93 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .canvas-wrapper.active {
     display: flex;
-    animation: rotateIn 0.3s ease forwards;
+    opacity: 1;
 }
 
 .canvas-wrapper.rotating-out {
-    animation: rotateOut 0.15s ease forwards;
+    animation: rotateOut 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
 }
 
 .canvas-wrapper.rotating-out-left {
-    animation: rotateOutLeft 0.15s ease forwards;
+    animation: rotateOutLeft 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
 }
 
 .canvas-wrapper.rotating-out-right {
-    animation: rotateOutRight 0.15s ease forwards;
+    animation: rotateOutRight 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
 }
 
 @keyframes rotateIn {
     from {
         opacity: 0;
-        transform: rotateY(-90deg);
+        transform: rotateY(-45deg) scale(0.95);
+    }
+    50% {
+        opacity: 0.7;
+        transform: rotateY(-15deg) scale(0.98);
     }
     to {
         opacity: 1;
-        transform: rotateY(0deg);
+        transform: rotateY(0deg) scale(1);
     }
 }
 
 @keyframes rotateInFromRight {
     from {
         opacity: 0;
-        transform: rotateY(90deg);
+        transform: rotateY(45deg) scale(0.95);
+    }
+    50% {
+        opacity: 0.7;
+        transform: rotateY(15deg) scale(0.98);
     }
     to {
         opacity: 1;
-        transform: rotateY(0deg);
+        transform: rotateY(0deg) scale(1);
     }
 }
 
 @keyframes rotateOut {
     from {
         opacity: 1;
-        transform: rotateY(0deg);
+        transform: rotateY(0deg) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: rotateY(30deg) scale(0.98);
     }
     to {
         opacity: 0;
-        transform: rotateY(90deg);
+        transform: rotateY(45deg) scale(0.95);
     }
 }
 
 @keyframes rotateOutLeft {
     from {
         opacity: 1;
-        transform: rotateY(0deg);
+        transform: rotateY(0deg) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: rotateY(-30deg) scale(0.98);
     }
     to {
         opacity: 0;
-        transform: rotateY(-90deg);
+        transform: rotateY(-45deg) scale(0.95);
     }
 }
 
 @keyframes rotateOutRight {
     from {
         opacity: 1;
-        transform: rotateY(0deg);
+        transform: rotateY(0deg) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: rotateY(30deg) scale(0.98);
     }
     to {
         opacity: 0;
-        transform: rotateY(90deg);
+        transform: rotateY(45deg) scale(0.95);
     }
 }
 
