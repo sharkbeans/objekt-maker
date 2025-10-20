@@ -587,6 +587,7 @@ input[type="range"]::-moz-range-thumb:hover {
     top: 20px;
     gap: var(--space-xl);
     align-self: flex-start;
+    perspective: 1000px;
 }
 
 /* Canvas View Toggle Navigation */
@@ -643,11 +644,38 @@ input[type="range"]::-moz-range-thumb:hover {
     gap: var(--space-sm);
     opacity: 0;
     transition: opacity 0.3s ease;
+    transform-style: preserve-3d;
 }
 
 .canvas-wrapper.active {
     display: flex;
-    animation: fadeIn 0.3s ease forwards;
+    animation: rotateIn 0.3s ease forwards;
+}
+
+.canvas-wrapper.rotating-out {
+    animation: rotateOut 0.15s ease forwards;
+}
+
+@keyframes rotateIn {
+    from {
+        opacity: 0;
+        transform: rotateY(-90deg);
+    }
+    to {
+        opacity: 1;
+        transform: rotateY(0deg);
+    }
+}
+
+@keyframes rotateOut {
+    from {
+        opacity: 1;
+        transform: rotateY(0deg);
+    }
+    to {
+        opacity: 0;
+        transform: rotateY(90deg);
+    }
 }
 
 @keyframes fadeIn {

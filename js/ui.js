@@ -11,6 +11,8 @@ const UIManager = {
      * Initialize UI manager and bind all event listeners
      */
     init() {
+        // Initialize current view to null so first switch triggers animation
+        this.currentView = null;
         // Cache DOM elements
         this.elements = {
             // Upload
@@ -178,6 +180,9 @@ const UIManager = {
         this.bindEvents();
 
         console.log('UI Manager initialized');
+        
+        // Set initial view after initialization
+        this.currentView = 'front';
     },
 
     /**
@@ -886,6 +891,9 @@ const UIManager = {
 
         // Canvas text click event - for inline editing
         this.initCanvasTextEditor();
+        
+        // Initialize swipe gestures
+        this.initSwipeGestures();
 
     },
 
@@ -1834,6 +1842,7 @@ const UIManager = {
      */
     switchCanvasView(view) {
         // Track current view
+        const previousView = this.currentView;
         this.currentView = view;
 
         // Update toggle button states
@@ -1845,11 +1854,41 @@ const UIManager = {
             }
         });
 
-        // Switch canvas visibility with fade effect
-        if (view === 'front') {
-            this.elements.canvasWrapper.classList.add('active');
-            this.elements.backCanvasWrapper.classList.remove('active');
+        // Get current and target canvas wrappers
+        const frontWrapper = this.elements.canvasWrapper;
+        const backWrapper = this.elements.backCanvasWrapper;
+        const currentWrapper = previousView === 'front' ? frontWrapper : backWrapper;
+        const targetWrapper = view === 'front' ? frontWrapper : backWrapper;
 
+        // Only animate if switching between different views
+        if (previousView && previousView !== view) {
+            // Start rotation out animation for current wrapper
+            currentWrapper.classList.add('rotating-out');
+            
+            // After rotation out completes, switch to new wrapper
+            setTimeout(() => {
+                // Hide current wrapper
+                currentWrapper.classList.remove('active', 'rotating-out');
+                
+                // Show target wrapper with rotation in animation
+                targetWrapper.classList.add('active');
+                
+                // Clean up any existing animation classes
+                targetWrapper.classList.remove('rotating-out');
+            }, 250); // Match the rotateOut animation duration
+        } else {
+            // First time or same view - just show without animation
+            if (view === 'front') {
+                frontWrapper.classList.add('active');
+                backWrapper.classList.remove('active');
+            } else {
+                backWrapper.classList.add('active');
+                frontWrapper.classList.remove('active');
+            }
+        }
+
+        // Switch canvas visibility and controls
+        if (view === 'front') {
             // Show upload section on front view
             if (this.elements.uploadSection) {
                 this.elements.uploadSection.style.display = 'block';
@@ -1874,9 +1913,6 @@ const UIManager = {
                 this.elements.mobileBackAdjustments.style.setProperty('display', 'none', 'important');
             }
         } else {
-            this.elements.canvasWrapper.classList.remove('active');
-            this.elements.backCanvasWrapper.classList.add('active');
-
             // Hide upload section on back view
             if (this.elements.uploadSection) {
                 this.elements.uploadSection.style.display = 'none';
@@ -2518,6 +2554,52 @@ const UIManager = {
             clearTimeout(this.tooltipTimeout);
             this.tooltipTimeout = null;
         }
+    },
+
+    /**
+     * Initialize swipe gestures for canvas flipping
+     */
+    initSwipeGestures() {
+        const canvasContainer = document.querySelector('.canvas-container');
+        if (!canvasContainer) return;
+
+        let startX = 0;
+        let startY = 0;
+        let startTime = 0;
+
+        canvasContainer.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            startTime = Date.now();
+        }, { passive: true });
+
+        canvasContainer.addEventListener('touchend', (e) => {
+            if (!e.changedTouches[0]) return;
+            
+            const touch = e.changedTouches[0];
+            const endX = touch.clientX;
+            const endY = touch.clientY;
+            const endTime = Date.now();
+            
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const deltaTime = endTime - startTime;
+            
+            // Check if it's a valid swipe (horizontal, fast enough, long enough)
+            if (Math.abs(deltaX) > Math.abs(deltaY) && // More horizontal than vertical
+                Math.abs(deltaX) > 50 && // Minimum distance
+                deltaTime < 300) { // Maximum time
+                
+                if (deltaX > 0) {
+                    // Swipe right - show front
+                    this.switchCanvasView('front');
+                } else {
+                    // Swipe left - show back
+                    this.switchCanvasView('back');
+                }
+            }
+        }, { passive: true });
     }
 };
 
