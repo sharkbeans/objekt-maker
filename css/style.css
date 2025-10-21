@@ -582,7 +582,7 @@ input[type="range"]::-moz-range-thumb:hover {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 600px;
+    min-height: 900px;
     position: sticky;
     top: 20px;
     gap: var(--space-xl);
@@ -635,16 +635,26 @@ input[type="range"]::-moz-range-thumb:hover {
     height: 16px;
 }
 
-.canvas-wrapper {
+.canvas-wrapper-container {
     position: relative;
+    width: 100%;
+    min-height: 400px;
+}
+
+.canvas-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     display: none;
     border-radius: var(--radius-sm);
     flex-direction: column;
     align-items: center;
     gap: var(--space-sm);
     opacity: 0;
-    transition: opacity 0.3s ease;
     transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
 }
 
 .canvas-wrapper.active {
@@ -654,14 +664,17 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .canvas-wrapper.rotating-out {
     animation: rotateOut 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    z-index: 1;
 }
 
 .canvas-wrapper.rotating-out-left {
     animation: rotateOutLeft 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    z-index: 1;
 }
 
 .canvas-wrapper.rotating-out-right {
     animation: rotateOutRight 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    z-index: 1;
 }
 
 @keyframes rotateIn {
@@ -756,8 +769,8 @@ input[type="range"]::-moz-range-thumb:hover {
     max-width: 100%;
     height: auto;
     border-radius: var(--radius-sm);
-    /* Scale down preview to 75% while maintaining full resolution for download */
-    width: 60%;
+    /* Scale down preview to 65% while maintaining full resolution for download */
+    width: 45%;
 }
 
 .canvas-placeholder {
@@ -945,8 +958,18 @@ input[type="range"]::-moz-range-thumb:hover {
         flex-direction: column;
     }
 
+    /* Make canvas wrapper container take appropriate space */
+    .canvas-wrapper-container {
+        position: relative;
+        width: 100%;
+        min-height: 0;
+        /* Let the container expand based on content */
+        height: auto;
+    }
+
     /* Make canvas wrapper take appropriate space */
     .canvas-wrapper {
+        position: relative;
         max-width: 100%;
     }
 

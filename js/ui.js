@@ -1907,16 +1907,21 @@ const UIManager = {
             setTimeout(() => {
                 // Hide current wrapper completely
                 currentWrapper.classList.remove('active', 'rotating-out', 'rotating-out-left', 'rotating-out-right');
-                
+                currentWrapper.style.display = 'none';
+
                 // Show target wrapper and immediately start in animation
+                targetWrapper.style.display = 'flex';
                 targetWrapper.classList.add('active');
                 // Force a reflow to ensure the element is rendered before animation
                 targetWrapper.offsetHeight;
                 targetWrapper.style.animation = `${inAnimation} 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
-                
-                // Clean up animation after completion
+
+                // Clean up animation after completion but keep opacity and transform
                 setTimeout(() => {
                     targetWrapper.style.animation = '';
+                    // Ensure final state is preserved
+                    targetWrapper.style.opacity = '1';
+                    targetWrapper.style.transform = 'none';
                 }, 400);
             }, 250); // Match the rotateOut animation duration
             
@@ -1927,13 +1932,21 @@ const UIManager = {
         } else {
             // First time or same view - just show without animation
             await prepareBackCanvas();
-            
+
             if (view === 'front') {
                 frontWrapper.classList.add('active');
+                frontWrapper.style.display = 'flex';
+                frontWrapper.style.opacity = '1';
+                frontWrapper.style.transform = 'none';
                 backWrapper.classList.remove('active');
+                backWrapper.style.display = 'none';
             } else {
                 backWrapper.classList.add('active');
+                backWrapper.style.display = 'flex';
+                backWrapper.style.opacity = '1';
+                backWrapper.style.transform = 'none';
                 frontWrapper.classList.remove('active');
+                frontWrapper.style.display = 'none';
             }
         }
 

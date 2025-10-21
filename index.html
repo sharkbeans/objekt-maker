@@ -406,14 +406,20 @@
                     </button>
                 </div>
 
-                <div class="canvas-wrapper active" id="canvasWrapper">
-                    <canvas id="mainCanvas" width="768" height="1186"></canvas>
-                    <!-- Tooltip for top text field -->
-                    <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
-                        <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
-                            <i data-lucide="x"></i>
-                        </button>
-                        <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
+                <div class="canvas-wrapper-container">
+                    <div class="canvas-wrapper active" id="canvasWrapper">
+                        <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                        <!-- Tooltip for top text field -->
+                        <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
+                            <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
+                                <i data-lucide="x"></i>
+                            </button>
+                            <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
+                        </div>
+                    </div>
+
+                    <div class="canvas-wrapper" id="backCanvasWrapper">
+                        <canvas id="backCanvas" width="768" height="1186"></canvas>
                     </div>
                 </div>
 
@@ -441,10 +447,6 @@
                             <span id="panYValueMobile">0px</span>
                         </div>
                     </label>
-                </div>
-
-                <div class="canvas-wrapper" id="backCanvasWrapper">
-                    <canvas id="backCanvas" width="768" height="1186"></canvas>
                 </div>
 
                 <!-- Mobile Back Side Adjustments (hidden on desktop) -->
