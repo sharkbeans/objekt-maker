@@ -172,6 +172,58 @@ const UIManager = {
             backBottomTextHeightMobileQuick: document.getElementById('backBottomTextHeightMobileQuick'),
             backBottomTextHeightValueMobileQuick: document.getElementById('backBottomTextHeightValueMobileQuick'),
 
+            // Back side logo upload and controls (Desktop)
+            logoUpload: document.getElementById('logoUpload'),
+            logoZoom: document.getElementById('logoZoom'),
+            logoZoomValue: document.getElementById('logoZoomValue'),
+            logoPosX: document.getElementById('logoPosX'),
+            logoPosXValue: document.getElementById('logoPosXValue'),
+            logoPosY: document.getElementById('logoPosY'),
+            logoPosYValue: document.getElementById('logoPosYValue'),
+            logoRotation: document.getElementById('logoRotation'),
+            logoRotationValue: document.getElementById('logoRotationValue'),
+            clearLogoBtn: document.getElementById('clearLogoBtn'),
+            logoControlsContainer: document.getElementById('logoControlsContainer'),
+
+            // Back side logo upload and controls (Mobile)
+            logoUploadMobile: document.getElementById('logoUploadMobile'),
+            logoZoomMobile: document.getElementById('logoZoomMobile'),
+            logoZoomValueMobile: document.getElementById('logoZoomValueMobile'),
+            logoPosXMobile: document.getElementById('logoPosXMobile'),
+            logoPosXValueMobile: document.getElementById('logoPosXValueMobile'),
+            logoPosYMobile: document.getElementById('logoPosYMobile'),
+            logoPosYValueMobile: document.getElementById('logoPosYValueMobile'),
+            logoRotationMobile: document.getElementById('logoRotationMobile'),
+            logoRotationValueMobile: document.getElementById('logoRotationValueMobile'),
+            clearLogoBtnMobile: document.getElementById('clearLogoBtnMobile'),
+            logoControlsContainerMobile: document.getElementById('logoControlsContainerMobile'),
+
+            // Front side logo upload and controls (Desktop)
+            frontLogoUpload: document.getElementById('frontLogoUpload'),
+            frontLogoZoom: document.getElementById('frontLogoZoom'),
+            frontLogoZoomValue: document.getElementById('frontLogoZoomValue'),
+            frontLogoPosX: document.getElementById('frontLogoPosX'),
+            frontLogoPosXValue: document.getElementById('frontLogoPosXValue'),
+            frontLogoPosY: document.getElementById('frontLogoPosY'),
+            frontLogoPosYValue: document.getElementById('frontLogoPosYValue'),
+            frontLogoRotation: document.getElementById('frontLogoRotation'),
+            frontLogoRotationValue: document.getElementById('frontLogoRotationValue'),
+            clearFrontLogoBtn: document.getElementById('clearFrontLogoBtn'),
+            frontLogoControlsContainer: document.getElementById('frontLogoControlsContainer'),
+
+            // Front side logo upload and controls (Mobile)
+            frontLogoUploadMobile: document.getElementById('frontLogoUploadMobile'),
+            frontLogoZoomMobile: document.getElementById('frontLogoZoomMobile'),
+            frontLogoZoomValueMobile: document.getElementById('frontLogoZoomValueMobile'),
+            frontLogoPosXMobile: document.getElementById('frontLogoPosXMobile'),
+            frontLogoPosXValueMobile: document.getElementById('frontLogoPosXValueMobile'),
+            frontLogoPosYMobile: document.getElementById('frontLogoPosYMobile'),
+            frontLogoPosYValueMobile: document.getElementById('frontLogoPosYValueMobile'),
+            frontLogoRotationMobile: document.getElementById('frontLogoRotationMobile'),
+            frontLogoRotationValueMobile: document.getElementById('frontLogoRotationValueMobile'),
+            clearFrontLogoBtnMobile: document.getElementById('clearFrontLogoBtnMobile'),
+            frontLogoControlsContainerMobile: document.getElementById('frontLogoControlsContainerMobile'),
+
             // QR Code controls
             qrCodeLink: document.getElementById('qrCodeLink'),
             qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile')
@@ -275,6 +327,178 @@ const UIManager = {
         // Border image upload
         this.elements.borderImageUpload.addEventListener('change', (e) => this.handleBorderImageUpload(e));
         this.elements.clearBorderImage.addEventListener('click', () => this.clearBorderImage());
+
+        // Back side logo upload and controls (desktop)
+        if (this.elements.logoUpload) {
+            this.elements.logoUpload.addEventListener('change', (e) => this.handleLogoImageUpload(e));
+        }
+        if (this.elements.logoUploadMobile) {
+            this.elements.logoUploadMobile.addEventListener('change', (e) => this.handleLogoImageUpload(e, true));
+        }
+
+        // Back side logo adjustment sliders (desktop)
+        if (this.elements.logoZoom) {
+            this.elements.logoZoom.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoZoomValue.textContent = `${value}%`;
+                this.syncLogoSliderValue('zoom', value);
+                CanvasManager.setLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.logoPosX) {
+            this.elements.logoPosX.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoPosXValue.textContent = `${value}px`;
+                this.syncLogoSliderValue('posX', value);
+                // Add base offset of +80px to slider value
+                CanvasManager.setLogoPosition(80 + value, CanvasManager.logoPosY);
+            });
+        }
+        if (this.elements.logoPosY) {
+            this.elements.logoPosY.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoPosYValue.textContent = `${value}px`;
+                this.syncLogoSliderValue('posY', value);
+                // Add base offset of +100px to slider value
+                CanvasManager.setLogoPosition(CanvasManager.logoPosX, 100 + value);
+            });
+        }
+        if (this.elements.logoRotation) {
+            this.elements.logoRotation.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoRotationValue.textContent = `${value}°`;
+                this.syncLogoSliderValue('rotation', value);
+                CanvasManager.setLogoRotation(value);
+            });
+        }
+        if (this.elements.clearLogoBtn) {
+            this.elements.clearLogoBtn.addEventListener('click', () => this.clearLogoImage());
+        }
+
+        // Back side logo adjustment sliders (mobile)
+        if (this.elements.logoZoomMobile) {
+            this.elements.logoZoomMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoZoomValueMobile.textContent = `${value}%`;
+                this.syncLogoSliderValue('zoom', value, true);
+                CanvasManager.setLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.logoPosXMobile) {
+            this.elements.logoPosXMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoPosXValueMobile.textContent = `${value}px`;
+                this.syncLogoSliderValue('posX', value, true);
+                // Add base offset of +80px to slider value
+                CanvasManager.setLogoPosition(80 + value, CanvasManager.logoPosY);
+            });
+        }
+        if (this.elements.logoPosYMobile) {
+            this.elements.logoPosYMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoPosYValueMobile.textContent = `${value}px`;
+                this.syncLogoSliderValue('posY', value, true);
+                // Add base offset of +100px to slider value
+                CanvasManager.setLogoPosition(CanvasManager.logoPosX, 100 + value);
+            });
+        }
+        if (this.elements.logoRotationMobile) {
+            this.elements.logoRotationMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.logoRotationValueMobile.textContent = `${value}°`;
+                this.syncLogoSliderValue('rotation', value, true);
+                CanvasManager.setLogoRotation(value);
+            });
+        }
+        if (this.elements.clearLogoBtnMobile) {
+            this.elements.clearLogoBtnMobile.addEventListener('click', () => this.clearLogoImage());
+        }
+
+        // Front side logo upload and controls (desktop)
+        if (this.elements.frontLogoUpload) {
+            this.elements.frontLogoUpload.addEventListener('change', (e) => this.handleFrontLogoImageUpload(e));
+        }
+        if (this.elements.frontLogoUploadMobile) {
+            this.elements.frontLogoUploadMobile.addEventListener('change', (e) => this.handleFrontLogoImageUpload(e, true));
+        }
+
+        // Front side logo adjustment sliders (desktop)
+        if (this.elements.frontLogoZoom) {
+            this.elements.frontLogoZoom.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoZoomValue.textContent = `${value}%`;
+                this.syncFrontLogoSliderValue('zoom', value);
+                CanvasManager.setFrontLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.frontLogoPosX) {
+            this.elements.frontLogoPosX.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoPosXValue.textContent = `${value}px`;
+                this.syncFrontLogoSliderValue('posX', value);
+                // Add base offset of +320px to slider value
+                CanvasManager.setFrontLogoPosition(320 + value, CanvasManager.frontLogoPosY);
+            });
+        }
+        if (this.elements.frontLogoPosY) {
+            this.elements.frontLogoPosY.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoPosYValue.textContent = `${value}px`;
+                this.syncFrontLogoSliderValue('posY', value);
+                // Add base offset of +450px to slider value
+                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, 450 + value);
+            });
+        }
+        if (this.elements.frontLogoRotation) {
+            this.elements.frontLogoRotation.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoRotationValue.textContent = `${value}°`;
+                this.syncFrontLogoSliderValue('rotation', value);
+                CanvasManager.setFrontLogoRotation(value);
+            });
+        }
+        if (this.elements.clearFrontLogoBtn) {
+            this.elements.clearFrontLogoBtn.addEventListener('click', () => this.clearFrontLogoImage());
+        }
+
+        // Front side logo adjustment sliders (mobile)
+        if (this.elements.frontLogoZoomMobile) {
+            this.elements.frontLogoZoomMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoZoomValueMobile.textContent = `${value}%`;
+                this.syncFrontLogoSliderValue('zoom', value, true);
+                CanvasManager.setFrontLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.frontLogoPosXMobile) {
+            this.elements.frontLogoPosXMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoPosXValueMobile.textContent = `${value}px`;
+                this.syncFrontLogoSliderValue('posX', value, true);
+                // Add base offset of +320px to slider value
+                CanvasManager.setFrontLogoPosition(320 + value, CanvasManager.frontLogoPosY);
+            });
+        }
+        if (this.elements.frontLogoPosYMobile) {
+            this.elements.frontLogoPosYMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoPosYValueMobile.textContent = `${value}px`;
+                this.syncFrontLogoSliderValue('posY', value, true);
+                // Add base offset of +450px to slider value
+                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, 450 + value);
+            });
+        }
+        if (this.elements.frontLogoRotationMobile) {
+            this.elements.frontLogoRotationMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frontLogoRotationValueMobile.textContent = `${value}°`;
+                this.syncFrontLogoSliderValue('rotation', value, true);
+                CanvasManager.setFrontLogoRotation(value);
+            });
+        }
+        if (this.elements.clearFrontLogoBtnMobile) {
+            this.elements.clearFrontLogoBtnMobile.addEventListener('click', () => this.clearFrontLogoImage());
+        }
 
         // Signature modal controls
         if (this.elements.openSignatureModal) {
@@ -1512,6 +1736,202 @@ const UIManager = {
         this.elements.borderImageUpload.value = '';
         this.elements.clearBorderImage.style.display = 'none';
         console.log('Border image cleared');
+    },
+
+    /**
+     * Handle back side logo image upload
+     */
+    async handleLogoImageUpload(event, isMobile = false) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            // Clear bottom text (tripleS) before loading logo
+            CanvasManager.backGroupName = '';
+            if (this.elements.backGroupName) {
+                this.elements.backGroupName.value = '';
+            }
+            if (this.elements.backGroupNameMobile) {
+                this.elements.backGroupNameMobile.value = '';
+            }
+
+            await CanvasManager.loadLogoImage(file);
+
+            // Show controls container
+            this.elements.logoControlsContainer.style.display = 'block';
+            if (this.elements.logoControlsContainerMobile) {
+                this.elements.logoControlsContainerMobile.style.display = 'block';
+            }
+
+            // Reset sliders to neutral position (0) - actual default placement is +80px, +100px
+            this.syncLogoSliderValue('zoom', 100);
+            this.syncLogoSliderValue('posX', 0);
+            this.syncLogoSliderValue('posY', 0);
+            this.syncLogoSliderValue('rotation', 90);
+            CanvasManager.setLogoZoom(1);
+            CanvasManager.setLogoPosition(80, 100);
+            CanvasManager.setLogoRotation(90);
+
+            CanvasManager.render();
+            this.showSuccessMessage('Logo image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear back side logo image
+     */
+    clearLogoImage() {
+        CanvasManager.clearLogoImage();
+        if (this.elements.logoUpload) {
+            this.elements.logoUpload.value = '';
+        }
+        if (this.elements.logoUploadMobile) {
+            this.elements.logoUploadMobile.value = '';
+        }
+        this.elements.logoControlsContainer.style.display = 'none';
+        if (this.elements.logoControlsContainerMobile) {
+            this.elements.logoControlsContainerMobile.style.display = 'none';
+        }
+        console.log('Logo image cleared');
+    },
+
+    /**
+     * Handle front side logo image upload
+     */
+    async handleFrontLogoImageUpload(event, isMobile = false) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            // Clear bottom text before loading logo
+            CanvasManager.bottomText = '';
+            if (this.elements.bottomText) {
+                this.elements.bottomText.value = '';
+            }
+            if (this.elements.bottomTextMobile) {
+                this.elements.bottomTextMobile.value = '';
+            }
+
+            await CanvasManager.loadFrontLogoImage(file);
+
+            // Show controls container
+            this.elements.frontLogoControlsContainer.style.display = 'block';
+            if (this.elements.frontLogoControlsContainerMobile) {
+                this.elements.frontLogoControlsContainerMobile.style.display = 'block';
+            }
+
+            // Reset sliders to neutral position (0) - actual default placement is +320px, +450px, 90° rotation
+            this.syncFrontLogoSliderValue('zoom', 100);
+            this.syncFrontLogoSliderValue('posX', 0);
+            this.syncFrontLogoSliderValue('posY', 0);
+            this.syncFrontLogoSliderValue('rotation', 90);
+            CanvasManager.setFrontLogoZoom(1);
+            CanvasManager.setFrontLogoPosition(320, 450);
+            CanvasManager.setFrontLogoRotation(90);
+
+            CanvasManager.render();
+            this.showSuccessMessage('Front logo image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear front side logo image
+     */
+    clearFrontLogoImage() {
+        CanvasManager.clearFrontLogoImage();
+        if (this.elements.frontLogoUpload) {
+            this.elements.frontLogoUpload.value = '';
+        }
+        if (this.elements.frontLogoUploadMobile) {
+            this.elements.frontLogoUploadMobile.value = '';
+        }
+        this.elements.frontLogoControlsContainer.style.display = 'none';
+        if (this.elements.frontLogoControlsContainerMobile) {
+            this.elements.frontLogoControlsContainerMobile.style.display = 'none';
+        }
+        console.log('Front logo image cleared');
+    },
+
+    /**
+     * Sync logo slider values between desktop and mobile
+     */
+    syncLogoSliderValue(sliderType, value, isMobile = false) {
+        if (sliderType === 'zoom') {
+            if (!isMobile && this.elements.logoZoomMobile) {
+                this.elements.logoZoomMobile.value = value;
+                this.elements.logoZoomValueMobile.textContent = `${value}%`;
+            } else if (isMobile && this.elements.logoZoom) {
+                this.elements.logoZoom.value = value;
+                this.elements.logoZoomValue.textContent = `${value}%`;
+            }
+        } else if (sliderType === 'posX') {
+            if (!isMobile && this.elements.logoPosXMobile) {
+                this.elements.logoPosXMobile.value = value;
+                this.elements.logoPosXValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.logoPosX) {
+                this.elements.logoPosX.value = value;
+                this.elements.logoPosXValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'posY') {
+            if (!isMobile && this.elements.logoPosYMobile) {
+                this.elements.logoPosYMobile.value = value;
+                this.elements.logoPosYValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.logoPosY) {
+                this.elements.logoPosY.value = value;
+                this.elements.logoPosYValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'rotation') {
+            if (!isMobile && this.elements.logoRotationMobile) {
+                this.elements.logoRotationMobile.value = value;
+                this.elements.logoRotationValueMobile.textContent = `${value}°`;
+            } else if (isMobile && this.elements.logoRotation) {
+                this.elements.logoRotation.value = value;
+                this.elements.logoRotationValue.textContent = `${value}°`;
+            }
+        }
+    },
+
+    /**
+     * Sync front logo slider values between desktop and mobile
+     */
+    syncFrontLogoSliderValue(sliderType, value, isMobile = false) {
+        if (sliderType === 'zoom') {
+            if (!isMobile && this.elements.frontLogoZoomMobile) {
+                this.elements.frontLogoZoomMobile.value = value;
+                this.elements.frontLogoZoomValueMobile.textContent = `${value}%`;
+            } else if (isMobile && this.elements.frontLogoZoom) {
+                this.elements.frontLogoZoom.value = value;
+                this.elements.frontLogoZoomValue.textContent = `${value}%`;
+            }
+        } else if (sliderType === 'posX') {
+            if (!isMobile && this.elements.frontLogoPosXMobile) {
+                this.elements.frontLogoPosXMobile.value = value;
+                this.elements.frontLogoPosXValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.frontLogoPosX) {
+                this.elements.frontLogoPosX.value = value;
+                this.elements.frontLogoPosXValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'posY') {
+            if (!isMobile && this.elements.frontLogoPosYMobile) {
+                this.elements.frontLogoPosYMobile.value = value;
+                this.elements.frontLogoPosYValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.frontLogoPosY) {
+                this.elements.frontLogoPosY.value = value;
+                this.elements.frontLogoPosYValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'rotation') {
+            if (!isMobile && this.elements.frontLogoRotationMobile) {
+                this.elements.frontLogoRotationMobile.value = value;
+                this.elements.frontLogoRotationValueMobile.textContent = `${value}°`;
+            } else if (isMobile && this.elements.frontLogoRotation) {
+                this.elements.frontLogoRotation.value = value;
+                this.elements.frontLogoRotationValue.textContent = `${value}°`;
+            }
+        }
     },
 
     /**

@@ -143,6 +143,49 @@
                             </div>
                         </div>
 
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+                                    <span>FRONT LOGO</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="frontLogoUploadArea">
+                                    <input type="file" id="frontLogoUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="frontLogoUpload" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Logo</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                                    </label>
+                                </div>
+                                <div id="frontLogoControlsContainer" style="display: none;">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <input type="range" id="frontLogoZoom" min="20" max="300" value="100" step="5">
+                                        <span id="frontLogoZoomValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <input type="range" id="frontLogoPosX" min="-100" max="100" value="0" step="5">
+                                        <span id="frontLogoPosXValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <input type="range" id="frontLogoPosY" min="-100" max="100" value="0" step="5">
+                                        <span id="frontLogoPosYValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <input type="range" id="frontLogoRotation" min="0" max="360" value="0" step="5">
+                                        <span id="frontLogoRotationValue">0°</span>
+                                    </label>
+                                    <button id="clearFrontLogoBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="adjustment-controls collapsible-section collapsed">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
@@ -245,6 +288,49 @@
                                     </button>
                                 </div>
                                 <p class="upload-hint">Upload an image to replace the colored border</p>
+                            </div>
+                        </div>
+
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+                                    <span>BACK LOGO</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="logoUploadArea">
+                                    <input type="file" id="logoUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="logoUpload" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Logo</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                                    </label>
+                                </div>
+                                <div id="logoControlsContainer" style="display: none;">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <input type="range" id="logoZoom" min="20" max="300" value="100" step="5">
+                                        <span id="logoZoomValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <input type="range" id="logoPosX" min="-100" max="100" value="0" step="5">
+                                        <span id="logoPosXValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <input type="range" id="logoPosY" min="-100" max="100" value="0" step="5">
+                                        <span id="logoPosYValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <input type="range" id="logoRotation" min="0" max="360" value="90" step="5">
+                                        <span id="logoRotationValue">90°</span>
+                                    </label>
+                                    <button id="clearLogoBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                                </div>
                             </div>
                         </div>
 
@@ -449,6 +535,50 @@
                     </label>
                 </div>
 
+                <!-- Mobile Front Logo Controls -->
+                <div style="border-top: 1px solid var(--border-color); margin-top: var(--space-md); padding-top: var(--space-md); display: none;" id="frontLogoMobileSection">
+                    <h3 class="mobile-section-title"><i data-lucide="image"></i> Front Logo</h3>
+                    <div class="upload-area" id="frontLogoUploadAreaMobile" style="margin-bottom: var(--space-md);">
+                        <input type="file" id="frontLogoUploadMobile" accept="image/png,image/jpeg,image/jpg" hidden>
+                        <label for="frontLogoUploadMobile" class="upload-label" style="padding: var(--space-sm);">
+                            <span class="upload-icon"><i data-lucide="upload"></i></span>
+                            <span class="upload-text">Upload Logo</span>
+                            <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                        </label>
+                    </div>
+                    <div id="frontLogoControlsContainerMobile" style="display: none;">
+                        <label>
+                            <span>Zoom:</span>
+                            <div class="slider-group">
+                                <input type="range" id="frontLogoZoomMobile" min="20" max="300" value="100" step="5">
+                                <span id="frontLogoZoomValueMobile">100%</span>
+                            </div>
+                        </label>
+                        <label>
+                            <span>Position X:</span>
+                            <div class="slider-group">
+                                <input type="range" id="frontLogoPosXMobile" min="-100" max="100" value="0" step="5">
+                                <span id="frontLogoPosXValueMobile">0px</span>
+                            </div>
+                        </label>
+                        <label>
+                            <span>Position Y:</span>
+                            <div class="slider-group">
+                                <input type="range" id="frontLogoPosYMobile" min="-100" max="100" value="0" step="5">
+                                <span id="frontLogoPosYValueMobile">0px</span>
+                            </div>
+                        </label>
+                        <label>
+                            <span>Rotation:</span>
+                            <div class="slider-group">
+                                <input type="range" id="frontLogoRotationMobile" min="0" max="360" value="0" step="5">
+                                <span id="frontLogoRotationValueMobile">0°</span>
+                            </div>
+                        </label>
+                        <button id="clearFrontLogoBtnMobile" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                    </div>
+                </div>
+
                 <!-- Mobile Back Side Adjustments (hidden on desktop) -->
                 <div class="mobile-adjustments mobile-back-adjustments" id="mobileBackAdjustments" style="display: none;">
                     <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Text Height Adjustments</h3>
@@ -497,6 +627,57 @@
                                     </button>
                                 </div>
                                 <p class="upload-hint">Upload an image to replace the colored border</p>
+                            </div>
+                        </div>
+
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+                                    <span>BACK LOGO</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="logoUploadAreaMobile">
+                                    <input type="file" id="logoUploadMobile" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="logoUploadMobile" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Logo</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                                    </label>
+                                </div>
+                                <div id="logoControlsContainerMobile" style="display: none;">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="logoZoomMobile" min="20" max="300" value="100" step="5">
+                                            <span id="logoZoomValueMobile">100%</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="logoPosXMobile" min="-100" max="100" value="0" step="5">
+                                            <span id="logoPosXValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="logoPosYMobile" min="-100" max="100" value="0" step="5">
+                                            <span id="logoPosYValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="logoRotationMobile" min="0" max="360" value="90" step="5">
+                                            <span id="logoRotationValueMobile">90°</span>
+                                        </div>
+                                    </label>
+                                    <button id="clearLogoBtnMobile" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                                </div>
                             </div>
                         </div>
 

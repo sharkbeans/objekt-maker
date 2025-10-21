@@ -20,6 +20,16 @@ const CanvasManager = {
     signatureZoom: 1, // Signature zoom level (1 = 100%)
     signaturePosX: 0, // Signature X position offset
     signaturePosY: 0, // Signature Y position offset
+    logoImage: null, // Custom logo image for back side bottom text area
+    logoZoom: 1, // Logo zoom level (1 = 100%)
+    logoPosX: 80, // Logo X position offset (default +80px)
+    logoPosY: 100, // Logo Y position offset (default +100px)
+    logoRotation: 90, // Logo rotation in degrees (default 90 clockwise)
+    frontLogoImage: null, // Custom logo image for front side
+    frontLogoZoom: 1, // Front logo zoom level (1 = 100%)
+    frontLogoPosX: 320, // Front logo X position offset (default +320px)
+    frontLogoPosY: 450, // Front logo Y position offset (default +450px)
+    frontLogoRotation: 90, // Front logo rotation in degrees (default 90 clockwise)
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
@@ -354,6 +364,182 @@ const CanvasManager = {
     },
 
     /**
+     * Load back side logo image from file
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>}
+     */
+    async loadLogoImage(file) {
+        return new Promise((resolve, reject) => {
+            // Validate file type (PNG, JPG)
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.logoImage = img;
+                    console.log('Logo image loaded:', img.width, 'x', img.height);
+                    this.updateBackSidePreview();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load logo image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the back side logo image
+     */
+    clearLogoImage() {
+        this.logoImage = null;
+        this.logoZoom = 1;
+        this.logoPosX = 80;
+        this.logoPosY = 100;
+        this.logoRotation = 90;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set logo zoom level
+     * @param {number} zoom - Zoom level (1 = 100%)
+     */
+    setLogoZoom(zoom) {
+        this.logoZoom = zoom;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set logo position
+     * @param {number} x - X offset
+     * @param {number} y - Y offset
+     */
+    setLogoPosition(x, y) {
+        this.logoPosX = x;
+        this.logoPosY = y;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set logo rotation
+     * @param {number} rotation - Rotation in degrees
+     */
+    setLogoRotation(rotation) {
+        this.logoRotation = rotation;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Load front side logo image from file
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>}
+     */
+    async loadFrontLogoImage(file) {
+        return new Promise((resolve, reject) => {
+            // Validate file type (PNG, JPG)
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.frontLogoImage = img;
+                    console.log('Front logo image loaded:', img.width, 'x', img.height);
+                    this.render();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load logo image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the front side logo image
+     */
+    clearFrontLogoImage() {
+        this.frontLogoImage = null;
+        this.frontLogoZoom = 1;
+        this.frontLogoPosX = 320;
+        this.frontLogoPosY = 450;
+        this.frontLogoRotation = 90;
+        this.render();
+    },
+
+    /**
+     * Set front logo zoom level
+     * @param {number} zoom - Zoom level (1 = 100%)
+     */
+    setFrontLogoZoom(zoom) {
+        this.frontLogoZoom = zoom;
+        this.render();
+    },
+
+    /**
+     * Set front logo position
+     * @param {number} x - X offset
+     * @param {number} y - Y offset
+     */
+    setFrontLogoPosition(x, y) {
+        this.frontLogoPosX = x;
+        this.frontLogoPosY = y;
+        this.render();
+    },
+
+    /**
+     * Set front logo rotation
+     * @param {number} rotation - Rotation in degrees
+     */
+    setFrontLogoRotation(rotation) {
+        this.frontLogoRotation = rotation;
+        this.render();
+    },
+
+    /**
      * Pan image position
      * @param {number} x - X offset
      * @param {number} y - Y offset
@@ -564,6 +750,65 @@ const CanvasManager = {
 
         // Draw text on accent bar
         this.drawAccentText();
+
+        // Draw front side logo if present
+        if (this.frontLogoImage) {
+            const centerX = this.canvasWidth / 2;
+            const centerY = this.canvasHeight / 2;
+            this.drawFrontLogo(this.ctx, centerX, centerY);
+        }
+    },
+
+    /**
+     * Draw front side logo image
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     */
+    drawFrontLogo(ctx, x, y) {
+        ctx.save();
+
+        // If a front logo image is uploaded, use it
+        if (this.frontLogoImage) {
+            const baseWidth = 100; // Base width for front logo at 100% zoom
+            const baseHeight = 100; // Base height for front logo at 100% zoom
+
+            // Calculate dimensions to fit logo while maintaining aspect ratio
+            const imgAspect = this.frontLogoImage.width / this.frontLogoImage.height;
+            let drawWidth, drawHeight;
+
+            if (imgAspect > baseWidth / baseHeight) {
+                // Image is wider - fit to width
+                drawWidth = baseWidth;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                // Image is taller - fit to height
+                drawHeight = baseHeight;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            // Apply zoom
+            drawWidth *= this.frontLogoZoom;
+            drawHeight *= this.frontLogoZoom;
+
+            // Center the logo
+            const drawX = x - drawWidth / 2;
+            const drawY = y - drawHeight / 2;
+
+            // Apply position offsets
+            const finalX = drawX + this.frontLogoPosX;
+            const finalY = drawY + this.frontLogoPosY;
+
+            // Translate to center, rotate, translate back to draw position
+            ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
+            ctx.rotate((this.frontLogoRotation * Math.PI) / 180);
+            ctx.translate(-(finalX + drawWidth / 2), -(finalY + drawHeight / 2));
+
+            // Draw the logo image
+            ctx.drawImage(this.frontLogoImage, finalX, finalY, drawWidth, drawHeight);
+        }
+
+        ctx.restore();
     },
 
     /**
@@ -965,7 +1210,66 @@ const CanvasManager = {
 
         backCtx.restore();
 
+        // Draw back side logo if present
+        if (this.logoImage) {
+            const centerX = this.canvasWidth * 0.75; // Position in the white text area
+            const centerY = this.canvasHeight * 0.75;
+            this.drawLogo(backCtx, centerX, centerY);
+        }
+
         return backCanvas;
+    },
+
+    /**
+     * Draw back side logo image
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     */
+    drawLogo(ctx, x, y) {
+        ctx.save();
+
+        // If a logo image is uploaded, use it
+        if (this.logoImage) {
+            const baseWidth = 80; // Base width for logo at 100% zoom
+            const baseHeight = 80; // Base height for logo at 100% zoom
+
+            // Calculate dimensions to fit logo while maintaining aspect ratio
+            const imgAspect = this.logoImage.width / this.logoImage.height;
+            let drawWidth, drawHeight;
+
+            if (imgAspect > baseWidth / baseHeight) {
+                // Image is wider - fit to width
+                drawWidth = baseWidth;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                // Image is taller - fit to height
+                drawHeight = baseHeight;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            // Apply zoom
+            drawWidth *= this.logoZoom;
+            drawHeight *= this.logoZoom;
+
+            // Center the logo
+            const drawX = x - drawWidth / 2;
+            const drawY = y - drawHeight / 2;
+
+            // Apply position offsets
+            const finalX = drawX + this.logoPosX;
+            const finalY = drawY + this.logoPosY;
+
+            // Translate to center, rotate, translate back to draw position
+            ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
+            ctx.rotate((this.logoRotation * Math.PI) / 180);
+            ctx.translate(-(finalX + drawWidth / 2), -(finalY + drawHeight / 2));
+
+            // Draw the logo image
+            ctx.drawImage(this.logoImage, finalX, finalY, drawWidth, drawHeight);
+        }
+
+        ctx.restore();
     },
 
     /**
