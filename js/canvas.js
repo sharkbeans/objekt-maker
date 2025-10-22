@@ -753,7 +753,9 @@ const CanvasManager = {
 
         // Draw front side logo if present
         if (this.frontLogoImage) {
-            const centerX = this.canvasWidth / 2;
+            // Position logo inside the main image area (excluding the notch border)
+            const imageAreaWidth = this.canvasWidth - this.accentWidth;
+            const centerX = imageAreaWidth / 2;
             const centerY = this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
         }
@@ -1212,8 +1214,17 @@ const CanvasManager = {
 
         // Draw back side logo if present
         if (this.logoImage) {
-            const centerX = this.canvasWidth * 0.75; // Position in the white text area
-            const centerY = this.canvasHeight * 0.75;
+            // Position logo inside the yellow info block border
+            const whiteBackgroundWidth = this.accentWidth * 0.8378;
+            const rectWidth = this.canvasWidth - whiteBackgroundWidth;
+            const whiteBackgroundHeight = this.accentWidth * 0.84375;
+            const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
+            const rectX = 0;
+            const rectY = whiteBackgroundHeight;
+
+            // Center the logo within the yellow info block
+            const centerX = rectX + rectWidth / 2;
+            const centerY = rectY + rectHeight / 2;
             this.drawLogo(backCtx, centerX, centerY);
         }
 

@@ -2637,6 +2637,9 @@ const UIManager = {
         // Remove any existing editor
         this.removeTextEditor();
 
+        // Flag to track if a slider is being actively dragged
+        this._isSliderDragging = false;
+
         // Create editor container
         const editor = document.createElement('div');
         editor.className = 'canvas-text-editor-overlay';
@@ -2763,6 +2766,97 @@ const UIManager = {
             sliderContainer.appendChild(sliderWrapper);
             editorContent.appendChild(sliderContainer);
 
+            // Track slider dragging state (only for mouse/desktop, not touch/mobile)
+            heightSlider.addEventListener('mousedown', (e) => {
+                this._isSliderDragging = true;
+                e.stopPropagation();
+            });
+            heightSlider.addEventListener('mouseup', (e) => {
+                this._isSliderDragging = false;
+                e.stopPropagation();
+            });
+            heightSlider.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            // On mobile/touch, minimize the editor when slider is touched (hide everything except this slider)
+            heightSlider.addEventListener('touchstart', (e) => {
+                const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const editor = document.getElementById('canvasTextEditor');
+                if (editor) {
+                    // Store original background for restoration
+                    this._originalEditorBackground = editor.style.background || '';
+                    // Hide editor background
+                    editor.style.background = 'transparent';
+
+                    // Get the content container
+                    const editorContent = editor.querySelector('.canvas-text-editor');
+                    if (editorContent) {
+                        this._originalContentBackground = editorContent.style.background || '';
+                        this._originalContentPadding = editorContent.style.padding || '';
+                        this._originalContentBoxShadow = editorContent.style.boxShadow || '';
+                        this._originalContentBorder = editorContent.style.border || '';
+
+                        // Hide content container background
+                        editorContent.style.background = 'transparent';
+                        editorContent.style.padding = '0';
+                        editorContent.style.boxShadow = 'none';
+                        editorContent.style.border = 'none';
+
+                        // Hide all children except the slider container
+                        const sliderContainer = heightSlider.closest('.canvas-editor-slider-container');
+                        Array.from(editorContent.children).forEach(child => {
+                            if (child !== sliderContainer) {
+                                child.style.display = 'none';
+                            } else {
+                                // Explicitly keep the slider container visible and ensure proper styling
+                                child.style.display = 'block';
+                                child.style.visibility = 'visible';
+                                child.style.opacity = '1';
+                                child.style.pointerEvents = 'auto';
+                                // Ensure the slider itself is visible and interactive
+                                const slider = child.querySelector('input[type="range"]');
+                                if (slider) {
+                                    slider.style.visibility = 'visible';
+                                    slider.style.opacity = '1';
+                                    slider.style.pointerEvents = 'auto';
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // On mobile/touch, restore the editor when slider interaction ends
+            heightSlider.addEventListener('touchend', () => {
+                const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const editor = document.getElementById('canvasTextEditor');
+                if (editor) {
+                    // Restore editor background
+                    editor.style.background = this._originalEditorBackground || '';
+
+                    // Get the content container
+                    const editorContent = editor.querySelector('.canvas-text-editor');
+                    if (editorContent) {
+                        // Restore content container styling
+                        editorContent.style.background = this._originalContentBackground || '';
+                        editorContent.style.padding = this._originalContentPadding || '';
+                        editorContent.style.boxShadow = this._originalContentBoxShadow || '';
+                        editorContent.style.border = this._originalContentBorder || '';
+
+                        // Restore all children
+                        Array.from(editorContent.children).forEach(child => {
+                            child.style.display = '';
+                        });
+                    }
+                }
+            });
+
             // Handle slider input
             heightSlider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
@@ -2823,6 +2917,301 @@ const UIManager = {
                     }
                 }
             });
+        }
+
+        // Add logo upload section for bottom text on both front and back sides
+        const isBottomText = (side === 'front' && textType === 'bottom') || (side === 'back' && textType === 'bottomRotated');
+        if (isBottomText) {
+            // Create logo section container
+            const logoSection = document.createElement('div');
+            logoSection.className = 'canvas-editor-logo-section';
+            logoSection.style.cssText = 'margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);';
+
+            // Create logo section title
+            const logoTitle = document.createElement('div');
+            logoTitle.className = 'canvas-editor-logo-title';
+            logoTitle.style.cssText = 'font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;';
+            logoTitle.innerHTML = '<i data-lucide="image" style="width: 16px; height: 16px;"></i> Logo';
+            logoSection.appendChild(logoTitle);
+
+            // Determine which logo we're working with
+            const isFrontSide = side === 'front';
+            const logoImage = isFrontSide ? CanvasManager.frontLogoImage : CanvasManager.logoImage;
+
+            // Create upload area
+            const uploadArea = document.createElement('div');
+            uploadArea.className = 'canvas-editor-logo-upload';
+            uploadArea.style.cssText = 'margin-bottom: 12px;';
+
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/png,image/jpeg,image/jpg';
+            fileInput.style.display = 'none';
+            fileInput.id = 'canvasEditorLogoUpload';
+
+            const uploadButton = document.createElement('button');
+            uploadButton.type = 'button';
+            uploadButton.className = 'btn btn-secondary btn-small';
+            uploadButton.style.cssText = 'width: 100%; margin-bottom: 8px;';
+            uploadButton.innerHTML = '<i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Logo';
+
+            uploadButton.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (isFrontSide) {
+                        CanvasManager.loadFrontLogoImage(file);
+                    } else {
+                        CanvasManager.loadLogoImage(file);
+                    }
+                    // Update the UI to show controls
+                    logoControlsContainer.style.display = 'block';
+                    clearButton.style.display = 'block';
+                }
+            });
+
+            const clearButton = document.createElement('button');
+            clearButton.type = 'button';
+            clearButton.className = 'btn btn-secondary btn-small';
+            clearButton.style.cssText = 'width: 100%;';
+            clearButton.style.display = logoImage ? 'block' : 'none';
+            clearButton.innerHTML = '<i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear Logo';
+
+            clearButton.addEventListener('click', () => {
+                if (isFrontSide) {
+                    CanvasManager.clearFrontLogoImage();
+                } else {
+                    CanvasManager.clearLogoImage();
+                }
+                logoControlsContainer.style.display = 'none';
+                clearButton.style.display = 'none';
+            });
+
+            uploadArea.appendChild(fileInput);
+            uploadArea.appendChild(uploadButton);
+            uploadArea.appendChild(clearButton);
+            logoSection.appendChild(uploadArea);
+
+            // Create logo controls container (zoom, position, rotation)
+            const logoControlsContainer = document.createElement('div');
+            logoControlsContainer.className = 'canvas-editor-logo-controls';
+            logoControlsContainer.style.display = logoImage ? 'block' : 'none';
+
+            // Helper function to create a slider control
+            const createSlider = (label, min, max, value, onChange) => {
+                const container = document.createElement('div');
+                container.className = 'canvas-editor-slider-container';
+                container.style.cssText = 'margin-bottom: 8px;';
+
+                const sliderLabel = document.createElement('label');
+                sliderLabel.className = 'canvas-editor-slider-label';
+                sliderLabel.textContent = label;
+
+                const sliderWrapper = document.createElement('div');
+                sliderWrapper.className = 'canvas-editor-slider-wrapper';
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'canvas-editor-slider';
+                slider.min = min;
+                slider.max = max;
+                slider.value = value;
+
+                const valueDisplay = document.createElement('span');
+                valueDisplay.className = 'canvas-editor-slider-value';
+                valueDisplay.textContent = label.includes('Rotation') ? `${value}°` : label.includes('Zoom') ? `${value}%` : `${value}px`;
+
+                // Track slider dragging state (only for mouse/desktop, not touch/mobile)
+                slider.addEventListener('mousedown', (e) => {
+                    this._isSliderDragging = true;
+                    e.stopPropagation();
+                });
+                slider.addEventListener('mouseup', (e) => {
+                    this._isSliderDragging = false;
+                    e.stopPropagation();
+                });
+                slider.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                // On mobile/touch, minimize the editor when slider is touched (hide everything except this slider)
+                slider.addEventListener('touchstart', (e) => {
+                    const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                    if (backdrop) {
+                        backdrop.style.display = 'none';
+                    }
+                    const editor = document.getElementById('canvasTextEditor');
+                    if (editor) {
+                        // Store original background for restoration
+                        this._originalEditorBackground = editor.style.background || '';
+                        // Hide editor background
+                        editor.style.background = 'transparent';
+
+                        // Get the content container
+                        const editorContent = editor.querySelector('.canvas-text-editor');
+                        if (editorContent) {
+                            this._originalContentBackground = editorContent.style.background || '';
+                            this._originalContentPadding = editorContent.style.padding || '';
+                            this._originalContentBoxShadow = editorContent.style.boxShadow || '';
+                            this._originalContentBorder = editorContent.style.border || '';
+
+                            // Hide content container background
+                            editorContent.style.background = 'transparent';
+                            editorContent.style.padding = '0';
+                            editorContent.style.boxShadow = 'none';
+                            editorContent.style.border = 'none';
+
+                            // Hide all children except the slider container and its parents
+                            const sliderContainer = slider.closest('.canvas-editor-slider-container');
+                            const logoSection = slider.closest('.canvas-editor-logo-section');
+
+                            Array.from(editorContent.children).forEach(child => {
+                                if (child === logoSection || child === sliderContainer) {
+                                    // Keep logo section visible if slider is inside it
+                                    child.style.display = 'block';
+                                    child.style.visibility = 'visible';
+                                    child.style.opacity = '1';
+                                    child.style.pointerEvents = 'auto';
+                                } else if (logoSection && logoSection.contains(child)) {
+                                    // This child is inside logo section, check if it's the slider container
+                                    if (child === sliderContainer) {
+                                        child.style.display = 'block';
+                                        child.style.visibility = 'visible';
+                                        child.style.opacity = '1';
+                                        child.style.pointerEvents = 'auto';
+                                    }
+                                } else {
+                                    // Hide everything else
+                                    child.style.display = 'none';
+                                }
+                            });
+
+                            // If slider is in logo section, hide logo section children except slider
+                            if (logoSection) {
+                                Array.from(logoSection.children).forEach(child => {
+                                    const logoControls = logoSection.querySelector('.canvas-editor-logo-controls');
+                                    if (child === logoControls) {
+                                        child.style.display = 'block';
+                                        child.style.visibility = 'visible';
+                                        child.style.opacity = '1';
+                                        child.style.pointerEvents = 'auto';
+                                        // Hide all sliders in logo controls except the active one
+                                        Array.from(logoControls.children).forEach(logoChild => {
+                                            if (logoChild === sliderContainer) {
+                                                logoChild.style.display = 'block';
+                                                logoChild.style.visibility = 'visible';
+                                                logoChild.style.opacity = '1';
+                                                logoChild.style.pointerEvents = 'auto';
+                                                // Ensure the slider itself is visible and interactive
+                                                const activeSlider = logoChild.querySelector('input[type="range"]');
+                                                if (activeSlider) {
+                                                    activeSlider.style.visibility = 'visible';
+                                                    activeSlider.style.opacity = '1';
+                                                    activeSlider.style.pointerEvents = 'auto';
+                                                }
+                                            } else {
+                                                logoChild.style.display = 'none';
+                                            }
+                                        });
+                                    } else {
+                                        child.style.display = 'none';
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+
+                // On mobile/touch, restore the editor when slider interaction ends
+                slider.addEventListener('touchend', () => {
+                    const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                    if (backdrop) {
+                        backdrop.style.display = 'block';
+                    }
+                    const editor = document.getElementById('canvasTextEditor');
+                    if (editor) {
+                        // Restore editor background
+                        editor.style.background = this._originalEditorBackground || '';
+
+                        // Get the content container
+                        const editorContent = editor.querySelector('.canvas-text-editor');
+                        if (editorContent) {
+                            // Restore content container styling
+                            editorContent.style.background = this._originalContentBackground || '';
+                            editorContent.style.padding = this._originalContentPadding || '';
+                            editorContent.style.boxShadow = this._originalContentBoxShadow || '';
+                            editorContent.style.border = this._originalContentBorder || '';
+
+                            // Restore all children
+                            Array.from(editorContent.children).forEach(child => {
+                                child.style.display = '';
+                            });
+                        }
+                    }
+                });
+
+                slider.addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value);
+                    valueDisplay.textContent = label.includes('Rotation') ? `${val}°` : label.includes('Zoom') ? `${val}%` : `${val}px`;
+                    onChange(val);
+                });
+
+                sliderWrapper.appendChild(slider);
+                sliderWrapper.appendChild(valueDisplay);
+                container.appendChild(sliderLabel);
+                container.appendChild(sliderWrapper);
+
+                return container;
+            };
+
+            // Add zoom slider
+            const currentZoom = isFrontSide ? CanvasManager.frontLogoZoom * 100 : CanvasManager.logoZoom * 100;
+            const zoomSlider = createSlider('Logo Zoom', 20, 300, currentZoom, (value) => {
+                if (isFrontSide) {
+                    CanvasManager.setFrontLogoZoom(value / 100);
+                } else {
+                    CanvasManager.setLogoZoom(value / 100);
+                }
+            });
+            logoControlsContainer.appendChild(zoomSlider);
+
+            // Add position X slider
+            const currentPosX = isFrontSide ? CanvasManager.frontLogoPosX : CanvasManager.logoPosX;
+            const posXSlider = createSlider('Position X', -100, 100, currentPosX, (value) => {
+                const currentY = isFrontSide ? CanvasManager.frontLogoPosY : CanvasManager.logoPosY;
+                if (isFrontSide) {
+                    CanvasManager.setFrontLogoPosition(value, currentY);
+                } else {
+                    CanvasManager.setLogoPosition(value, currentY);
+                }
+            });
+            logoControlsContainer.appendChild(posXSlider);
+
+            // Add position Y slider
+            const currentPosY = isFrontSide ? CanvasManager.frontLogoPosY : CanvasManager.logoPosY;
+            const posYSlider = createSlider('Position Y', -100, 100, currentPosY, (value) => {
+                const currentX = isFrontSide ? CanvasManager.frontLogoPosX : CanvasManager.logoPosX;
+                if (isFrontSide) {
+                    CanvasManager.setFrontLogoPosition(currentX, value);
+                } else {
+                    CanvasManager.setLogoPosition(currentX, value);
+                }
+            });
+            logoControlsContainer.appendChild(posYSlider);
+
+            // Add rotation slider
+            const currentRotation = isFrontSide ? CanvasManager.frontLogoRotation : CanvasManager.logoRotation;
+            const rotationSlider = createSlider('Rotation', 0, 360, currentRotation, (value) => {
+                if (isFrontSide) {
+                    CanvasManager.setFrontLogoRotation(value);
+                } else {
+                    CanvasManager.setLogoRotation(value);
+                }
+            });
+            logoControlsContainer.appendChild(rotationSlider);
+
+            logoSection.appendChild(logoControlsContainer);
+            editorContent.appendChild(logoSection);
         }
 
         // Create hint text
@@ -2917,6 +3306,11 @@ const UIManager = {
         document.body.appendChild(backdrop);
         document.body.appendChild(editor);
 
+        // Initialize Lucide icons for dynamically created elements
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
         // Focus input and select all text
         input.focus();
         input.select();
@@ -2933,6 +3327,18 @@ const UIManager = {
             }
         });
 
+        // Add global listeners to handle drag end anywhere (only for mouse/desktop, not touch/mobile)
+        const globalMouseUpHandler = () => {
+            if (this._isSliderDragging) {
+                this._isSliderDragging = false;
+            }
+        };
+
+        document.addEventListener('mouseup', globalMouseUpHandler);
+
+        // Store handler for cleanup
+        this._globalMouseUpHandler = globalMouseUpHandler;
+
         // Remove editor when clicking outside
         setTimeout(() => {
             document.addEventListener('click', this.handleOutsideClick, true);
@@ -2946,6 +3352,35 @@ const UIManager = {
     handleOutsideClick(event) {
         const editor = document.getElementById('canvasTextEditor');
         const backdrop = document.getElementById('canvasTextEditorBackdrop');
+
+        // Detect if this is a touch event (mobile) or mouse event (desktop)
+        const isTouchEvent = event.sourceCapabilities?.firesTouchEvents ||
+                            event.pointerType === 'touch' ||
+                            ('ontouchstart' in window && event.type.includes('touch'));
+
+        // Only apply desktop protections for mouse events, not touch events
+        if (!isTouchEvent) {
+            // Don't close if a slider is being actively dragged (desktop only)
+            if (UIManager._isSliderDragging) {
+                return;
+            }
+
+            // Don't close if the event is from a slider being dragged (desktop only)
+            if (event.target && event.target.type === 'range') {
+                return;
+            }
+
+            // Don't close if clicking on slider-related elements (desktop only)
+            if (event.target && (
+                event.target.classList.contains('canvas-editor-slider') ||
+                event.target.classList.contains('canvas-editor-slider-value') ||
+                event.target.classList.contains('canvas-editor-slider-wrapper') ||
+                event.target.classList.contains('canvas-editor-slider-container') ||
+                event.target.classList.contains('canvas-editor-slider-label')
+            )) {
+                return;
+            }
+        }
 
         // Check if click is outside editor (but allow backdrop clicks to be handled by backdrop listener)
         if (editor && !editor.contains(event.target) && event.target !== backdrop) {
@@ -2970,8 +3405,17 @@ const UIManager = {
             backdrop.remove();
         }
         document.removeEventListener('click', this.handleOutsideClick, true);
+
+        // Clean up global event listeners
+        if (this._globalMouseUpHandler) {
+            document.removeEventListener('mouseup', this._globalMouseUpHandler);
+            this._globalMouseUpHandler = null;
+        }
+
         // Clean up save function reference
         this._currentEditorSaveFunction = null;
+        // Clean up slider dragging flag
+        this._isSliderDragging = false;
     },
 
     /**
@@ -3223,6 +3667,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         },
+        'logo': () => {
+            const section = document.querySelector('.collapsible-section:has(#frontLogoUpload)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
         'text': () => {
             const section = document.querySelector('.collapsible-section:has(#topText)');
             if (section) {
@@ -3239,6 +3690,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         'border-image-back': () => {
             const section = document.querySelector('.collapsible-section:has(#borderImageUploadBack)');
+            if (section) {
+                section.classList.remove('collapsed');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        },
+        'logo-back': () => {
+            const section = document.querySelector('.collapsible-section:has(#logoUpload)');
             if (section) {
                 section.classList.remove('collapsed');
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
