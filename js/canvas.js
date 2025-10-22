@@ -22,13 +22,17 @@ const CanvasManager = {
     signaturePosY: 0, // Signature Y position offset
     logoImage: null, // Custom logo image for back side bottom text area
     logoZoom: 1, // Logo zoom level (1 = 100%)
-    logoPosX: 80, // Logo X position offset (default +80px)
-    logoPosY: 100, // Logo Y position offset (default +100px)
+    logoPosX: 0, // Logo X position offset (reset to 0)
+    logoPosY: 0, // Logo Y position offset (reset to 0)
+    logoBaseX: 310, // Base X position for back logo
+    logoBaseY: 410, // Base Y position for back logo
     logoRotation: 90, // Logo rotation in degrees (default 90 clockwise)
     frontLogoImage: null, // Custom logo image for front side
     frontLogoZoom: 1, // Front logo zoom level (1 = 100%)
-    frontLogoPosX: 320, // Front logo X position offset (default +320px)
-    frontLogoPosY: 450, // Front logo Y position offset (default +450px)
+    frontLogoPosX: 0, // Front logo X position offset (reset to 0)
+    frontLogoPosY: 0, // Front logo Y position offset (reset to 0)
+    frontLogoBaseX: 385, // Base X position to maintain original logo spot (+65)
+    frontLogoBaseY: 430, // Base Y position to maintain original logo spot (-20)
     frontLogoRotation: 90, // Front logo rotation in degrees (default 90 clockwise)
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
@@ -390,6 +394,7 @@ const CanvasManager = {
 
                 img.onload = () => {
                     this.logoImage = img;
+                    this.backGroupName = ''; // Clear back side bottom text when logo is loaded
                     console.log('Logo image loaded:', img.width, 'x', img.height);
                     this.updateBackSidePreview();
                     resolve(true);
@@ -416,8 +421,8 @@ const CanvasManager = {
     clearLogoImage() {
         this.logoImage = null;
         this.logoZoom = 1;
-        this.logoPosX = 80;
-        this.logoPosY = 100;
+        this.logoPosX = 0;
+        this.logoPosY = 0;
         this.logoRotation = 90;
         this.updateBackSidePreview();
     },
@@ -478,6 +483,7 @@ const CanvasManager = {
 
                 img.onload = () => {
                     this.frontLogoImage = img;
+                    this.bottomText = ''; // Clear bottom text when logo is loaded
                     console.log('Front logo image loaded:', img.width, 'x', img.height);
                     this.render();
                     resolve(true);
@@ -504,8 +510,8 @@ const CanvasManager = {
     clearFrontLogoImage() {
         this.frontLogoImage = null;
         this.frontLogoZoom = 1;
-        this.frontLogoPosX = 320;
-        this.frontLogoPosY = 450;
+        this.frontLogoPosX = 0;
+        this.frontLogoPosY = 0;
         this.frontLogoRotation = 90;
         this.render();
     },
@@ -797,9 +803,9 @@ const CanvasManager = {
             const drawX = x - drawWidth / 2;
             const drawY = y - drawHeight / 2;
 
-            // Apply position offsets
-            const finalX = drawX + this.frontLogoPosX;
-            const finalY = drawY + this.frontLogoPosY;
+            // Apply position offsets (base position + slider offset)
+            const finalX = drawX + this.frontLogoBaseX + this.frontLogoPosX;
+            const finalY = drawY + this.frontLogoBaseY + this.frontLogoPosY;
 
             // Translate to center, rotate, translate back to draw position
             ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
@@ -1267,9 +1273,9 @@ const CanvasManager = {
             const drawX = x - drawWidth / 2;
             const drawY = y - drawHeight / 2;
 
-            // Apply position offsets
-            const finalX = drawX + this.logoPosX;
-            const finalY = drawY + this.logoPosY;
+            // Apply position offsets (base position + slider offset)
+            const finalX = drawX + this.logoBaseX + this.logoPosX;
+            const finalY = drawY + this.logoBaseY + this.logoPosY;
 
             // Translate to center, rotate, translate back to draw position
             ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);

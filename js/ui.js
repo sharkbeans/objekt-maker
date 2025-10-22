@@ -350,8 +350,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.logoPosXValue.textContent = `${value}px`;
                 this.syncLogoSliderValue('posX', value);
-                // Add base offset of +80px to slider value
-                CanvasManager.setLogoPosition(80 + value, CanvasManager.logoPosY);
+                CanvasManager.setLogoPosition(value, CanvasManager.logoPosY);
             });
         }
         if (this.elements.logoPosY) {
@@ -359,8 +358,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.logoPosYValue.textContent = `${value}px`;
                 this.syncLogoSliderValue('posY', value);
-                // Add base offset of +100px to slider value
-                CanvasManager.setLogoPosition(CanvasManager.logoPosX, 100 + value);
+                CanvasManager.setLogoPosition(CanvasManager.logoPosX, value);
             });
         }
         if (this.elements.logoRotation) {
@@ -389,8 +387,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.logoPosXValueMobile.textContent = `${value}px`;
                 this.syncLogoSliderValue('posX', value, true);
-                // Add base offset of +80px to slider value
-                CanvasManager.setLogoPosition(80 + value, CanvasManager.logoPosY);
+                CanvasManager.setLogoPosition(value, CanvasManager.logoPosY);
             });
         }
         if (this.elements.logoPosYMobile) {
@@ -398,8 +395,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.logoPosYValueMobile.textContent = `${value}px`;
                 this.syncLogoSliderValue('posY', value, true);
-                // Add base offset of +100px to slider value
-                CanvasManager.setLogoPosition(CanvasManager.logoPosX, 100 + value);
+                CanvasManager.setLogoPosition(CanvasManager.logoPosX, value);
             });
         }
         if (this.elements.logoRotationMobile) {
@@ -436,8 +432,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.frontLogoPosXValue.textContent = `${value}px`;
                 this.syncFrontLogoSliderValue('posX', value);
-                // Add base offset of +320px to slider value
-                CanvasManager.setFrontLogoPosition(320 + value, CanvasManager.frontLogoPosY);
+                CanvasManager.setFrontLogoPosition(value, CanvasManager.frontLogoPosY);
             });
         }
         if (this.elements.frontLogoPosY) {
@@ -445,8 +440,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.frontLogoPosYValue.textContent = `${value}px`;
                 this.syncFrontLogoSliderValue('posY', value);
-                // Add base offset of +450px to slider value
-                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, 450 + value);
+                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, value);
             });
         }
         if (this.elements.frontLogoRotation) {
@@ -475,8 +469,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.frontLogoPosXValueMobile.textContent = `${value}px`;
                 this.syncFrontLogoSliderValue('posX', value, true);
-                // Add base offset of +320px to slider value
-                CanvasManager.setFrontLogoPosition(320 + value, CanvasManager.frontLogoPosY);
+                CanvasManager.setFrontLogoPosition(value, CanvasManager.frontLogoPosY);
             });
         }
         if (this.elements.frontLogoPosYMobile) {
@@ -484,8 +477,7 @@ const UIManager = {
                 const value = parseInt(e.target.value);
                 this.elements.frontLogoPosYValueMobile.textContent = `${value}px`;
                 this.syncFrontLogoSliderValue('posY', value, true);
-                // Add base offset of +450px to slider value
-                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, 450 + value);
+                CanvasManager.setFrontLogoPosition(CanvasManager.frontLogoPosX, value);
             });
         }
         if (this.elements.frontLogoRotationMobile) {
@@ -1763,13 +1755,13 @@ const UIManager = {
                 this.elements.logoControlsContainerMobile.style.display = 'block';
             }
 
-            // Reset sliders to neutral position (0) - actual default placement is +80px, +100px
+            // Reset sliders to neutral position (0) - base position is handled internally
             this.syncLogoSliderValue('zoom', 100);
             this.syncLogoSliderValue('posX', 0);
             this.syncLogoSliderValue('posY', 0);
             this.syncLogoSliderValue('rotation', 90);
             CanvasManager.setLogoZoom(1);
-            CanvasManager.setLogoPosition(80, 100);
+            CanvasManager.setLogoPosition(0, 0);
             CanvasManager.setLogoRotation(90);
 
             CanvasManager.render();
@@ -1813,6 +1805,11 @@ const UIManager = {
             if (this.elements.bottomTextMobile) {
                 this.elements.bottomTextMobile.value = '';
             }
+            // Clear canvas text editor if open
+            const editorInput = document.querySelector('.canvas-text-editor-input');
+            if (editorInput) {
+                editorInput.value = '';
+            }
 
             await CanvasManager.loadFrontLogoImage(file);
 
@@ -1822,13 +1819,13 @@ const UIManager = {
                 this.elements.frontLogoControlsContainerMobile.style.display = 'block';
             }
 
-            // Reset sliders to neutral position (0) - actual default placement is +320px, +450px, 90° rotation
+            // Reset sliders to neutral position (0) - base position is handled internally
             this.syncFrontLogoSliderValue('zoom', 100);
             this.syncFrontLogoSliderValue('posX', 0);
             this.syncFrontLogoSliderValue('posY', 0);
             this.syncFrontLogoSliderValue('rotation', 90);
             CanvasManager.setFrontLogoZoom(1);
-            CanvasManager.setFrontLogoPosition(320, 450);
+            CanvasManager.setFrontLogoPosition(0, 0);
             CanvasManager.setFrontLogoRotation(90);
 
             CanvasManager.render();
@@ -3237,7 +3234,10 @@ const UIManager = {
                         if (inputElement) inputElement.value = newValue;
                         break;
                     case 'bottom':
-                        CanvasManager.setText(undefined, undefined, newValue);
+                        // Don't restore bottom text if front logo is present
+                        if (!CanvasManager.frontLogoImage) {
+                            CanvasManager.setText(undefined, undefined, newValue);
+                        }
                         if (inputElement) inputElement.value = newValue;
                         break;
                 }
@@ -3266,7 +3266,10 @@ const UIManager = {
                         updateData.nameValue = newValue;
                         break;
                     case 'bottomRotated':
-                        updateData.groupName = newValue;
+                        // Don't restore bottom text if back logo is present
+                        if (!CanvasManager.logoImage) {
+                            updateData.groupName = newValue;
+                        }
                         break;
                 }
                 CanvasManager.setBackSideData(updateData);
