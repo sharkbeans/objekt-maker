@@ -2716,6 +2716,8 @@ const UIManager = {
                 } else if (clickedTextType === 'qrcode') {
                     // QR code area is disabled for now
                     // this.showQRCodeEditor();
+                } else if (clickedTextType === 'toplogo') {
+                    this.openTopLogoModal();
                 } else {
                     this.showTextEditor(canvas, rect, clickedTextType, side);
                 }
@@ -2817,6 +2819,289 @@ const UIManager = {
         const backdrop = document.getElementById('qrCodeEditorBackdrop');
         if (editor) editor.remove();
         if (backdrop) backdrop.remove();
+    },
+
+    /**
+     * Open top logo modal
+     */
+    openTopLogoModal() {
+        // Remove any existing modal
+        this.removeTopLogoModal();
+
+        // Create backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'canvas-text-editor-backdrop';
+        backdrop.id = 'topLogoModalBackdrop';
+        backdrop.style.backdropFilter = 'blur(4px)';
+        backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+
+        // Create modal container
+        const modal = document.createElement('div');
+        modal.className = 'canvas-text-editor';
+        modal.id = 'topLogoModal';
+        modal.style.position = 'fixed';
+        modal.style.top = '50%';
+        modal.style.left = '50%';
+        modal.style.transform = 'translate(-50%, -50%)';
+        modal.style.zIndex = '1000';
+        modal.style.maxWidth = '400px';
+        modal.style.width = '90%';
+
+        // Create title
+        const title = document.createElement('div');
+        title.style.fontWeight = '600';
+        title.style.marginBottom = 'var(--space-md)';
+        title.style.display = 'flex';
+        title.style.alignItems = 'center';
+        title.style.gap = '8px';
+        title.innerHTML = '<i data-lucide="image" style="width: 18px; height: 18px;"></i> Top Logo';
+
+        // Create upload section
+        const uploadSection = document.createElement('div');
+        uploadSection.style.marginBottom = 'var(--space-md)';
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/png,image/jpeg,image/jpg';
+        fileInput.style.display = 'none';
+        fileInput.id = 'topLogoModalUpload';
+
+        const uploadButton = document.createElement('button');
+        uploadButton.type = 'button';
+        uploadButton.className = 'btn btn-secondary';
+        uploadButton.style.width = '100%';
+        uploadButton.style.marginBottom = 'var(--space-sm)';
+        uploadButton.innerHTML = '<i data-lucide="upload" style="width: 16px; height: 16px;"></i> Upload Logo';
+        uploadButton.addEventListener('click', () => fileInput.click());
+
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'btn btn-secondary';
+        clearButton.style.width = '100%';
+        clearButton.style.display = CanvasManager.topLogoImage ? 'block' : 'none';
+        clearButton.innerHTML = '<i data-lucide="x" style="width: 16px; height: 16px;"></i> Clear Logo';
+        clearButton.addEventListener('click', () => {
+            CanvasManager.clearTopLogoImage();
+            controlsContainer.style.display = 'none';
+            clearButton.style.display = 'none';
+        });
+
+        // Handle file upload
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    await CanvasManager.loadTopLogoImage(file);
+                    controlsContainer.style.display = 'block';
+                    clearButton.style.display = 'block';
+                    // Reset controls to default values
+                    zoomSlider.value = 150;
+                    zoomValue.textContent = '150%';
+                    posXSlider.value = 0;
+                    posXValue.textContent = '0px';
+                    posYSlider.value = 0;
+                    posYValue.textContent = '0px';
+                    rotationSlider.value = 0;
+                    rotationValue.textContent = '0°';
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+        });
+
+        uploadSection.appendChild(fileInput);
+        uploadSection.appendChild(uploadButton);
+        uploadSection.appendChild(clearButton);
+
+        // Create controls container
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.display = CanvasManager.topLogoImage ? 'block' : 'none';
+
+        // Helper function to create slider
+        const createSlider = (label, min, max, value, unit, onChange) => {
+            const container = document.createElement('div');
+            container.style.marginBottom = 'var(--space-sm)';
+
+            const labelEl = document.createElement('label');
+            labelEl.style.display = 'block';
+            labelEl.style.marginBottom = '4px';
+            labelEl.style.fontWeight = '500';
+            labelEl.textContent = label;
+
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.style.display = 'flex';
+            sliderWrapper.style.alignItems = 'center';
+            sliderWrapper.style.gap = 'var(--space-sm)';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = min;
+            slider.max = max;
+            slider.value = value;
+            slider.style.flex = '1';
+
+            const valueDisplay = document.createElement('span');
+            valueDisplay.style.minWidth = '50px';
+            valueDisplay.style.textAlign = 'right';
+            valueDisplay.style.fontSize = '0.875rem';
+            valueDisplay.textContent = value + unit;
+
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                valueDisplay.textContent = val + unit;
+                onChange(val);
+            });
+
+            // On mobile/touch, hide the backdrop and make the modal transparent when slider is touched
+            slider.addEventListener('touchstart', (e) => {
+                const backdrop = document.getElementById('topLogoModalBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const modalElement = document.getElementById('topLogoModal');
+                if (modalElement) {
+                    // Store original styles for restoration
+                    this._originalTopLogoModalBackground = modalElement.style.background || '';
+                    // Hide modal background
+                    modalElement.style.background = 'transparent';
+                    modalElement.style.boxShadow = 'none';
+                    modalElement.style.padding = '0';
+
+                    // Hide all children except the controls container
+                    const controlsContainer = slider.closest('div')?.parentElement;
+                    if (controlsContainer && controlsContainer.classList.contains('canvas-text-editor')) {
+                        // If we're in text editor context, use that logic
+                    } else {
+                        // Otherwise, hide non-essential modal content
+                        Array.from(modalElement.children).forEach(child => {
+                            // Keep the control that contains the slider visible
+                            if (child.contains(slider) || child === controlsContainer) {
+                                child.style.display = 'block';
+                                child.style.visibility = 'visible';
+                                child.style.opacity = '1';
+                                child.style.pointerEvents = 'auto';
+                            } else {
+                                child.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+            });
+
+            // On mobile/touch, restore the modal when slider interaction ends
+            slider.addEventListener('touchend', (e) => {
+                const backdrop = document.getElementById('topLogoModalBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const modalElement = document.getElementById('topLogoModal');
+                if (modalElement) {
+                    // Restore modal background
+                    modalElement.style.background = this._originalTopLogoModalBackground || '';
+                    modalElement.style.boxShadow = '';
+                    modalElement.style.padding = '';
+
+                    // Restore all children visibility
+                    Array.from(modalElement.children).forEach(child => {
+                        child.style.display = '';
+                        child.style.visibility = '';
+                        child.style.opacity = '';
+                        child.style.pointerEvents = '';
+                    });
+                }
+            });
+
+            sliderWrapper.appendChild(slider);
+            sliderWrapper.appendChild(valueDisplay);
+            container.appendChild(labelEl);
+            container.appendChild(sliderWrapper);
+
+            return { container, slider, valueDisplay };
+        };
+
+        // Create zoom slider
+        const { container: zoomContainer, slider: zoomSlider, valueDisplay: zoomValue } = createSlider(
+            'Zoom', 20, 300, Math.round(CanvasManager.topLogoZoom * 100), '%',
+            (value) => {
+                CanvasManager.setTopLogoZoom(value / 100);
+                this.syncTopLogoSliderValue('zoom', value);
+            }
+        );
+        controlsContainer.appendChild(zoomContainer);
+
+        // Create position X slider
+        const { container: posXContainer, slider: posXSlider, valueDisplay: posXValue } = createSlider(
+            'Position X', -100, 100, CanvasManager.topLogoPosX, 'px',
+            (value) => {
+                CanvasManager.setTopLogoPosition(value, CanvasManager.topLogoPosY);
+                this.syncTopLogoSliderValue('posX', value);
+            }
+        );
+        controlsContainer.appendChild(posXContainer);
+
+        // Create position Y slider
+        const { container: posYContainer, slider: posYSlider, valueDisplay: posYValue } = createSlider(
+            'Position Y', -100, 100, CanvasManager.topLogoPosY, 'px',
+            (value) => {
+                CanvasManager.setTopLogoPosition(CanvasManager.topLogoPosX, value);
+                this.syncTopLogoSliderValue('posY', value);
+            }
+        );
+        controlsContainer.appendChild(posYContainer);
+
+        // Create rotation slider
+        const { container: rotationContainer, slider: rotationSlider, valueDisplay: rotationValue } = createSlider(
+            'Rotation', 0, 360, CanvasManager.topLogoRotation, '°',
+            (value) => {
+                CanvasManager.setTopLogoRotation(value);
+                this.syncTopLogoSliderValue('rotation', value);
+            }
+        );
+        controlsContainer.appendChild(rotationContainer);
+
+        // Create done button
+        const doneButton = document.createElement('button');
+        doneButton.type = 'button';
+        doneButton.className = 'btn btn-primary';
+        doneButton.style.width = '100%';
+        doneButton.style.marginTop = 'var(--space-md)';
+        doneButton.textContent = 'Done';
+        doneButton.addEventListener('click', () => this.removeTopLogoModal());
+
+        // Assemble modal
+        modal.appendChild(title);
+        modal.appendChild(uploadSection);
+        modal.appendChild(controlsContainer);
+        modal.appendChild(doneButton);
+
+        // Add to document
+        document.body.appendChild(backdrop);
+        document.body.appendChild(modal);
+
+        // Handle backdrop click
+        backdrop.addEventListener('click', () => this.removeTopLogoModal());
+
+        // Prevent modal content clicks from closing modal
+        modal.addEventListener('click', (e) => e.stopPropagation());
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    },
+
+    /**
+     * Remove top logo modal
+     */
+    removeTopLogoModal() {
+        const modal = document.getElementById('topLogoModal');
+        const backdrop = document.getElementById('topLogoModalBackdrop');
+        if (modal) modal.remove();
+        if (backdrop) backdrop.remove();
+        document.body.style.overflow = '';
     },
 
     /**

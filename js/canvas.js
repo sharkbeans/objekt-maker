@@ -2027,6 +2027,11 @@ const CanvasManager = {
             return 'signature';
         }
 
+        // Check top logo area
+        if (this.isTopLogoAreaClicked(x, y)) {
+            return 'toplogo';
+        }
+
         return null;
     },
 
@@ -2085,6 +2090,23 @@ const CanvasManager = {
 
         return x >= signatureX - padding && x <= signatureX + signatureWidth + padding &&
                y >= signatureY - padding && y <= signatureY + signatureHeight + padding;
+    },
+
+    /**
+     * Check if the top logo area was clicked
+     * @param {number} x - Click X coordinate relative to canvas
+     * @param {number} y - Click Y coordinate relative to canvas
+     * @returns {boolean} True if top logo area was clicked
+     */
+    isTopLogoAreaClicked(x, y) {
+        // Calculate top logo area bounds (same as hex cube position)
+        const logoX = this.topLogoBaseX;
+        const logoY = this.topLogoBaseY;
+        const logoSize = 100; // Base size of the logo/hex cube area
+        const padding = 20; // Generous padding for easier clicking
+
+        return x >= logoX - padding && x <= logoX + logoSize + padding &&
+               y >= logoY - padding && y <= logoY + logoSize + padding;
     }
 };
 
