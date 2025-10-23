@@ -295,7 +295,50 @@
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="image" style="width: 16px; height: 16px;"></i>
-                                    <span>LOGO</span>
+                                    <span>TOP LOGO</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="topLogoUploadArea">
+                                    <input type="file" id="topLogoUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="topLogoUpload" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Logo</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                                    </label>
+                                </div>
+                                <div id="topLogoControlsContainer" style="display: none;">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <input type="range" id="topLogoZoom" min="20" max="300" value="150" step="5">
+                                        <span id="topLogoZoomValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <input type="range" id="topLogoPosX" min="-100" max="100" value="0" step="5">
+                                        <span id="topLogoPosXValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <input type="range" id="topLogoPosY" min="-100" max="100" value="0" step="5">
+                                        <span id="topLogoPosYValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <input type="range" id="topLogoRotation" min="0" max="360" value="0" step="5">
+                                        <span id="topLogoRotationValue">0°</span>
+                                    </label>
+                                    <button id="clearTopLogoBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+                                    <span>BOTTOM LOGO</span>
                                 </span>
                                 <span class="collapse-icon">−</span>
                             </h3>
@@ -635,6 +678,57 @@
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="image" style="width: 16px; height: 16px;"></i>
                                     <span>LOGO</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="topLogoUploadAreaMobile">
+                                    <input type="file" id="topLogoUploadMobile" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="topLogoUploadMobile" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Logo</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">JPG or PNG</span>
+                                    </label>
+                                </div>
+                                <div id="topLogoControlsContainerMobile" style="display: none;">
+                                    <label>
+                                        <span>Zoom:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="topLogoZoomMobile" min="20" max="300" value="100" step="5">
+                                            <span id="topLogoZoomValueMobile">100%</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="topLogoPosXMobile" min="-100" max="100" value="0" step="5">
+                                            <span id="topLogoPosXValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="topLogoPosYMobile" min="-100" max="100" value="0" step="5">
+                                            <span id="topLogoPosYValueMobile">0px</span>
+                                        </div>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <div class="slider-group">
+                                            <input type="range" id="topLogoRotationMobile" min="0" max="360" value="0" step="5">
+                                            <span id="topLogoRotationValueMobile">0°</span>
+                                        </div>
+                                    </label>
+                                    <button id="clearTopLogoBtnMobile" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+                                    <span>BOTTOM LOGO</span>
                                 </span>
                                 <span class="collapse-icon">−</span>
                             </h3>

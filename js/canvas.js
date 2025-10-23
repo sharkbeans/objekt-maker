@@ -20,6 +20,13 @@ const CanvasManager = {
     signatureZoom: 1, // Signature zoom level (1 = 100%)
     signaturePosX: 0, // Signature X position offset
     signaturePosY: 0, // Signature Y position offset
+    topLogoImage: null, // Custom logo image for back side top (replaces hex cube)
+    topLogoZoom: 1.5, // Top logo zoom level (1.5 = 150%)
+    topLogoPosX: 0, // Top logo X position offset
+    topLogoPosY: 0, // Top logo Y position offset
+    topLogoBaseX: 82, 
+    topLogoBaseY: 155, 
+    topLogoRotation: 0, // Top logo rotation in degrees (default 0)
     logoImage: null, // Custom logo image for back side bottom text area
     logoZoom: 1, // Logo zoom level (1 = 100%)
     logoPosX: 0, // Logo X position offset (reset to 0)
@@ -344,6 +351,11 @@ const CanvasManager = {
     clearSignatureImage() {
         this.signatureImage = null;
         this.signatureZoom = 1;
+        this.topLogoImage = null;
+        this.topLogoZoom = 1;
+        this.topLogoPosX = 0;
+        this.topLogoPosY = 0;
+        this.topLogoRotation = 0;
         this.updateBackSidePreview();
     },
 
@@ -364,6 +376,94 @@ const CanvasManager = {
     setSignaturePosition(x, y) {
         this.signaturePosX = x;
         this.signaturePosY = y;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Load top logo image from file (replaces hex cube)
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>}
+     */
+    async loadTopLogoImage(file) {
+        return new Promise((resolve, reject) => {
+            // Validate file type (PNG, JPG)
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.topLogoImage = img;
+                    console.log('Top logo image loaded:', img.width, 'x', img.height);
+                    this.updateBackSidePreview();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load top logo image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the top logo image
+     */
+    clearTopLogoImage() {
+        this.topLogoImage = null;
+        this.topLogoZoom = 1;
+        this.topLogoPosX = 0;
+        this.topLogoPosY = 0;
+        this.topLogoRotation = 0;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set top logo zoom level
+     * @param {number} zoom - Zoom level (1 = 100%)
+     */
+    setTopLogoZoom(zoom) {
+        this.topLogoZoom = zoom;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set top logo position
+     * @param {number} x - X offset
+     * @param {number} y - Y offset
+     */
+    setTopLogoPosition(x, y) {
+        this.topLogoPosX = x;
+        this.topLogoPosY = y;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set top logo rotation
+     * @param {number} rotation - Rotation in degrees
+     */
+    setTopLogoRotation(rotation) {
+        this.topLogoRotation = rotation;
         this.updateBackSidePreview();
     },
 
@@ -1043,8 +1143,12 @@ const CanvasManager = {
 
         backCtx.restore();
 
-        // Draw filled hexagonal cube logo at top left
-        this.drawFilledHexCubeIcon(backCtx, 47, 110);
+        // Draw top logo if present, otherwise draw filled hexagonal cube logo at top left
+        if (this.topLogoImage) {
+            this.drawTopLogo(backCtx, this.topLogoBaseX, this.topLogoBaseY);
+        } else {
+            this.drawFilledHexCubeIcon(backCtx, 47, 110);
+        }
 
         // Draw the text content on the left side
         backCtx.fillStyle = this.textColor;
@@ -1284,6 +1388,57 @@ const CanvasManager = {
 
             // Draw the logo image
             ctx.drawImage(this.logoImage, finalX, finalY, drawWidth, drawHeight);
+        }
+
+        ctx.restore();
+    },
+
+    /**
+     * Draw top logo image (replaces hex cube)
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     */
+    drawTopLogo(ctx, x, y) {
+        ctx.save();
+
+        if (this.topLogoImage) {
+            const baseWidth = 100; // Base width for top logo at 100% zoom
+            const baseHeight = 100; // Base height for top logo at 100% zoom
+
+            // Calculate dimensions to fit logo while maintaining aspect ratio
+            const imgAspect = this.topLogoImage.width / this.topLogoImage.height;
+            let drawWidth, drawHeight;
+
+            if (imgAspect > baseWidth / baseHeight) {
+                // Image is wider - fit to width
+                drawWidth = baseWidth;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                // Image is taller - fit to height
+                drawHeight = baseHeight;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            // Apply zoom
+            drawWidth *= this.topLogoZoom;
+            drawHeight *= this.topLogoZoom;
+
+            // Center the logo at the base position
+            const centerX = x - drawWidth / 2;
+            const centerY = y - drawHeight / 2;
+
+            // Apply position offsets (base position + slider offset)
+            const finalX = centerX + this.topLogoPosX;
+            const finalY = centerY + this.topLogoPosY;
+
+            // Translate to center, rotate, translate back to draw position
+            ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
+            ctx.rotate((this.topLogoRotation * Math.PI) / 180);
+            ctx.translate(-(finalX + drawWidth / 2), -(finalY + drawHeight / 2));
+
+            // Draw the top logo image
+            ctx.drawImage(this.topLogoImage, finalX, finalY, drawWidth, drawHeight);
         }
 
         ctx.restore();

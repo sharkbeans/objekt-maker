@@ -172,6 +172,32 @@ const UIManager = {
             backBottomTextHeightMobileQuick: document.getElementById('backBottomTextHeightMobileQuick'),
             backBottomTextHeightValueMobileQuick: document.getElementById('backBottomTextHeightValueMobileQuick'),
 
+            // Top logo upload and controls (Desktop)
+            topLogoUpload: document.getElementById('topLogoUpload'),
+            topLogoZoom: document.getElementById('topLogoZoom'),
+            topLogoZoomValue: document.getElementById('topLogoZoomValue'),
+            topLogoPosX: document.getElementById('topLogoPosX'),
+            topLogoPosXValue: document.getElementById('topLogoPosXValue'),
+            topLogoPosY: document.getElementById('topLogoPosY'),
+            topLogoPosYValue: document.getElementById('topLogoPosYValue'),
+            topLogoRotation: document.getElementById('topLogoRotation'),
+            topLogoRotationValue: document.getElementById('topLogoRotationValue'),
+            clearTopLogoBtn: document.getElementById('clearTopLogoBtn'),
+            topLogoControlsContainer: document.getElementById('topLogoControlsContainer'),
+
+            // Top logo upload and controls (Mobile)
+            topLogoUploadMobile: document.getElementById('topLogoUploadMobile'),
+            topLogoZoomMobile: document.getElementById('topLogoZoomMobile'),
+            topLogoZoomValueMobile: document.getElementById('topLogoZoomValueMobile'),
+            topLogoPosXMobile: document.getElementById('topLogoPosXMobile'),
+            topLogoPosXValueMobile: document.getElementById('topLogoPosXValueMobile'),
+            topLogoPosYMobile: document.getElementById('topLogoPosYMobile'),
+            topLogoPosYValueMobile: document.getElementById('topLogoPosYValueMobile'),
+            topLogoRotationMobile: document.getElementById('topLogoRotationMobile'),
+            topLogoRotationValueMobile: document.getElementById('topLogoRotationValueMobile'),
+            clearTopLogoBtnMobile: document.getElementById('clearTopLogoBtnMobile'),
+            topLogoControlsContainerMobile: document.getElementById('topLogoControlsContainerMobile'),
+
             // Back side logo upload and controls (Desktop)
             logoUpload: document.getElementById('logoUpload'),
             logoZoom: document.getElementById('logoZoom'),
@@ -327,6 +353,88 @@ const UIManager = {
         // Border image upload
         this.elements.borderImageUpload.addEventListener('change', (e) => this.handleBorderImageUpload(e));
         this.elements.clearBorderImage.addEventListener('click', () => this.clearBorderImage());
+
+        // Top logo upload and controls (desktop)
+        if (this.elements.topLogoUpload) {
+            this.elements.topLogoUpload.addEventListener('change', (e) => this.handleTopLogoImageUpload(e));
+        }
+        if (this.elements.topLogoUploadMobile) {
+            this.elements.topLogoUploadMobile.addEventListener('change', (e) => this.handleTopLogoImageUpload(e, true));
+        }
+
+        // Top logo adjustment sliders (desktop)
+        if (this.elements.topLogoZoom) {
+            this.elements.topLogoZoom.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoZoomValue.textContent = `${value}%`;
+                this.syncTopLogoSliderValue('zoom', value);
+                CanvasManager.setTopLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.topLogoPosX) {
+            this.elements.topLogoPosX.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoPosXValue.textContent = `${value}px`;
+                this.syncTopLogoSliderValue('posX', value);
+                CanvasManager.setTopLogoPosition(value, CanvasManager.topLogoPosY);
+            });
+        }
+        if (this.elements.topLogoPosY) {
+            this.elements.topLogoPosY.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoPosYValue.textContent = `${value}px`;
+                this.syncTopLogoSliderValue('posY', value);
+                CanvasManager.setTopLogoPosition(CanvasManager.topLogoPosX, value);
+            });
+        }
+        if (this.elements.topLogoRotation) {
+            this.elements.topLogoRotation.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoRotationValue.textContent = `${value}°`;
+                this.syncTopLogoSliderValue('rotation', value);
+                CanvasManager.setTopLogoRotation(value);
+            });
+        }
+        if (this.elements.clearTopLogoBtn) {
+            this.elements.clearTopLogoBtn.addEventListener('click', () => this.clearTopLogoImage());
+        }
+
+        // Top logo adjustment sliders (mobile)
+        if (this.elements.topLogoZoomMobile) {
+            this.elements.topLogoZoomMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoZoomValueMobile.textContent = `${value}%`;
+                this.syncTopLogoSliderValue('zoom', value, true);
+                CanvasManager.setTopLogoZoom(value / 100);
+            });
+        }
+        if (this.elements.topLogoPosXMobile) {
+            this.elements.topLogoPosXMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoPosXValueMobile.textContent = `${value}px`;
+                this.syncTopLogoSliderValue('posX', value, true);
+                CanvasManager.setTopLogoPosition(value, CanvasManager.topLogoPosY);
+            });
+        }
+        if (this.elements.topLogoPosYMobile) {
+            this.elements.topLogoPosYMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoPosYValueMobile.textContent = `${value}px`;
+                this.syncTopLogoSliderValue('posY', value, true);
+                CanvasManager.setTopLogoPosition(CanvasManager.topLogoPosX, value);
+            });
+        }
+        if (this.elements.topLogoRotationMobile) {
+            this.elements.topLogoRotationMobile.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.topLogoRotationValueMobile.textContent = `${value}°`;
+                this.syncTopLogoSliderValue('rotation', value, true);
+                CanvasManager.setTopLogoRotation(value);
+            });
+        }
+        if (this.elements.clearTopLogoBtnMobile) {
+            this.elements.clearTopLogoBtnMobile.addEventListener('click', () => this.clearTopLogoImage());
+        }
 
         // Back side logo upload and controls (desktop)
         if (this.elements.logoUpload) {
@@ -1787,6 +1895,94 @@ const UIManager = {
             this.elements.logoControlsContainerMobile.style.display = 'none';
         }
         console.log('Logo image cleared');
+    },
+
+    /**
+     * Handle top logo image upload (replaces hex cube)
+     */
+    async handleTopLogoImageUpload(event, isMobile = false) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadTopLogoImage(file);
+
+            // Show controls container
+            this.elements.topLogoControlsContainer.style.display = 'block';
+            if (this.elements.topLogoControlsContainerMobile) {
+                this.elements.topLogoControlsContainerMobile.style.display = 'block';
+            }
+
+            // Reset sliders to neutral position (0)
+            this.syncTopLogoSliderValue('zoom', 100);
+            this.syncTopLogoSliderValue('posX', 0);
+            this.syncTopLogoSliderValue('posY', 0);
+            this.syncTopLogoSliderValue('rotation', 0);
+            CanvasManager.setTopLogoZoom(1);
+            CanvasManager.setTopLogoPosition(0, 0);
+            CanvasManager.setTopLogoRotation(0);
+
+            this.showSuccessMessage('Top logo image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear top logo image
+     */
+    clearTopLogoImage() {
+        CanvasManager.clearTopLogoImage();
+        if (this.elements.topLogoUpload) {
+            this.elements.topLogoUpload.value = '';
+        }
+        if (this.elements.topLogoUploadMobile) {
+            this.elements.topLogoUploadMobile.value = '';
+        }
+        this.elements.topLogoControlsContainer.style.display = 'none';
+        if (this.elements.topLogoControlsContainerMobile) {
+            this.elements.topLogoControlsContainerMobile.style.display = 'none';
+        }
+        console.log('Top logo image cleared');
+    },
+
+    /**
+     * Sync top logo slider values between desktop and mobile
+     */
+    syncTopLogoSliderValue(sliderType, value, isMobile = false) {
+        if (sliderType === 'zoom') {
+            if (!isMobile && this.elements.topLogoZoomMobile) {
+                this.elements.topLogoZoomMobile.value = value;
+                this.elements.topLogoZoomValueMobile.textContent = `${value}%`;
+            } else if (isMobile && this.elements.topLogoZoom) {
+                this.elements.topLogoZoom.value = value;
+                this.elements.topLogoZoomValue.textContent = `${value}%`;
+            }
+        } else if (sliderType === 'posX') {
+            if (!isMobile && this.elements.topLogoPosXMobile) {
+                this.elements.topLogoPosXMobile.value = value;
+                this.elements.topLogoPosXValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.topLogoPosX) {
+                this.elements.topLogoPosX.value = value;
+                this.elements.topLogoPosXValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'posY') {
+            if (!isMobile && this.elements.topLogoPosYMobile) {
+                this.elements.topLogoPosYMobile.value = value;
+                this.elements.topLogoPosYValueMobile.textContent = `${value}px`;
+            } else if (isMobile && this.elements.topLogoPosY) {
+                this.elements.topLogoPosY.value = value;
+                this.elements.topLogoPosYValue.textContent = `${value}px`;
+            }
+        } else if (sliderType === 'rotation') {
+            if (!isMobile && this.elements.topLogoRotationMobile) {
+                this.elements.topLogoRotationMobile.value = value;
+                this.elements.topLogoRotationValueMobile.textContent = `${value}°`;
+            } else if (isMobile && this.elements.topLogoRotation) {
+                this.elements.topLogoRotation.value = value;
+                this.elements.topLogoRotationValue.textContent = `${value}°`;
+            }
+        }
     },
 
     /**
