@@ -681,26 +681,49 @@ const CanvasManager = {
 
         try {
             console.log('Generating QR code for:', this.qrCodeLink, 'with text color:', this.textColor);
-            // Create a canvas for QR code generation
-            const qrCanvas = document.createElement('canvas');
-            await QRCode.toCanvas(qrCanvas, this.qrCodeLink, {
+
+            // Create a temporary container for QRCodeJS2
+            const tempContainer = document.createElement('div');
+            tempContainer.style.display = 'none';
+            document.body.appendChild(tempContainer);
+
+            // Generate QR code using QRCodeJS2
+            const qrcode = new QRCode(tempContainer, {
+                text: this.qrCodeLink,
                 width: 256,
                 height: 256,
-                margin: 1,
-                color: {
-                    dark: this.textColor,
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
+                colorDark: this.textColor,
+                colorLight: '#FFFFFF',
+                correctLevel: QRCode.CorrectLevel.M
             });
+
+            // Wait a bit for the QR code to be generated
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Get the canvas element created by QRCodeJS2
+            const qrCanvas = tempContainer.querySelector('canvas');
+
+            if (!qrCanvas) {
+                console.error('QR canvas not created by library');
+                document.body.removeChild(tempContainer);
+                return;
+            }
+
             console.log('QR canvas created, dimensions:', qrCanvas.width, 'x', qrCanvas.height);
 
+            // Clone the canvas for our use
+            const canvas = document.createElement('canvas');
+            canvas.width = qrCanvas.width;
+            canvas.height = qrCanvas.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(qrCanvas, 0, 0);
+
             // Store the canvas directly for rendering
-            this.qrCodeCanvas = qrCanvas;
+            this.qrCodeCanvas = canvas;
 
             // Also convert canvas to image for backwards compatibility
             const img = new Image();
-            img.src = qrCanvas.toDataURL();
+            img.src = canvas.toDataURL();
             console.log('QR image data URL created, length:', img.src.length);
 
             await new Promise((resolve, reject) => {
@@ -716,6 +739,9 @@ const CanvasManager = {
 
             this.qrCodeImage = img;
             console.log('QR Code generated successfully and stored');
+
+            // Clean up the temporary container
+            document.body.removeChild(tempContainer);
 
             // Update back side preview if it's enabled
             this.updateBackSidePreview();
