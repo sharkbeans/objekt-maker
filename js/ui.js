@@ -2480,9 +2480,8 @@ const UIManager = {
         const prepareBackCanvas = async () => {
             if (view === 'back') {
                 CanvasManager.setBackSideEnabled(true);
-                if (!CanvasManager.qrCodeImage) {
-                    await CanvasManager.generateQRCode();
-                }
+                // Always regenerate QR code when switching to back view to ensure it displays
+                await CanvasManager.generateQRCode();
                 CanvasManager.updateBackSidePreview();
                 this.syncBackColors();
             }

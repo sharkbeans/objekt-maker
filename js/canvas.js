@@ -1266,13 +1266,27 @@ const CanvasManager = {
         const qrSource = this.qrCodeCanvas || (this.qrCodeImage && this.qrCodeImage.complete ? this.qrCodeImage : null);
 
         if (qrSource) {
+            // Save context state before drawing QR code
+            backCtx.save();
+
+            // Set important rendering properties to ensure QR code is visible
+            backCtx.globalAlpha = 1.0; // Force full opacity
+            backCtx.globalCompositeOperation = 'source-over'; // Ensure normal blending
+
             // Add padding inside the white box for the QR code
             const qrPadding = squareSize * 0.1; // 10% padding
             const qrSize = squareSize - (qrPadding * 2);
             const qrX = whiteBoxX + qrPadding;
             const qrY = whiteBoxY + qrPadding;
 
+            // Draw QR code with high quality settings
+            backCtx.imageSmoothingEnabled = true;
+            backCtx.imageSmoothingQuality = 'high';
             backCtx.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
+
+            // Restore context state
+            backCtx.restore();
+
             console.log('QR code drawn successfully at position:', {
                 qrX, qrY, qrSize,
                 sourceType: this.qrCodeCanvas ? 'canvas' : 'image'
