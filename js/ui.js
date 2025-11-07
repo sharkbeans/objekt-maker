@@ -1048,8 +1048,10 @@ const UIManager = {
         // QR Code controls (Desktop)
         if (this.elements.qrCodeLink) {
             this.elements.qrCodeLink.addEventListener('input', async (e) => {
+                console.log('[QR Code] Desktop input changed to:', e.target.value);
                 await CanvasManager.setQRCodeLink(e.target.value);
                 if (this.elements.qrCodeLinkMobile) this.elements.qrCodeLinkMobile.value = e.target.value;
+                console.log('[QR Code] Desktop QR code generation completed');
             });
         }
 
@@ -1093,8 +1095,10 @@ const UIManager = {
             // QR Code controls (Mobile)
             if (this.elements.qrCodeLinkMobile) {
                 this.elements.qrCodeLinkMobile.addEventListener('input', async (e) => {
+                    console.log('[QR Code] Mobile input changed to:', e.target.value);
                     await CanvasManager.setQRCodeLink(e.target.value);
                     this.elements.qrCodeLink.value = e.target.value;
+                    console.log('[QR Code] Mobile QR code generation completed');
                 });
             }
         }
