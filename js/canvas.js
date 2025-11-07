@@ -69,7 +69,7 @@ const CanvasManager = {
 
     // QR Code settings
     qrCodeUrl: 'https://sharkbeans.github.io/objekt-maker/',
-    qrCodeDataUrl: null, // Stores the QR code as a data URL
+    qrCodeImage: null, // Stores the QR code as a loaded Image object
 
     /**
      * Initialize canvas manager
@@ -663,7 +663,7 @@ const CanvasManager = {
 
     /**
      * Generate QR code from URL
-     * Uses QRCode.js library to generate QR code as data URL
+     * Uses QRCode.js library to generate QR code as a loaded Image
      */
     async generateQRCode() {
         return new Promise((resolve) => {
@@ -671,7 +671,7 @@ const CanvasManager = {
 
             if (!this.qrCodeUrl || !window.QRCode) {
                 console.error('[QR] Missing URL or QRCode library');
-                this.qrCodeDataUrl = null;
+                this.qrCodeImage = null;
                 resolve();
                 return;
             }
@@ -692,29 +692,45 @@ const CanvasManager = {
                     correctLevel: QRCode.CorrectLevel.M
                 });
 
-                // Wait a bit for QR code to generate
+                // Wait for QR code to generate
                 setTimeout(() => {
-                    const img = tempDiv.querySelector('img');
-                    if (img && img.src) {
-                        this.qrCodeDataUrl = img.src;
-                        console.log('[QR] QR code generated successfully');
-                        console.log('[QR] Data URL length:', this.qrCodeDataUrl.length);
+                    const generatedImg = tempDiv.querySelector('img');
+                    if (generatedImg && generatedImg.src) {
+                        console.log('[QR] QR code generated, creating loaded image');
+
+                        // Create a new Image and wait for it to load
+                        const loadedImg = new Image();
+                        loadedImg.onload = () => {
+                            this.qrCodeImage = loadedImg;
+                            console.log('[QR] QR code image loaded successfully, dimensions:', loadedImg.width, 'x', loadedImg.height);
+
+                            // Clean up
+                            document.body.removeChild(tempDiv);
+
+                            // Update back side preview
+                            this.updateBackSidePreview();
+
+                            resolve();
+                        };
+
+                        loadedImg.onerror = () => {
+                            console.error('[QR] Failed to load QR code image');
+                            this.qrCodeImage = null;
+                            document.body.removeChild(tempDiv);
+                            resolve();
+                        };
+
+                        loadedImg.src = generatedImg.src;
                     } else {
-                        console.error('[QR] Failed to get QR code image');
-                        this.qrCodeDataUrl = null;
+                        console.error('[QR] Failed to generate QR code image');
+                        this.qrCodeImage = null;
+                        document.body.removeChild(tempDiv);
+                        resolve();
                     }
-
-                    // Clean up
-                    document.body.removeChild(tempDiv);
-
-                    // Update back side preview
-                    this.updateBackSidePreview();
-
-                    resolve();
                 }, 100);
             } catch (error) {
                 console.error('[QR] Error generating QR code:', error);
-                this.qrCodeDataUrl = null;
+                this.qrCodeImage = null;
                 resolve();
             }
         });
@@ -1256,25 +1272,21 @@ const CanvasManager = {
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Draw QR code inside the white square
-        if (this.qrCodeDataUrl) {
+        if (this.qrCodeImage) {
             const qrPadding = squareSize * 0.1; // 10% padding
             const qrSize = squareSize - (qrPadding * 2);
             const qrX = whiteBoxX + qrPadding;
             const qrY = whiteBoxY + qrPadding;
 
-            // Create image from data URL
-            const qrImg = new Image();
-            qrImg.src = this.qrCodeDataUrl;
-
-            // Draw immediately (data URL is already loaded)
+            // Draw the pre-loaded QR code image
             backCtx.save();
             backCtx.imageSmoothingEnabled = false; // Keep QR code crisp
-            backCtx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+            backCtx.drawImage(this.qrCodeImage, qrX, qrY, qrSize, qrSize);
             backCtx.restore();
 
             console.log('[QR] QR code rendered at:', qrX, qrY, 'size:', qrSize);
         } else {
-            console.warn('[QR] No QR code data URL available');
+            console.warn('[QR] No QR code image available');
         }
 
         // Horizontal divider 5 at bottom (1px solid line)
