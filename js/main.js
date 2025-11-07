@@ -46,21 +46,21 @@ const App = {
      * Initialize QR code with retry logic for library loading
      */
     async initializeQRCode() {
-        // Wait for qrcode-generator library to be available
+        // Wait for QRCode library to be available
         let retries = 0;
-        while (typeof qrcode === 'undefined' && retries < 20) {
+        while (typeof QRCode === 'undefined' && retries < 20) {
             await new Promise(resolve => setTimeout(resolve, 100));
             retries++;
         }
 
-        if (typeof qrcode === 'undefined') {
-            console.error('qrcode-generator library failed to load');
+        if (typeof QRCode === 'undefined') {
+            console.error('[QR] QRCode.js library failed to load');
             return;
         }
 
-        console.log('[OK] qrcode-generator library loaded');
+        console.log('[QR] QRCode.js library loaded successfully');
         await CanvasManager.generateQRCode();
-        console.log('[OK] QR Code generated');
+        console.log('[QR] Initial QR code generated');
     },
 
     /**

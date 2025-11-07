@@ -68,9 +68,8 @@ const CanvasManager = {
     backBottomTextHeight: 0,
 
     // QR Code settings
-    qrCodeLink: 'https://sharkbeans.github.io/objekt-maker/',
-    qrCodeImage: null, // Cached QR code image
-    qrCodeCanvas: null, // Cached QR code canvas
+    qrCodeUrl: 'https://sharkbeans.github.io/objekt-maker/',
+    qrCodeDataUrl: null, // Stores the QR code as a data URL
 
     /**
      * Initialize canvas manager
@@ -183,13 +182,9 @@ const CanvasManager = {
      * Set text color (applies to all text)
      * @param {string} color - Hex color value
      */
-    async setTextColor(color) {
+    setTextColor(color) {
         this.textColor = color;
         this.render();
-        // Regenerate QR code with new color
-        if (this.qrCodeImage) {
-            await this.generateQRCode();
-        }
         this.updateBackSidePreview();
     },
 
@@ -658,113 +653,71 @@ const CanvasManager = {
     },
 
     /**
-     * Set QR code link and regenerate QR code
-     * @param {string} link - URL for the QR code
+     * Set QR code URL and generate QR code
+     * @param {string} url - URL to encode in QR code
      */
-    async setQRCodeLink(link) {
-        console.log('[QR Code] setQRCodeLink called with:', link);
-        this.qrCodeLink = link;
-        console.log('[QR Code] Calling generateQRCode...');
+    async setQRCodeUrl(url) {
+        this.qrCodeUrl = url;
         await this.generateQRCode();
-        console.log('[QR Code] Calling updateBackSidePreview...');
-        this.updateBackSidePreview();
-        console.log('[QR Code] setQRCodeLink completed');
     },
 
     /**
-     * Generate QR code image from the current link using qrcode-generator library
-     * @returns {Promise<void>}
+     * Generate QR code from URL
+     * Uses QRCode.js library to generate QR code as data URL
      */
     async generateQRCode() {
-        if (!this.qrCodeLink) {
-            this.qrCodeImage = null;
-            this.qrCodeCanvas = null;
-            console.warn('No QR code link provided');
-            return;
-        }
+        return new Promise((resolve) => {
+            console.log('[QR] Generating QR code for:', this.qrCodeUrl);
 
-        // Check if qrcode-generator library is loaded
-        if (typeof qrcode === 'undefined') {
-            console.error('qrcode-generator library not loaded');
-            this.qrCodeImage = null;
-            this.qrCodeCanvas = null;
-            return;
-        }
+            if (!this.qrCodeUrl || !window.QRCode) {
+                console.error('[QR] Missing URL or QRCode library');
+                this.qrCodeDataUrl = null;
+                resolve();
+                return;
+            }
 
-        try {
-            console.log('Generating QR code for:', this.qrCodeLink, 'with text color:', this.textColor);
+            try {
+                // Create temporary container
+                const tempDiv = document.createElement('div');
+                tempDiv.style.display = 'none';
+                document.body.appendChild(tempDiv);
 
-            // Create QR code using qrcode-generator library
-            // Type number: 0 = auto-detect size based on content
-            // Error correction level: 'M' = medium (15% recovery)
-            const qr = qrcode(0, 'M');
-            qr.addData(this.qrCodeLink);
-            qr.make();
+                // Generate QR code
+                const qr = new QRCode(tempDiv, {
+                    text: this.qrCodeUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: this.textColor,
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
 
-            // Get the module count (size of QR code matrix)
-            const moduleCount = qr.getModuleCount();
-            const cellSize = 8; // Size of each QR module in pixels
-            const margin = 2; // Margin in modules
-            const size = (moduleCount + margin * 2) * cellSize;
-
-            console.log('QR code created, module count:', moduleCount, 'canvas size:', size);
-
-            // Create canvas to draw QR code
-            const qrCanvas = document.createElement('canvas');
-            qrCanvas.width = size;
-            qrCanvas.height = size;
-            const ctx = qrCanvas.getContext('2d');
-
-            // Fill background with white
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, size, size);
-
-            // Draw QR code modules with the text color
-            ctx.fillStyle = this.textColor;
-            for (let row = 0; row < moduleCount; row++) {
-                for (let col = 0; col < moduleCount; col++) {
-                    if (qr.isDark(row, col)) {
-                        const x = (col + margin) * cellSize;
-                        const y = (row + margin) * cellSize;
-                        ctx.fillRect(x, y, cellSize, cellSize);
+                // Wait a bit for QR code to generate
+                setTimeout(() => {
+                    const img = tempDiv.querySelector('img');
+                    if (img && img.src) {
+                        this.qrCodeDataUrl = img.src;
+                        console.log('[QR] QR code generated successfully');
+                        console.log('[QR] Data URL length:', this.qrCodeDataUrl.length);
+                    } else {
+                        console.error('[QR] Failed to get QR code image');
+                        this.qrCodeDataUrl = null;
                     }
-                }
-            }
 
-            console.log('QR canvas drawn successfully, dimensions:', qrCanvas.width, 'x', qrCanvas.height);
+                    // Clean up
+                    document.body.removeChild(tempDiv);
 
-            // Store the canvas directly for rendering
-            this.qrCodeCanvas = qrCanvas;
+                    // Update back side preview
+                    this.updateBackSidePreview();
 
-            // Convert canvas to image for compatibility
-            const img = new Image();
-            img.src = qrCanvas.toDataURL('image/png');
-            console.log('QR image data URL created, length:', img.src.length);
-
-            // Wait for image to load
-            await new Promise((resolve, reject) => {
-                img.onload = () => {
-                    console.log('QR image loaded successfully, dimensions:', img.width, 'x', img.height);
-                    this.qrCodeImage = img;
                     resolve();
-                };
-                img.onerror = (error) => {
-                    console.error('QR image failed to load:', error);
-                    reject(error);
-                };
-            });
-
-            console.log('QR Code generated successfully and stored');
-
-            // Update back side preview if it's enabled
-            if (this.enableBackSide) {
-                this.updateBackSidePreview();
+                }, 100);
+            } catch (error) {
+                console.error('[QR] Error generating QR code:', error);
+                this.qrCodeDataUrl = null;
+                resolve();
             }
-        } catch (error) {
-            console.error('Failed to generate QR code:', error);
-            this.qrCodeImage = null;
-            this.qrCodeCanvas = null;
-        }
+        });
     },
 
     /**
@@ -1303,62 +1256,25 @@ const CanvasManager = {
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Draw QR code inside the white square
-        // Try canvas first, fall back to image
-        const qrSource = this.qrCodeCanvas || (this.qrCodeImage && this.qrCodeImage.complete ? this.qrCodeImage : null);
-
-        console.log('[QR Code Render] About to render QR code, source available:', !!qrSource, {
-            canvas: !!this.qrCodeCanvas,
-            image: !!this.qrCodeImage,
-            imageComplete: this.qrCodeImage ? this.qrCodeImage.complete : false
-        });
-
-        if (qrSource) {
-            // Save context state before drawing QR code
-            backCtx.save();
-
-            // Set important rendering properties to ensure QR code is visible
-            backCtx.globalAlpha = 1.0; // Force full opacity
-            backCtx.globalCompositeOperation = 'source-over'; // Ensure normal blending
-
-            // Add padding inside the white box for the QR code
+        if (this.qrCodeDataUrl) {
             const qrPadding = squareSize * 0.1; // 10% padding
             const qrSize = squareSize - (qrPadding * 2);
             const qrX = whiteBoxX + qrPadding;
             const qrY = whiteBoxY + qrPadding;
 
-            // Draw QR code with high quality settings
-            backCtx.imageSmoothingEnabled = false; // Disable smoothing for crisp QR code
-            backCtx.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
+            // Create image from data URL
+            const qrImg = new Image();
+            qrImg.src = this.qrCodeDataUrl;
 
-            // DEBUG: Draw red border around QR code to verify position
-            backCtx.strokeStyle = '#FF0000';
-            backCtx.lineWidth = 2;
-            backCtx.strokeRect(qrX, qrY, qrSize, qrSize);
-
-            // Restore context state
-            backCtx.restore();
-
-            console.log('[QR Code Render] QR code drawn successfully at position:', {
-                qrX, qrY, qrSize,
-                sourceType: this.qrCodeCanvas ? 'canvas' : 'image',
-                sourceWidth: qrSource.width,
-                sourceHeight: qrSource.height
-            });
-        } else {
-            console.warn('[QR Code Render] QR code not available for back side rendering', {
-                canvasExists: !!this.qrCodeCanvas,
-                imageExists: !!this.qrCodeImage,
-                imageComplete: this.qrCodeImage ? this.qrCodeImage.complete : false
-            });
-
-            // DEBUG: Draw placeholder text in white box
+            // Draw immediately (data URL is already loaded)
             backCtx.save();
-            backCtx.fillStyle = '#FF0000';
-            backCtx.font = '20px Arial';
-            backCtx.textAlign = 'center';
-            backCtx.textBaseline = 'middle';
-            backCtx.fillText('QR N/A', whiteBoxX + squareSize/2, whiteBoxY + squareSize/2);
+            backCtx.imageSmoothingEnabled = false; // Keep QR code crisp
+            backCtx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
             backCtx.restore();
+
+            console.log('[QR] QR code rendered at:', qrX, qrY, 'size:', qrSize);
+        } else {
+            console.warn('[QR] No QR code data URL available');
         }
 
         // Horizontal divider 5 at bottom (1px solid line)
