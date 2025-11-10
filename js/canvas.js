@@ -187,7 +187,7 @@ const CanvasManager = {
         this.textColor = color;
         this.render();
         // Regenerate QR code with new color
-        if (this.qrCodeImage) {
+        if (this.qrCodeImage || this.qrCodeCanvas) {
             await this.generateQRCode();
         }
         this.updateBackSidePreview();
@@ -1296,9 +1296,10 @@ const CanvasManager = {
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Draw QR code inside the white square
-        const qrSource = this.qrCodeCanvas || (this.qrCodeImage && this.qrCodeImage.complete ? this.qrCodeImage : null);
+        // Prioritize qrCodeCanvas as it's more reliable than the image
+        const qrSource = this.qrCodeCanvas || this.qrCodeImage;
 
-        if (qrSource) {
+        if (qrSource && (this.qrCodeCanvas || (this.qrCodeImage && this.qrCodeImage.complete))) {
             // Save context state before drawing QR code
             backCtx.save();
 
