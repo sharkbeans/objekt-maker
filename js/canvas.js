@@ -668,40 +668,70 @@ const CanvasManager = {
     },
 
     /**
-     * Generate QR code image from the current link
+     * Generate QR code image from the current link using Nayuki QR Code generator
      * @returns {Promise<void>}
      */
     async generateQRCode() {
-        if (!this.qrCodeLink || typeof QRCode === 'undefined') {
+        if (!this.qrCodeLink || typeof qrcode === 'undefined') {
             this.qrCodeImage = null;
             this.qrCodeCanvas = null;
-            console.warn('QR Code library not loaded or no link provided');
+            console.warn('QR Code library not loaded or no link provided', {
+                link: this.qrCodeLink,
+                libraryLoaded: typeof qrcode !== 'undefined'
+            });
             return;
         }
 
         try {
             console.log('Generating QR code for:', this.qrCodeLink, 'with text color:', this.textColor);
+
+            // Create QR code using Nayuki library
+            // Error correction level: L=1, M=0, Q=3, H=2
+            const typeNumber = 0; // Auto-detect optimal type
+            const errorCorrectionLevel = 'M'; // Medium error correction
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(this.qrCodeLink);
+            qr.make();
+
+            // Get the module count (size of the QR code grid)
+            const moduleCount = qr.getModuleCount();
+            const cellSize = 8; // Size of each module in pixels
+            const margin = 2; // Margin in modules
+            const size = (moduleCount + margin * 2) * cellSize;
+
             // Create a canvas for QR code generation
             const qrCanvas = document.createElement('canvas');
-            await QRCode.toCanvas(qrCanvas, this.qrCodeLink, {
-                width: 256,
-                height: 256,
-                margin: 1,
-                color: {
-                    dark: this.textColor,
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            });
-            console.log('QR canvas created, dimensions:', qrCanvas.width, 'x', qrCanvas.height);
+            qrCanvas.width = size;
+            qrCanvas.height = size;
+            const ctx = qrCanvas.getContext('2d');
+
+            // Fill background with white
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw QR code modules
+            ctx.fillStyle = this.textColor;
+            for (let row = 0; row < moduleCount; row++) {
+                for (let col = 0; col < moduleCount; col++) {
+                    if (qr.isDark(row, col)) {
+                        ctx.fillRect(
+                            (col + margin) * cellSize,
+                            (row + margin) * cellSize,
+                            cellSize,
+                            cellSize
+                        );
+                    }
+                }
+            }
+
+            console.log('QR canvas created, dimensions:', qrCanvas.width, 'x', qrCanvas.height, 'modules:', moduleCount);
 
             // Store the canvas directly for rendering
             this.qrCodeCanvas = qrCanvas;
 
             // Also convert canvas to image for backwards compatibility
             const img = new Image();
-            img.src = qrCanvas.toDataURL();
-            console.log('QR image data URL created, length:', img.src.length);
+            img.src = qrCanvas.toDataURL('image/png');
 
             await new Promise((resolve, reject) => {
                 img.onload = () => {
@@ -717,7 +747,7 @@ const CanvasManager = {
             this.qrCodeImage = img;
             console.log('QR Code generated successfully and stored');
 
-            // Update back side preview if it's enabled
+            // Update back side preview
             this.updateBackSidePreview();
         } catch (error) {
             console.error('Failed to generate QR code:', error);
@@ -738,20 +768,24 @@ const CanvasManager = {
             return;
         }
 
+        // Always render the back side (even if not visible) so it's ready when needed
+        console.log('Updating back side preview, QR code status:', {
+            canvasExists: !!this.qrCodeCanvas,
+            imageExists: !!this.qrCodeImage,
+            imageComplete: this.qrCodeImage ? this.qrCodeImage.complete : false,
+            enableBackSide: this.enableBackSide
+        });
+
+        // Render the back side to the preview canvas
+        const backSideCanvas = this.renderBackSide();
+        const backCtx = backCanvas.getContext('2d');
+        backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height);
+        backCtx.drawImage(backSideCanvas, 0, 0);
+        console.log('Back side preview updated');
+
         if (this.enableBackSide) {
-            console.log('Updating back side preview, QR code image status:', {
-                exists: !!this.qrCodeImage,
-                complete: this.qrCodeImage ? this.qrCodeImage.complete : false
-            });
             // Show the back canvas wrapper
             backCanvasWrapper.classList.add('active');
-
-            // Render the back side to the preview canvas
-            const backSideCanvas = this.renderBackSide();
-            const backCtx = backCanvas.getContext('2d');
-            backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height);
-            backCtx.drawImage(backSideCanvas, 0, 0);
-            console.log('Back side preview updated');
         } else {
             // Hide the back canvas wrapper
             backCanvasWrapper.classList.remove('active');
@@ -1262,7 +1296,6 @@ const CanvasManager = {
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Draw QR code inside the white square
-        // Try canvas first, fall back to image
         const qrSource = this.qrCodeCanvas || (this.qrCodeImage && this.qrCodeImage.complete ? this.qrCodeImage : null);
 
         if (qrSource) {
@@ -1273,30 +1306,18 @@ const CanvasManager = {
             backCtx.globalAlpha = 1.0; // Force full opacity
             backCtx.globalCompositeOperation = 'source-over'; // Ensure normal blending
 
-            // Add padding inside the white box for the QR code
-            const qrPadding = squareSize * 0.1; // 10% padding
+            // Add padding inside the white box for the QR code (reduced to 5% for thinner border)
+            const qrPadding = squareSize * 0.05; // 5% padding (half of previous 10%)
             const qrSize = squareSize - (qrPadding * 2);
             const qrX = whiteBoxX + qrPadding;
             const qrY = whiteBoxY + qrPadding;
 
             // Draw QR code with high quality settings
-            backCtx.imageSmoothingEnabled = true;
-            backCtx.imageSmoothingQuality = 'high';
+            backCtx.imageSmoothingEnabled = false; // Disable smoothing for crisp QR code
             backCtx.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
 
             // Restore context state
             backCtx.restore();
-
-            console.log('QR code drawn successfully at position:', {
-                qrX, qrY, qrSize,
-                sourceType: this.qrCodeCanvas ? 'canvas' : 'image'
-            });
-        } else {
-            console.warn('QR code not available for back side rendering', {
-                canvasExists: !!this.qrCodeCanvas,
-                imageExists: !!this.qrCodeImage,
-                imageComplete: this.qrCodeImage ? this.qrCodeImage.complete : false
-            });
         }
 
         // Horizontal divider 5 at bottom (1px solid line)

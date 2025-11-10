@@ -2713,8 +2713,7 @@ const UIManager = {
                 if (clickedTextType === 'signature') {
                     this.openSignatureModal();
                 } else if (clickedTextType === 'qrcode') {
-                    // QR code area is disabled for now
-                    // this.showQRCodeEditor();
+                    this.showQRCodeEditor();
                 } else if (clickedTextType === 'toplogo') {
                     this.openTopLogoModal();
                 } else {

@@ -46,20 +46,25 @@ const App = {
      * Initialize QR code with retry logic for library loading
      */
     async initializeQRCode() {
-        // Wait for QRCode library to be available
+        // Wait for qrcode library (Nayuki) to be available
         let retries = 0;
-        while (typeof QRCode === 'undefined' && retries < 20) {
+        while (typeof qrcode === 'undefined' && retries < 20) {
             await new Promise(resolve => setTimeout(resolve, 100));
             retries++;
         }
 
-        if (typeof QRCode === 'undefined') {
+        if (typeof qrcode === 'undefined') {
             console.error('QRCode library failed to load');
             return;
         }
 
+        console.log('[OK] QR Code library loaded');
         await CanvasManager.generateQRCode();
         console.log('[OK] QR Code generated');
+
+        // Force an initial update of the back side preview to ensure QR code is rendered
+        CanvasManager.updateBackSidePreview();
+        console.log('[OK] Back side preview initialized with QR code');
     },
 
     /**
