@@ -4369,7 +4369,10 @@ const UIManager = {
     },
 
     /**
-     * Initialize pinch-to-zoom on canvas (mobile)
+     * Initialize two-finger touch gestures on canvas (mobile)
+     * - Two-finger pan: move image when both fingers move in the same direction
+     * - Pinch-to-zoom: zoom when fingers move apart or together
+     * This prevents accidental page scroll by requiring 2 fingers for image manipulation
      */
     initCanvasPinchZoom() {
         const canvas = document.getElementById('mainCanvas');
@@ -4377,38 +4380,74 @@ const UIManager = {
 
         let initialDistance = null;
         let initialZoom = null;
-        let isPinching = false;
+        let initialPanX = null;
+        let initialPanY = null;
+        let initialMidpointX = null;
+        let initialMidpointY = null;
+        let isTwoFingerGesture = false;
 
         canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                isPinching = true;
+            if (e.touches.length === 2 && CanvasManager.hasImage()) {
+                isTwoFingerGesture = true;
+
+                // Calculate initial distance for pinch-to-zoom
                 const dx = e.touches[0].clientX - e.touches[1].clientX;
                 const dy = e.touches[0].clientY - e.touches[1].clientY;
                 initialDistance = Math.hypot(dx, dy);
                 initialZoom = CanvasManager.imageScale;
+
+                // Calculate initial midpoint for two-finger pan
+                initialMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                initialMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                initialPanX = CanvasManager.imagePosX;
+                initialPanY = CanvasManager.imagePosY;
             }
         }, { passive: true });
 
         canvas.addEventListener('touchmove', (e) => {
-            if (!isPinching || e.touches.length !== 2 || !initialDistance) return;
+            if (!isTwoFingerGesture || e.touches.length !== 2 || !initialDistance) return;
             e.preventDefault();
 
+            // Calculate current distance for pinch-to-zoom
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const currentDistance = Math.hypot(dx, dy);
 
+            // Calculate current midpoint for two-finger pan
+            const currentMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const currentMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+            // Apply pinch-to-zoom
             const zoomRatio = currentDistance / initialDistance;
             const newZoom = Math.max(0.5, Math.min(2, initialZoom * zoomRatio));
-
             CanvasManager.setZoom(newZoom);
             this.syncSliderValue('zoom', Math.round(newZoom * 100));
+
+            // Apply two-finger pan
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+
+            const deltaX = (currentMidpointX - initialMidpointX) * scaleX;
+            const deltaY = (currentMidpointY - initialMidpointY) * scaleX;
+
+            const newPanX = Math.max(-300, Math.min(300, initialPanX + deltaX));
+            const newPanY = Math.max(-300, Math.min(300, initialPanY + deltaY));
+
+            CanvasManager.setPan(Math.round(newPanX), Math.round(newPanY));
+            this.syncSliderValue('panX', Math.round(newPanX));
+            this.syncSliderValue('panY', Math.round(newPanY));
         }, { passive: false });
 
-        canvas.addEventListener('touchend', () => {
-            if (isPinching) {
-                isPinching = false;
+        canvas.addEventListener('touchend', (e) => {
+            // Only reset when all fingers are lifted
+            if (e.touches.length === 0) {
+                isTwoFingerGesture = false;
                 initialDistance = null;
                 initialZoom = null;
+                initialPanX = null;
+                initialPanY = null;
+                initialMidpointX = null;
+                initialMidpointY = null;
             }
         });
     },
