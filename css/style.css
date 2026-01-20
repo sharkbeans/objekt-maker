@@ -945,7 +945,7 @@ input[type="range"]::-moz-range-thumb:hover {
     .canvas-container {
         padding: var(--space-md);
         min-height: auto;
-        position: static;
+        position: relative;
         max-height: none;
         overflow-y: visible;
     }
@@ -1639,5 +1639,250 @@ body {
 @media (max-width: 768px) {
     .canvas-nav-arrow {
         display: none;
+    }
+}
+
+/* ========================================
+   Floating Adjustment Overlay (Mobile)
+   ======================================== */
+
+.floating-adjust-overlay {
+    position: fixed;
+    bottom: 80px; /* Above bottom nav */
+    left: 0;
+    right: 0;
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-color);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-md) var(--space-lg);
+    z-index: 998;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: none; /* Hidden by default */
+}
+
+.floating-adjust-overlay.visible {
+    display: block;
+    transform: translateY(0);
+}
+
+.floating-adjust-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.floating-adjust-header > span {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.floating-adjust-header > span svg {
+    width: 16px;
+    height: 16px;
+}
+
+.floating-adjust-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-adjust-close:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.floating-adjust-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.floating-adjust-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.floating-adjust-content label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.floating-adjust-content label > span:first-child {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.floating-adjust-content .slider-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.floating-adjust-content .slider-group input[type="range"] {
+    flex: 1;
+}
+
+.floating-adjust-content .slider-group span {
+    min-width: 50px;
+    text-align: right;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+/* Hide floating overlay on desktop */
+@media (min-width: 769px) {
+    .floating-adjust-overlay {
+        display: none !important;
+    }
+}
+
+/* Canvas cursor styles for drag interaction */
+#mainCanvas.dragging {
+    cursor: grabbing !important;
+}
+
+/* ========================================
+   Mobile Pan Sliders (for image positioning)
+   ======================================== */
+
+/* Hidden by default */
+.mobile-pan-layout,
+.mobile-pan-x-container {
+    display: none;
+}
+
+.mobile-pan-layout.hidden,
+.mobile-pan-x-container.hidden {
+    display: none !important;
+}
+
+/* Show mobile pan controls on mobile and tablets */
+@media (max-width: 1024px) {
+    /* Prevent page scroll when interacting with canvas on mobile */
+    #mainCanvas {
+        touch-action: pinch-zoom;
+    }
+
+    /* Y slider container - positioned to the left of canvas */
+    .mobile-pan-layout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: -120px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 280px;
+        z-index: 25;
+    }
+
+    /* X slider container - below canvas */
+    .mobile-pan-x-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        padding: var(--space-sm) 0;
+        margin-top: var(--space-xs);
+    }
+}
+
+/* Base slider styles */
+.mobile-pan-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border-radius: 2px;
+    outline: none;
+    touch-action: none; /* Prevent page scroll while dragging */
+}
+
+/* Vertical slider (Y axis) - on the left, rotated horizontal slider */
+.mobile-pan-y {
+    transform: rotate(-90deg);
+    width: 280px;
+    height: 3px;
+}
+
+/* Horizontal slider (X axis) - at the bottom */
+.mobile-pan-x {
+    width: 70%;
+    max-width: 280px;
+    height: 3px;
+}
+
+/* Slider thumb styles - WebKit */
+.mobile-pan-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 2px solid white;
+}
+
+.mobile-pan-slider::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+    box-shadow: 0 2px 12px rgba(41, 122, 255, 0.6);
+}
+
+/* Slider thumb styles - Firefox */
+.mobile-pan-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 2px solid white;
+}
+
+.mobile-pan-slider::-moz-range-thumb:active {
+    transform: scale(1.1);
+    box-shadow: 0 2px 12px rgba(41, 122, 255, 0.6);
+}
+
+/* Track styles - WebKit */
+.mobile-pan-slider::-webkit-slider-runnable-track {
+    background: transparent;
+    border-radius: 2px;
+}
+
+/* Track styles - Firefox */
+.mobile-pan-slider::-moz-range-track {
+    background: transparent;
+    border-radius: 2px;
+}
+
+/* Hide on desktop (larger than tablet) */
+@media (min-width: 1025px) {
+    .mobile-pan-layout,
+    .mobile-pan-x-container {
+        display: none !important;
     }
 }

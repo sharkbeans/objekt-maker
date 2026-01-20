@@ -79,12 +79,12 @@
                                     <span id="zoomValue">100%</span>
                                 </label>
                                 <label>
-                                    <span>Pan X:</span>
+                                    <span>Horizontal:</span>
                                     <input type="range" id="panXSlider" min="-300" max="300" value="0" step="5">
                                     <span id="panXValue">0px</span>
                                 </label>
                                 <label>
-                                    <span>Pan Y:</span>
+                                    <span>Vertical:</span>
                                     <input type="range" id="panYSlider" min="-300" max="300" value="0" step="5">
                                     <span id="panYValue">0px</span>
                                 </label>
@@ -538,6 +538,11 @@
                     </button>
                 </div>
 
+                <!-- Mobile Pan Controls Layout (sliders outside canvas) -->
+                <div class="mobile-pan-layout hidden" id="mobilePanControls">
+                    <input type="range" id="mobilePanYSlider" class="mobile-pan-slider mobile-pan-y" min="-300" max="300" value="0" step="5">
+                </div>
+
                 <div class="canvas-wrapper-container">
                     <div class="canvas-wrapper active" id="canvasWrapper">
                         <canvas id="mainCanvas" width="768" height="1186"></canvas>
@@ -549,37 +554,17 @@
                             <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
                         </div>
                     </div>
-
                     <div class="canvas-wrapper" id="backCanvasWrapper">
                         <canvas id="backCanvas" width="768" height="1186"></canvas>
                     </div>
                 </div>
 
-                <!-- Mobile Adjustment Controls (hidden on desktop) -->
-                <div class="mobile-adjustments" id="mobileAdjustments">
-                    <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Quick Adjustments</h3>
-                    <label>
-                        <span>Zoom:</span>
-                        <div class="slider-group">
-                            <input type="range" id="zoomSliderMobile" min="50" max="200" value="100" step="5">
-                            <span id="zoomValueMobile">100%</span>
-                        </div>
-                    </label>
-                    <label>
-                        <span>Pan X:</span>
-                        <div class="slider-group">
-                            <input type="range" id="panXSliderMobile" min="-300" max="300" value="0" step="5">
-                            <span id="panXValueMobile">0px</span>
-                        </div>
-                    </label>
-                    <label>
-                        <span>Pan Y:</span>
-                        <div class="slider-group">
-                            <input type="range" id="panYSliderMobile" min="-300" max="300" value="0" step="5">
-                            <span id="panYValueMobile">0px</span>
-                        </div>
-                    </label>
+                <!-- Mobile Pan X Slider (below canvas) -->
+                <div class="mobile-pan-x-container hidden" id="mobilePanXContainer">
+                    <input type="range" id="mobilePanXSlider" class="mobile-pan-slider mobile-pan-x" min="-300" max="300" value="0" step="5">
                 </div>
+
+                <!-- Old Mobile Adjustments removed - replaced by floating overlay -->
 
                 <!-- Mobile Front Logo Controls -->
                 <div style="border-top: 1px solid var(--border-color); margin-top: var(--space-md); padding-top: var(--space-md); display: none;" id="frontLogoMobileSection">
@@ -623,25 +608,6 @@
                         </label>
                         <button id="clearFrontLogoBtnMobile" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Logo</button>
                     </div>
-                </div>
-
-                <!-- Mobile Back Side Adjustments (hidden on desktop) -->
-                <div class="mobile-adjustments mobile-back-adjustments" id="mobileBackAdjustments" style="display: none;">
-                    <h3 class="mobile-section-title"><i data-lucide="sliders-horizontal"></i> Text Height Adjustments</h3>
-                    <label>
-                        <span>Top Text Height:</span>
-                        <div class="slider-group">
-                            <input type="range" id="backTopTextHeightMobileQuick" min="-100" max="100" value="0" step="1">
-                            <span id="backTopTextHeightValueMobileQuick">0px</span>
-                        </div>
-                    </label>
-                    <label>
-                        <span>Bottom Text Height:</span>
-                        <div class="slider-group">
-                            <input type="range" id="backBottomTextHeightMobileQuick" min="-100" max="100" value="0" step="1">
-                            <span id="backBottomTextHeightValueMobileQuick">0px</span>
-                        </div>
-                    </label>
                 </div>
 
                 <!-- Back Side Controls (Mobile - below back canvas) -->
@@ -986,6 +952,42 @@
         </div>
     </div>
 
+    <!-- Floating Adjustment Overlay (Mobile) -->
+    <div id="floatingAdjustOverlay" class="floating-adjust-overlay">
+        <div class="floating-adjust-header">
+            <span><i data-lucide="move"></i> Image Position</span>
+            <button id="closeFloatingAdjust" class="floating-adjust-close" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="floating-adjust-content">
+            <label>
+                <span>Zoom:</span>
+                <div class="slider-group">
+                    <input type="range" id="zoomSliderFloating" min="50" max="200" value="100" step="5">
+                    <span id="zoomValueFloating">100%</span>
+                </div>
+            </label>
+            <label>
+                <span>Horizontal:</span>
+                <div class="slider-group">
+                    <input type="range" id="panXSliderFloating" min="-300" max="300" value="0" step="5">
+                    <span id="panXValueFloating">0px</span>
+                </div>
+            </label>
+            <label>
+                <span>Vertical:</span>
+                <div class="slider-group">
+                    <input type="range" id="panYSliderFloating" min="-300" max="300" value="0" step="5">
+                    <span id="panYValueFloating">0px</span>
+                </div>
+            </label>
+            <button id="resetPositionBtn" class="btn btn-secondary btn-small" style="width: 100%; margin-top: var(--space-sm);">
+                <i data-lucide="rotate-ccw"></i> Reset Position
+            </button>
+        </div>
+    </div>
+
     <!-- Bottom Footer Navigation -->
     <div class="bottom-nav" id="bottomNav">
         <div class="nav-section" id="frontNavSection">
@@ -993,12 +995,16 @@
                 <i data-lucide="upload"></i>
                 <span>Upload</span>
             </button>
-            <button class="nav-btn" data-target="border-color">
-            <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
-                <span>Border</span>
+            <button class="nav-btn" data-target="adjust">
+                <i data-lucide="move"></i>
+                <span>Adjust</span>
             </button>
             <button id="scrollToPreviewBtnMobile" style="width: 48px; height: 48px; border-radius: 50%; background: #007bff; border: none; color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.3); display: flex; align-items: center; justify-content: center; flex: none;">
                 <i data-lucide="image" style="width: 20px; height: 20px;"></i>
+            </button>
+            <button class="nav-btn" data-target="border-color">
+            <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
+                <span>Border</span>
             </button>
             <button class="nav-btn" data-target="logo">
                 <i data-lucide="image"></i>
