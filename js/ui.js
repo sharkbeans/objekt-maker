@@ -258,9 +258,12 @@ const UIManager = {
         this.bindEvents();
 
         console.log('UI Manager initialized');
-        
+
         // Set initial view after initialization
         this.currentView = 'front';
+
+        // Make canvas wrapper clickable initially (no image loaded)
+        this.elements.canvasWrapper.classList.add('clickable');
     },
 
     /**
@@ -272,6 +275,19 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // Make canvas placeholder clickable to trigger image upload
+        this.elements.canvasPlaceholder.addEventListener('click', () => {
+            this.elements.imageUpload.click();
+        });
+
+        // Make front canvas wrapper clickable to trigger image upload when no image is loaded
+        this.elements.canvasWrapper.addEventListener('click', (e) => {
+            // Only trigger if no image is loaded and click is not on an interactive element
+            if (!CanvasManager.hasImage() && !e.target.closest('button, input, .tooltip-close')) {
+                this.elements.imageUpload.click();
+            }
+        });
 
         // Adjustment controls (desktop)
         this.elements.zoomSlider.addEventListener('input', (e) => {
@@ -2291,7 +2307,8 @@ const UIManager = {
      */
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
-        this.elements.canvasPlaceholder.classList.add('hidden');  
+        this.elements.canvasWrapper.classList.remove('clickable');
+        this.elements.canvasPlaceholder.classList.add('hidden');
     },
 
     /**
@@ -2299,6 +2316,7 @@ const UIManager = {
      */
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
+        this.elements.canvasWrapper.classList.add('clickable');
         this.elements.canvasPlaceholder.classList.remove('hidden');
 
         // Hide scroll button when canvas is hidden
@@ -2312,7 +2330,8 @@ const UIManager = {
      * Enhanced for mobile devices to save directly to gallery
      */
     async exportImage() {
-        if (!CanvasManager.hasImage()) {
+        // Only require front image when exporting front side
+        if (this.currentView === 'front' && !CanvasManager.hasImage()) {
             this.showErrorMessage('Please upload an image first');
             return;
         }
