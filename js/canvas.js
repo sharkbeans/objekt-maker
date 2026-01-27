@@ -267,10 +267,14 @@ const CanvasManager = {
             reader.onload = (e) => {
                 const img = new Image();
 
-                img.onload = () => {
+                img.onload = async () => {
                     this.borderImage = img;
                     console.log('Border image loaded:', img.width, 'x', img.height);
                     this.render();
+                    // Regenerate QR code before updating back side to ensure it displays
+                    if (this.qrCodeImage || this.qrCodeCanvas) {
+                        await this.generateQRCode();
+                    }
                     this.updateBackSidePreview();
                     resolve(true);
                 };
@@ -293,9 +297,13 @@ const CanvasManager = {
     /**
      * Clear the border image and use color instead
      */
-    clearBorderImage() {
+    async clearBorderImage() {
         this.borderImage = null;
         this.render();
+        // Regenerate QR code before updating back side to ensure it displays
+        if (this.qrCodeImage || this.qrCodeCanvas) {
+            await this.generateQRCode();
+        }
         this.updateBackSidePreview();
     },
 
