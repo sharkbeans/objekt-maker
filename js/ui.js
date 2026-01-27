@@ -258,9 +258,12 @@ const UIManager = {
         this.bindEvents();
 
         console.log('UI Manager initialized');
-        
+
         // Set initial view after initialization
         this.currentView = 'front';
+
+        // Make canvas wrapper clickable initially (no image loaded)
+        this.elements.canvasWrapper.classList.add('clickable');
     },
 
     /**
@@ -272,6 +275,19 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // Make canvas placeholder clickable to trigger image upload
+        this.elements.canvasPlaceholder.addEventListener('click', () => {
+            this.elements.imageUpload.click();
+        });
+
+        // Make front canvas wrapper clickable to trigger image upload when no image is loaded
+        this.elements.canvasWrapper.addEventListener('click', (e) => {
+            // Only trigger if no image is loaded and click is not on an interactive element
+            if (!CanvasManager.hasImage() && !e.target.closest('button, input, .tooltip-close')) {
+                this.elements.imageUpload.click();
+            }
+        });
 
         // Adjustment controls (desktop)
         this.elements.zoomSlider.addEventListener('input', (e) => {
@@ -1218,9 +1234,19 @@ const UIManager = {
         
         // Initialize swipe gestures
         this.initSwipeGestures();
-        
+
         // Initialize desktop navigation arrows
         this.initDesktopArrows();
+
+        // Initialize direct canvas manipulation (drag, wheel, touch, pinch)
+        this.initCanvasDragPan();
+        this.initCanvasWheelZoom();
+        this.initCanvasDoubleClickReset();
+        // Touch drag-to-pan removed for mobile - using sliders instead
+        // this.initCanvasTouchPan();
+        this.initCanvasPinchZoom();
+        this.initFloatingAdjustOverlay();
+        this.initMobilePanSliders();
 
     },
 
@@ -1719,18 +1745,31 @@ const UIManager = {
                 if (this.elements.zoomValue) this.elements.zoomValue.textContent = `${value}%`;
                 if (this.elements.zoomSliderMobile) this.elements.zoomSliderMobile.value = value;
                 if (this.elements.zoomValueMobile) this.elements.zoomValueMobile.textContent = `${value}%`;
+                // Floating overlay
+                if (this.elements.zoomSliderFloating) this.elements.zoomSliderFloating.value = value;
+                if (this.elements.zoomValueFloating) this.elements.zoomValueFloating.textContent = `${value}%`;
                 break;
             case 'panX':
                 if (this.elements.panXSlider) this.elements.panXSlider.value = value;
                 if (this.elements.panXValue) this.elements.panXValue.textContent = `${value}px`;
                 if (this.elements.panXSliderMobile) this.elements.panXSliderMobile.value = value;
                 if (this.elements.panXValueMobile) this.elements.panXValueMobile.textContent = `${value}px`;
+                // Floating overlay
+                if (this.elements.panXSliderFloating) this.elements.panXSliderFloating.value = value;
+                if (this.elements.panXValueFloating) this.elements.panXValueFloating.textContent = `${value}px`;
+                // Mobile edge slider
+                if (this.elements.mobilePanXSlider) this.elements.mobilePanXSlider.value = value;
                 break;
             case 'panY':
                 if (this.elements.panYSlider) this.elements.panYSlider.value = value;
                 if (this.elements.panYValue) this.elements.panYValue.textContent = `${value}px`;
                 if (this.elements.panYSliderMobile) this.elements.panYSliderMobile.value = value;
                 if (this.elements.panYValueMobile) this.elements.panYValueMobile.textContent = `${value}px`;
+                // Floating overlay
+                if (this.elements.panYSliderFloating) this.elements.panYSliderFloating.value = value;
+                if (this.elements.panYValueFloating) this.elements.panYValueFloating.textContent = `${value}px`;
+                // Mobile edge slider (rotated, so negate value)
+                if (this.elements.mobilePanYSlider) this.elements.mobilePanYSlider.value = -value;
                 break;
         }
     },
@@ -1807,6 +1846,9 @@ const UIManager = {
 
             // Show tooltip for top text field (only once per session)
             this.showTopTextTooltip();
+
+            // Show mobile pan controls
+            this.updateMobilePanControlsVisibility();
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2291,7 +2333,8 @@ const UIManager = {
      */
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
-        this.elements.canvasPlaceholder.classList.add('hidden');  
+        this.elements.canvasWrapper.classList.remove('clickable');
+        this.elements.canvasPlaceholder.classList.add('hidden');
     },
 
     /**
@@ -2299,6 +2342,7 @@ const UIManager = {
      */
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
+        this.elements.canvasWrapper.classList.add('clickable');
         this.elements.canvasPlaceholder.classList.remove('hidden');
 
         // Hide scroll button when canvas is hidden
@@ -2312,7 +2356,8 @@ const UIManager = {
      * Enhanced for mobile devices to save directly to gallery
      */
     async exportImage() {
-        if (!CanvasManager.hasImage()) {
+        // Only require front image when exporting front side
+        if (this.currentView === 'front' && !CanvasManager.hasImage()) {
             this.showErrorMessage('Please upload an image first');
             return;
         }
@@ -2600,6 +2645,13 @@ const UIManager = {
             if (this.elements.mobileBackAdjustments) {
                 this.elements.mobileBackAdjustments.style.setProperty('display', 'none', 'important');
             }
+            // Show mobile pan sliders on front view (if image is loaded)
+            if (this.elements.mobilePanYContainer) {
+                this.elements.mobilePanYContainer.classList.remove('hidden');
+            }
+            if (this.elements.mobilePanXContainer) {
+                this.elements.mobilePanXContainer.classList.remove('hidden');
+            }
         } else {
             // Hide upload section on back view
             if (this.elements.uploadSection) {
@@ -2623,6 +2675,13 @@ const UIManager = {
             // Show mobile back adjustments on back view (only on mobile)
             if (this.elements.mobileBackAdjustments) {
                 this.elements.mobileBackAdjustments.style.removeProperty('display');
+            }
+            // Hide mobile pan sliders on back view
+            if (this.elements.mobilePanYContainer) {
+                this.elements.mobilePanYContainer.classList.add('hidden');
+            }
+            if (this.elements.mobilePanXContainer) {
+                this.elements.mobilePanXContainer.classList.add('hidden');
             }
         }
     },
@@ -4121,6 +4180,419 @@ const UIManager = {
                 }
             }
         }, { passive: true });
+    },
+
+    /**
+     * Initialize drag-to-pan functionality on canvas (desktop)
+     */
+    initCanvasDragPan() {
+        const canvas = document.getElementById('mainCanvas');
+        if (!canvas) return;
+
+        let isDragging = false;
+        let startX, startY, initialPanX, initialPanY;
+
+        // Set initial cursor
+        canvas.style.cursor = CanvasManager.hasImage() ? 'grab' : 'pointer';
+
+        canvas.addEventListener('mousedown', (e) => {
+            // Only start drag if image is loaded
+            if (!CanvasManager.hasImage()) return;
+
+            // Check if click is on a text area (let text editing take precedence)
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+
+            if (CanvasManager.getClickedText(canvasX, canvasY)) {
+                return; // Let text editor handle this click
+            }
+
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialPanX = CanvasManager.imagePosX;
+            initialPanY = CanvasManager.imagePosY;
+            canvas.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+
+            const deltaX = (e.clientX - startX) * scaleX;
+            const deltaY = (e.clientY - startY) * scaleX; // Use same scale for uniform movement
+
+            const newPanX = Math.max(-300, Math.min(300, initialPanX + deltaX));
+            const newPanY = Math.max(-300, Math.min(300, initialPanY + deltaY));
+
+            CanvasManager.setPan(Math.round(newPanX), Math.round(newPanY));
+            this.syncSliderValue('panX', Math.round(newPanX));
+            this.syncSliderValue('panY', Math.round(newPanY));
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                canvas.style.cursor = CanvasManager.hasImage() ? 'grab' : 'pointer';
+            }
+        });
+
+        // Update cursor when image is loaded/removed
+        this._updateCanvasCursor = () => {
+            if (!isDragging) {
+                canvas.style.cursor = CanvasManager.hasImage() ? 'grab' : 'pointer';
+            }
+        };
+    },
+
+    /**
+     * Initialize mouse wheel zoom on canvas (desktop)
+     */
+    initCanvasWheelZoom() {
+        const canvas = document.getElementById('mainCanvas');
+        if (!canvas) return;
+
+        canvas.addEventListener('wheel', (e) => {
+            if (!CanvasManager.hasImage()) return;
+            e.preventDefault();
+
+            const currentZoom = CanvasManager.imageScale * 100;
+            // Scroll down = zoom out, scroll up = zoom in
+            const zoomDelta = e.deltaY > 0 ? -10 : 10;
+            const newZoom = Math.max(50, Math.min(200, currentZoom + zoomDelta));
+
+            CanvasManager.setZoom(newZoom / 100);
+            this.syncSliderValue('zoom', newZoom);
+        }, { passive: false });
+    },
+
+    /**
+     * Initialize double-click/double-tap to reset pan
+     */
+    initCanvasDoubleClickReset() {
+        const canvas = document.getElementById('mainCanvas');
+        if (!canvas) return;
+
+        const handleDoubleAction = () => {
+            if (!CanvasManager.hasImage()) return;
+
+            CanvasManager.setPan(0, 0);
+            this.syncSliderValue('panX', 0);
+            this.syncSliderValue('panY', 0);
+        };
+
+        // Desktop double-click
+        canvas.addEventListener('dblclick', (e) => {
+            // Check if click is on a text area
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+
+            if (CanvasManager.getClickedText(canvasX, canvasY)) {
+                return; // Don't reset if clicking on text
+            }
+
+            e.preventDefault();
+            handleDoubleAction();
+        });
+    },
+
+    /**
+     * Initialize touch drag-to-pan on canvas (mobile)
+     */
+    initCanvasTouchPan() {
+        const canvas = document.getElementById('mainCanvas');
+        if (!canvas) return;
+
+        let isPanning = false;
+        let startX, startY, initialPanX, initialPanY;
+        let hasMoved = false;
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (!CanvasManager.hasImage()) return;
+            if (e.touches.length !== 1) return; // Only single touch for pan
+
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            initialPanX = CanvasManager.imagePosX;
+            initialPanY = CanvasManager.imagePosY;
+            isPanning = true;
+            hasMoved = false;
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isPanning || e.touches.length !== 1) return;
+
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+
+            // Only start panning if movement exceeds threshold
+            if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+                // Check if this is more like a horizontal swipe (for view switching)
+                // Fast horizontal swipe should switch views, not pan
+                const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 2;
+                if (isHorizontalSwipe && !hasMoved) {
+                    return; // Let swipe gesture handler take over
+                }
+
+                hasMoved = true;
+                e.preventDefault();
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+
+                const scaledDeltaX = deltaX * scaleX;
+                const scaledDeltaY = deltaY * scaleX;
+
+                const newPanX = Math.max(-300, Math.min(300, initialPanX + scaledDeltaX));
+                const newPanY = Math.max(-300, Math.min(300, initialPanY + scaledDeltaY));
+
+                CanvasManager.setPan(Math.round(newPanX), Math.round(newPanY));
+                this.syncSliderValue('panX', Math.round(newPanX));
+                this.syncSliderValue('panY', Math.round(newPanY));
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            isPanning = false;
+        });
+    },
+
+    /**
+     * Initialize two-finger touch gestures on canvas (mobile)
+     * - Two-finger pan: move image when both fingers move in the same direction
+     * - Pinch-to-zoom: zoom when fingers move apart or together
+     * This prevents accidental page scroll by requiring 2 fingers for image manipulation
+     */
+    initCanvasPinchZoom() {
+        const canvas = document.getElementById('mainCanvas');
+        if (!canvas) return;
+
+        let initialDistance = null;
+        let initialZoom = null;
+        let initialPanX = null;
+        let initialPanY = null;
+        let initialMidpointX = null;
+        let initialMidpointY = null;
+        let isTwoFingerGesture = false;
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2 && CanvasManager.hasImage()) {
+                isTwoFingerGesture = true;
+
+                // Calculate initial distance for pinch-to-zoom
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                initialDistance = Math.hypot(dx, dy);
+                initialZoom = CanvasManager.imageScale;
+
+                // Calculate initial midpoint for two-finger pan
+                initialMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                initialMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                initialPanX = CanvasManager.imagePosX;
+                initialPanY = CanvasManager.imagePosY;
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isTwoFingerGesture || e.touches.length !== 2 || !initialDistance) return;
+            e.preventDefault();
+
+            // Calculate current distance for pinch-to-zoom
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const currentDistance = Math.hypot(dx, dy);
+
+            // Calculate current midpoint for two-finger pan
+            const currentMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const currentMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+            // Apply pinch-to-zoom
+            const zoomRatio = currentDistance / initialDistance;
+            const newZoom = Math.max(0.5, Math.min(2, initialZoom * zoomRatio));
+            CanvasManager.setZoom(newZoom);
+            this.syncSliderValue('zoom', Math.round(newZoom * 100));
+
+            // Apply two-finger pan
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+
+            const deltaX = (currentMidpointX - initialMidpointX) * scaleX;
+            const deltaY = (currentMidpointY - initialMidpointY) * scaleX;
+
+            const newPanX = Math.max(-300, Math.min(300, initialPanX + deltaX));
+            const newPanY = Math.max(-300, Math.min(300, initialPanY + deltaY));
+
+            CanvasManager.setPan(Math.round(newPanX), Math.round(newPanY));
+            this.syncSliderValue('panX', Math.round(newPanX));
+            this.syncSliderValue('panY', Math.round(newPanY));
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            // Only reset when all fingers are lifted
+            if (e.touches.length === 0) {
+                isTwoFingerGesture = false;
+                initialDistance = null;
+                initialZoom = null;
+                initialPanX = null;
+                initialPanY = null;
+                initialMidpointX = null;
+                initialMidpointY = null;
+            }
+        });
+    },
+
+    /**
+     * Initialize floating adjustment overlay (mobile)
+     */
+    initFloatingAdjustOverlay() {
+        const overlay = document.getElementById('floatingAdjustOverlay');
+        const closeBtn = document.getElementById('closeFloatingAdjust');
+        const resetBtn = document.getElementById('resetPositionBtn');
+        const zoomSliderF = document.getElementById('zoomSliderFloating');
+        const panXSliderF = document.getElementById('panXSliderFloating');
+        const panYSliderF = document.getElementById('panYSliderFloating');
+        const zoomValueF = document.getElementById('zoomValueFloating');
+        const panXValueF = document.getElementById('panXValueFloating');
+        const panYValueF = document.getElementById('panYValueFloating');
+
+        if (!overlay) return;
+
+        // Store references
+        this.elements.floatingAdjustOverlay = overlay;
+        this.elements.zoomSliderFloating = zoomSliderF;
+        this.elements.panXSliderFloating = panXSliderF;
+        this.elements.panYSliderFloating = panYSliderF;
+        this.elements.zoomValueFloating = zoomValueF;
+        this.elements.panXValueFloating = panXValueF;
+        this.elements.panYValueFloating = panYValueF;
+
+        // Close button
+        closeBtn?.addEventListener('click', () => this.hideFloatingAdjustOverlay());
+
+        // Reset button
+        resetBtn?.addEventListener('click', () => {
+            CanvasManager.setPan(0, 0);
+            CanvasManager.setZoom(1);
+            this.syncSliderValue('panX', 0);
+            this.syncSliderValue('panY', 0);
+            this.syncSliderValue('zoom', 100);
+        });
+
+        // Floating slider events
+        zoomSliderF?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            zoomValueF.textContent = `${value}%`;
+            CanvasManager.setZoom(value / 100);
+            this.syncSliderValue('zoom', value);
+        });
+
+        panXSliderF?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            panXValueF.textContent = `${value}px`;
+            CanvasManager.setPan(parseInt(value), CanvasManager.imagePosY);
+            this.syncSliderValue('panX', value);
+        });
+
+        panYSliderF?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            panYValueF.textContent = `${value}px`;
+            CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
+            this.syncSliderValue('panY', value);
+        });
+    },
+
+    /**
+     * Show floating adjustment overlay
+     */
+    showFloatingAdjustOverlay() {
+        const overlay = this.elements.floatingAdjustOverlay;
+        if (overlay) {
+            overlay.classList.add('visible');
+            // Re-initialize Lucide icons in the overlay
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    },
+
+    /**
+     * Hide floating adjustment overlay
+     */
+    hideFloatingAdjustOverlay() {
+        const overlay = this.elements.floatingAdjustOverlay;
+        if (overlay) {
+            overlay.classList.remove('visible');
+        }
+    },
+
+    /**
+     * Initialize mobile edge pan sliders (thin sliders on left and bottom of canvas)
+     */
+    initMobilePanSliders() {
+        const mobilePanXSlider = document.getElementById('mobilePanXSlider');
+        const mobilePanYSlider = document.getElementById('mobilePanYSlider');
+        const mobilePanYContainer = document.getElementById('mobilePanControls');
+        const mobilePanXContainer = document.getElementById('mobilePanXContainer');
+
+        if (!mobilePanXSlider || !mobilePanYSlider) return;
+
+        // Store references
+        this.elements.mobilePanXSlider = mobilePanXSlider;
+        this.elements.mobilePanYSlider = mobilePanYSlider;
+        this.elements.mobilePanYContainer = mobilePanYContainer;
+        this.elements.mobilePanXContainer = mobilePanXContainer;
+
+        // X slider (horizontal pan - at bottom)
+        mobilePanXSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            CanvasManager.setPan(value, CanvasManager.imagePosY);
+            this.syncSliderValue('panX', value);
+        });
+
+        // Y slider (vertical pan - on left, rotated so negate value)
+        mobilePanYSlider.addEventListener('input', (e) => {
+            const value = -parseInt(e.target.value);
+            CanvasManager.setPan(CanvasManager.imagePosX, value);
+            this.syncSliderValue('panY', value);
+        });
+
+        // Prevent touch events from propagating to page scroll
+        [mobilePanXSlider, mobilePanYSlider].forEach(slider => {
+            slider.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+
+            slider.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+        });
+    },
+
+    /**
+     * Show/hide mobile pan controls based on whether image is loaded
+     */
+    updateMobilePanControlsVisibility() {
+        const mobilePanYContainer = this.elements.mobilePanYContainer;
+        const mobilePanXContainer = this.elements.mobilePanXContainer;
+
+        if (CanvasManager.hasImage()) {
+            if (mobilePanYContainer) mobilePanYContainer.classList.remove('hidden');
+            if (mobilePanXContainer) mobilePanXContainer.classList.remove('hidden');
+        } else {
+            if (mobilePanYContainer) mobilePanYContainer.classList.add('hidden');
+            if (mobilePanXContainer) mobilePanXContainer.classList.add('hidden');
+        }
     }
 };
 
@@ -4202,6 +4674,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (uploadSection) {
                 uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+        },
+        'adjust': () => {
+            // Show floating adjustment overlay
+            UIManager.showFloatingAdjustOverlay();
         },
         'border-color': () => {
             const section = document.querySelector('.collapsible-section:has(#notchColorSelect)');
