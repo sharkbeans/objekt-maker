@@ -72,6 +72,9 @@ const CanvasManager = {
     qrCodeImage: null, // Cached QR code image
     qrCodeCanvas: null, // Cached QR code canvas
 
+    // Objekt border toggle (Phase 1)
+    showObjektBorder: true, // When false, renders as clean photocard without accent bar
+
     /**
      * Initialize canvas manager
      * @param {HTMLCanvasElement} canvasElement - The canvas element
@@ -864,71 +867,74 @@ const CanvasManager = {
 
         this.ctx.restore();
 
-        // Draw centered notch on right side
-        this.ctx.save();
-        const accentX = this.canvasWidth - this.accentWidth;
+        // Draw centered notch on right side (only if objekt border is enabled)
+        if (this.showObjektBorder) {
+            this.ctx.save();
+            const accentX = this.canvasWidth - this.accentWidth;
 
-        // Calculate vertical centering
-        const notchY = (this.canvasHeight - this.notchHeight) / 2;
-        const notchRadius = 20; // Radius for the notch rounded corners (left side only)
+            // Calculate vertical centering
+            const notchY = (this.canvasHeight - this.notchHeight) / 2;
+            const notchRadius = 20; // Radius for the notch rounded corners (left side only)
 
-        // Create path for centered notch with rounded corners only on left side
-        this.ctx.beginPath();
-        this.ctx.moveTo(accentX, notchY + notchRadius);
-        this.ctx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
-        this.ctx.lineTo(this.canvasWidth, notchY); // Straight line to top-right (no rounding)
-        this.ctx.lineTo(this.canvasWidth, notchY + this.notchHeight); // Straight line down the right edge
-        this.ctx.lineTo(accentX + notchRadius, notchY + this.notchHeight);
-        this.ctx.arcTo(accentX, notchY + this.notchHeight, accentX, notchY + this.notchHeight - notchRadius, notchRadius);
-        this.ctx.closePath();
+            // Create path for centered notch with rounded corners only on left side
+            this.ctx.beginPath();
+            this.ctx.moveTo(accentX, notchY + notchRadius);
+            this.ctx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
+            this.ctx.lineTo(this.canvasWidth, notchY); // Straight line to top-right (no rounding)
+            this.ctx.lineTo(this.canvasWidth, notchY + this.notchHeight); // Straight line down the right edge
+            this.ctx.lineTo(accentX + notchRadius, notchY + this.notchHeight);
+            this.ctx.arcTo(accentX, notchY + this.notchHeight, accentX, notchY + this.notchHeight - notchRadius, notchRadius);
+            this.ctx.closePath();
 
-        // If border image is set, use it; otherwise use color
-        if (this.borderImage) {
-            // Clip and draw the border image
-            this.ctx.clip();
+            // If border image is set, use it; otherwise use color
+            if (this.borderImage) {
+                // Clip and draw the border image
+                this.ctx.clip();
 
-            // Calculate dimensions to cover the notch area (zoom to fill, don't stretch)
-            const notchAspect = this.accentWidth / this.notchHeight;
-            const imgAspect = this.borderImage.width / this.borderImage.height;
+                // Calculate dimensions to cover the notch area (zoom to fill, don't stretch)
+                const notchAspect = this.accentWidth / this.notchHeight;
+                const imgAspect = this.borderImage.width / this.borderImage.height;
 
-            let drawWidth, drawHeight;
-            let offsetX = 0, offsetY = 0;
+                let drawWidth, drawHeight;
+                let offsetX = 0, offsetY = 0;
 
-            if (imgAspect > notchAspect) {
-                // Image is wider - fit to height and crop sides
-                drawHeight = this.notchHeight;
-                drawWidth = drawHeight * imgAspect;
-                offsetX = (this.accentWidth - drawWidth) / 2;
+                if (imgAspect > notchAspect) {
+                    // Image is wider - fit to height and crop sides
+                    drawHeight = this.notchHeight;
+                    drawWidth = drawHeight * imgAspect;
+                    offsetX = (this.accentWidth - drawWidth) / 2;
+                } else {
+                    // Image is taller - fit to width and crop top/bottom
+                    drawWidth = this.accentWidth;
+                    drawHeight = drawWidth / imgAspect;
+                    offsetY = (this.notchHeight - drawHeight) / 2;
+                }
+
+                // Draw the border image to cover the notch area
+                this.ctx.drawImage(
+                    this.borderImage,
+                    accentX + offsetX,
+                    notchY + offsetY,
+                    drawWidth,
+                    drawHeight
+                );
             } else {
-                // Image is taller - fit to width and crop top/bottom
-                drawWidth = this.accentWidth;
-                drawHeight = drawWidth / imgAspect;
-                offsetY = (this.notchHeight - drawHeight) / 2;
+                // Use solid color
+                this.ctx.fillStyle = this.accentColor;
+                this.ctx.fill();
             }
 
-            // Draw the border image to cover the notch area
-            this.ctx.drawImage(
-                this.borderImage,
-                accentX + offsetX,
-                notchY + offsetY,
-                drawWidth,
-                drawHeight
-            );
-        } else {
-            // Use solid color
-            this.ctx.fillStyle = this.accentColor;
-            this.ctx.fill();
+            this.ctx.restore();
+
+            // Draw text on accent bar
+            this.drawAccentText();
         }
-
-        this.ctx.restore();
-
-        // Draw text on accent bar
-        this.drawAccentText();
 
         // Draw front side logo if present
         if (this.frontLogoImage) {
-            // Position logo inside the main image area (excluding the notch border)
-            const imageAreaWidth = this.canvasWidth - this.accentWidth;
+            // Position logo inside the main image area
+            // When objekt border is on, exclude the notch area; when off, use full canvas width
+            const imageAreaWidth = this.showObjektBorder ? this.canvasWidth - this.accentWidth : this.canvasWidth;
             const centerX = imageAreaWidth / 2;
             const centerY = this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
@@ -1841,6 +1847,7 @@ const CanvasManager = {
         this.signaturePosX = 0;
         this.signaturePosY = 0;
         this.textColor = '#000000';
+        this.showObjektBorder = true; // Reset to objekt mode by default
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
     },

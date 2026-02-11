@@ -58,6 +58,9 @@ const UIManager = {
             borderImageUpload: document.getElementById('borderImageUpload'),
             clearBorderImage: document.getElementById('clearBorderImage'),
 
+            // Objekt border toggle
+            objektBorderToggle: document.getElementById('objektBorderToggle'),
+
             // Signature modal controls
             signatureModal: document.getElementById('signatureModal'),
             openSignatureModal: document.getElementById('openSignatureModal'),
@@ -369,6 +372,13 @@ const UIManager = {
         // Border image upload
         this.elements.borderImageUpload.addEventListener('change', (e) => this.handleBorderImageUpload(e));
         this.elements.clearBorderImage.addEventListener('click', () => this.clearBorderImage());
+
+        // Objekt border toggle
+        if (this.elements.objektBorderToggle) {
+            this.elements.objektBorderToggle.addEventListener('change', (e) => {
+                this.handleObjektBorderToggle(e.target.checked);
+            });
+        }
 
         // Top logo upload and controls (desktop)
         if (this.elements.topLogoUpload) {
@@ -1881,6 +1891,52 @@ const UIManager = {
     },
 
     /**
+     * Handle objekt border toggle
+     * When disabled: hides accent bar, disables back side view, hides objekt-specific controls
+     * @param {boolean} enabled - Whether objekt border is enabled
+     */
+    handleObjektBorderToggle(enabled) {
+        CanvasManager.showObjektBorder = enabled;
+        CanvasManager.render();
+
+        // Show/hide the back side toggle button and related controls
+        const backToggleBtn = document.querySelector('.toggle-btn[data-view="back"]');
+        const canvasViewToggle = this.elements.canvasViewToggle;
+
+        // Show/hide objekt-only controls (border color, border image, front text)
+        const objektOnlyControls = document.querySelectorAll('.objekt-only-control');
+
+        if (enabled) {
+            // Show back side toggle
+            if (backToggleBtn) backToggleBtn.style.display = '';
+            if (canvasViewToggle) canvasViewToggle.style.display = '';
+
+            // Show objekt-only controls
+            objektOnlyControls.forEach(control => {
+                control.style.display = '';
+            });
+        } else {
+            // Hide back side toggle and force front view
+            if (backToggleBtn) backToggleBtn.style.display = 'none';
+
+            // If currently on back view, switch to front
+            if (this.currentView === 'back') {
+                this.switchCanvasView('front');
+            }
+
+            // Hide the entire toggle when only front is available
+            if (canvasViewToggle) canvasViewToggle.style.display = 'none';
+
+            // Hide objekt-only controls
+            objektOnlyControls.forEach(control => {
+                control.style.display = 'none';
+            });
+        }
+
+        console.log('Objekt border toggled:', enabled ? 'ON' : 'OFF');
+    },
+
+    /**
      * Handle back side logo image upload
      */
     async handleLogoImageUpload(event, isMobile = false) {
@@ -2368,7 +2424,9 @@ const UIManager = {
                 ? document.getElementById('mainCanvas')
                 : document.getElementById('backCanvas');
 
-            const filename = `objekt-${this.currentView}.png`;
+            // Use 'photocard' when objekt border is off, 'objekt' when on
+            const baseName = CanvasManager.showObjektBorder ? 'objekt' : 'photocard';
+            const filename = `${baseName}-${this.currentView}.png`;
 
             // Check if we're on mobile
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

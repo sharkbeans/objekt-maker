@@ -58,6 +58,18 @@
                     </div>
                 </section>
 
+                <!-- Objekt Border Toggle -->
+                
+                    <div class="objekt-toggle-wrapper">
+                        <span class="objekt-toggle-label">
+                            Objekt Border
+                        </span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="objektBorderToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
                 <!-- Front Side Controls -->
                 <section class="control-section" id="frontSideSection">
                     <h2 class="section-title">
@@ -91,7 +103,7 @@
                             </div>
                         </div>
 
-                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                        <div id="borderColorSection" class="adjustment-controls collapsible-section collapsed objekt-only-control" style="margin-bottom: var(--space-lg);">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
@@ -121,7 +133,7 @@
                             </div>
                         </div>
 
-                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                        <div id="borderImageSection" class="adjustment-controls collapsible-section collapsed objekt-only-control" style="margin-bottom: var(--space-lg);">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
@@ -186,14 +198,14 @@
                             </div>
                         </div>
 
-                        <div class="adjustment-controls collapsible-section collapsed">
+                        <div id="frontTextSection" class="adjustment-controls collapsible-section collapsed objekt-only-control">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="type" style="width: 16px; height: 16px;"></i>
                                     <span>TEXT</span>
                                 </span>
                                 <span class="collapse-icon">−</span>
-                            </h3>   
+                            </h3>
 
                             <div class="collapsible-content">
                                 <label>

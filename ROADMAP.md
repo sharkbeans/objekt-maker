@@ -8,7 +8,7 @@ Each phase builds on the previous one and leaves the app in a working, shippable
 
 ## Phase 1: Toggleable Objekt Border
 
-**Status:** Planned
+**Status:** Done
 
 Make the objekt-style accent bar and rotated text toggleable (on by default). When toggled off, the card renders as a clean photocard without the accent bar, and the back side is disabled (since the back side layout is objekt-specific).
 
