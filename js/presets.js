@@ -21,6 +21,10 @@ const PresetManager = {
             // Objekt border
             showObjektBorder: CanvasManager.showObjektBorder,
 
+            // Overflow border
+            showOverflowBorder: CanvasManager.showOverflowBorder,
+            overflowBorderPercent: CanvasManager.overflowBorderPercent,
+
             // Image transform
             imageScale: CanvasManager.imageScale,
             imagePosX: CanvasManager.imagePosX,
@@ -98,6 +102,14 @@ const PresetManager = {
         // Objekt border
         if (data.showObjektBorder !== undefined) {
             CanvasManager.showObjektBorder = data.showObjektBorder;
+        }
+
+        // Overflow border
+        if (data.showOverflowBorder !== undefined) {
+            CanvasManager.showOverflowBorder = data.showOverflowBorder;
+        }
+        if (data.overflowBorderPercent !== undefined) {
+            CanvasManager.overflowBorderPercent = data.overflowBorderPercent;
         }
 
         // Image transform

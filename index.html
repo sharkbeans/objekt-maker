@@ -122,20 +122,22 @@
                                 <span class="collapse-icon">−</span>
                             </h3>
                             <div class="collapsible-content">
-                                <label style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span>Objekt Border</span>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="objektBorderToggle" checked>
-                                        <span class="toggle-slider"></span>
+                                <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-md);">
+                                    <label style="display: flex; align-items: center; justify-content: space-between; flex: 1;">
+                                        <span>Objekt Border</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="objektBorderToggle" checked>
+                                            <span class="toggle-slider"></span>
+                                        </label>
                                     </label>
-                                </label>
-                                <label style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span>Overflow Border</span>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="overflowBorderToggle">
-                                        <span class="toggle-slider"></span>
+                                    <label style="display: flex; align-items: center; justify-content: space-between; flex: 1;">
+                                        <span>Overflow Border</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="overflowBorderToggle">
+                                            <span class="toggle-slider"></span>
+                                        </label>
                                     </label>
-                                </label>
+                                </div>
                                 <label id="overflowBorderSliderContainer" style="display: none;">
                                     <span>Overflow Size:</span>
                                     <input type="range" id="overflowBorderSlider" min="0.5" max="30" value="2" step="0.5">
