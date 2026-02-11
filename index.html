@@ -59,7 +59,7 @@
                 </section>
 
                 <!-- Objekt Border Toggle -->
-                
+
                     <div class="objekt-toggle-wrapper">
                         <span class="objekt-toggle-label">
                             Objekt Border
@@ -69,6 +69,35 @@
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+
+                <!-- Card Size Section -->
+                <section class="control-section">
+                    <h2 class="section-title"> Card Size</h2>
+                    <div class="adjustment-controls">
+                        <label>
+                            <select id="cardSizePreset" class="dropdown-select">
+                                <option value="objekt" selected>Objekt Default (768x1186)</option>
+                                <option value="standard">Standard Photocard (638x1016)</option>
+                                <option value="credit">Credit Card (650x1004)</option>
+                                <option value="instax">Instax Mini (673x1051)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </label>
+                        <div id="customSizeInputs" style="display: none;">
+                            <label>
+                                <span>Width (mm):</span>
+                                <input type="number" id="customWidthMM" class="text-input" placeholder="65" min="10" max="300" step="1">
+                            </label>
+                            <label>
+                                <span>Height (mm):</span>
+                                <input type="number" id="customHeightMM" class="text-input" placeholder="100" min="10" max="300" step="1">
+                            </label>
+                            <div class="upload-hint" style="text-align: center;">
+                                <span id="customSizePixels">Enter dimensions to see pixel size</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Front Side Controls -->
                 <section class="control-section" id="frontSideSection">

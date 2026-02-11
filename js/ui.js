@@ -61,6 +61,13 @@ const UIManager = {
             // Objekt border toggle
             objektBorderToggle: document.getElementById('objektBorderToggle'),
 
+            // Card size controls
+            cardSizePreset: document.getElementById('cardSizePreset'),
+            customSizeInputs: document.getElementById('customSizeInputs'),
+            customWidthMM: document.getElementById('customWidthMM'),
+            customHeightMM: document.getElementById('customHeightMM'),
+            customSizePixels: document.getElementById('customSizePixels'),
+
             // Signature modal controls
             signatureModal: document.getElementById('signatureModal'),
             openSignatureModal: document.getElementById('openSignatureModal'),
@@ -377,6 +384,25 @@ const UIManager = {
         if (this.elements.objektBorderToggle) {
             this.elements.objektBorderToggle.addEventListener('change', (e) => {
                 this.handleObjektBorderToggle(e.target.checked);
+            });
+        }
+
+        // Card size controls
+        if (this.elements.cardSizePreset) {
+            this.elements.cardSizePreset.addEventListener('change', (e) => {
+                this.handleCardSizeChange(e.target.value);
+            });
+        }
+
+        if (this.elements.customWidthMM) {
+            this.elements.customWidthMM.addEventListener('input', (e) => {
+                this.handleCustomSizeInput();
+            });
+        }
+
+        if (this.elements.customHeightMM) {
+            this.elements.customHeightMM.addEventListener('input', (e) => {
+                this.handleCustomSizeInput();
             });
         }
 
@@ -1934,6 +1960,54 @@ const UIManager = {
         }
 
         console.log('Objekt border toggled:', enabled ? 'ON' : 'OFF');
+    },
+
+    /**
+     * Handle card size preset change
+     * @param {string} preset - Selected preset ('objekt', 'standard', 'credit', 'instax', 'custom')
+     */
+    handleCardSizeChange(preset) {
+        if (preset === 'custom') {
+            // Show custom size inputs
+            this.elements.customSizeInputs.style.display = 'flex';
+            this.elements.customSizeInputs.style.flexDirection = 'column';
+            this.elements.customSizeInputs.style.gap = 'var(--space-lg)';
+
+            // Apply custom size if values are already entered
+            this.handleCustomSizeInput();
+        } else {
+            // Hide custom size inputs
+            this.elements.customSizeInputs.style.display = 'none';
+
+            // Apply preset size
+            CanvasManager.setCardSize(preset);
+        }
+
+        console.log('Card size changed to:', preset);
+    },
+
+    /**
+     * Handle custom size input (mm to pixels conversion)
+     */
+    handleCustomSizeInput() {
+        const widthMM = parseFloat(this.elements.customWidthMM.value);
+        const heightMM = parseFloat(this.elements.customHeightMM.value);
+
+        if (widthMM > 0 && heightMM > 0) {
+            // Convert mm to pixels at 300 DPI
+            const widthPx = CanvasManager.mmToPixels(widthMM);
+            const heightPx = CanvasManager.mmToPixels(heightMM);
+
+            // Update pixel display
+            this.elements.customSizePixels.textContent = `${widthPx}x${heightPx} pixels at 300 DPI`;
+
+            // Apply custom size
+            CanvasManager.setCardSize('custom', widthPx, heightPx);
+
+            console.log(`Custom size: ${widthMM}x${heightMM}mm = ${widthPx}x${heightPx}px`);
+        } else {
+            this.elements.customSizePixels.textContent = 'Enter dimensions to see pixel size';
+        }
     },
 
     /**

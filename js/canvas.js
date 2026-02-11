@@ -11,9 +11,22 @@ const CanvasManager = {
     imageRotation: 0,
     imagePosX: 0,
     imagePosY: 0,
+    // Default dimensions (Objekt Default)
+    baseCanvasWidth: 768,
+    baseCanvasHeight: 1186,
     canvasWidth: 768,
     canvasHeight: 1186,
-    accentWidth: 82.61793, // Reduced by 10% from 91.7977 (91.7977 × 0.9)
+    scaleFactor: 1, // Scale factor for proportional scaling (current / base)
+    // Card size presets (at 300 DPI)
+    cardSizePresets: {
+        objekt: { name: 'Objekt Default', widthMM: 65, heightMM: 100, width: 768, height: 1186 },
+        standard: { name: 'Standard Photocard', widthMM: 54, heightMM: 86, width: 638, height: 1016 },
+        credit: { name: 'Credit Card', widthMM: 55, heightMM: 85, width: 650, height: 1004 },
+        instax: { name: 'Instax Mini', widthMM: 57, heightMM: 89, width: 673, height: 1051 },
+        custom: { name: 'Custom', widthMM: 65, heightMM: 100, width: 768, height: 1186 }
+    },
+    currentCardSize: 'objekt',
+    accentWidth: 82.61793, // Reduced by 10% from 91.7977 (91.7977 × 0.9) - base size
     accentColor: '#FFD400',
     borderImage: null, // Custom border/notch image
     signatureImage: null, // Custom signature image
@@ -92,6 +105,67 @@ const CanvasManager = {
         this.ctx.imageSmoothingQuality = 'high';
 
         console.log('Canvas initialized:', this.canvasWidth, 'x', this.canvasHeight);
+    },
+
+    /**
+     * Set card size from preset or custom dimensions
+     * @param {string} preset - Preset name ('objekt', 'standard', 'credit', 'instax', 'custom')
+     * @param {number} customWidth - Custom width in pixels (for 'custom' preset)
+     * @param {number} customHeight - Custom height in pixels (for 'custom' preset)
+     */
+    setCardSize(preset, customWidth = null, customHeight = null) {
+        let newWidth, newHeight;
+
+        if (preset === 'custom' && customWidth && customHeight) {
+            newWidth = customWidth;
+            newHeight = customHeight;
+            this.cardSizePresets.custom.width = customWidth;
+            this.cardSizePresets.custom.height = customHeight;
+        } else if (this.cardSizePresets[preset]) {
+            newWidth = this.cardSizePresets[preset].width;
+            newHeight = this.cardSizePresets[preset].height;
+        } else {
+            console.error('Invalid card size preset:', preset);
+            return;
+        }
+
+        // Calculate scale factor based on base dimensions
+        this.scaleFactor = newWidth / this.baseCanvasWidth;
+
+        // Update canvas dimensions
+        this.canvasWidth = newWidth;
+        this.canvasHeight = newHeight;
+        this.currentCardSize = preset;
+
+        // Update actual canvas element dimensions
+        this.canvas.width = newWidth;
+        this.canvas.height = newHeight;
+
+        // Update back canvas dimensions if it exists
+        const backCanvas = document.getElementById('backCanvas');
+        if (backCanvas) {
+            backCanvas.width = newWidth;
+            backCanvas.height = newHeight;
+        }
+
+        console.log('Card size updated:', preset, `${newWidth}x${newHeight}`, `scale: ${this.scaleFactor.toFixed(3)}`);
+
+        // Re-render if image is loaded
+        if (this.hasImage()) {
+            this.render();
+            this.updateBackSidePreview();
+        }
+    },
+
+    /**
+     * Convert mm to pixels at 300 DPI
+     * @param {number} mm - Millimeters
+     * @returns {number} Pixels
+     */
+    mmToPixels(mm) {
+        // 1 inch = 25.4 mm
+        // At 300 DPI: 1 mm = (300 / 25.4) pixels ≈ 11.811 pixels
+        return Math.round(mm * (300 / 25.4));
     },
 
     /**
@@ -820,8 +894,11 @@ const CanvasManager = {
         tempCanvas.height = this.canvasHeight;
         const tempCtx = tempCanvas.getContext('2d');
 
+        // Calculate scaled accent width
+        const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+
         // Calculate image area (canvas width minus accent bar)
-        const imageAreaWidth = this.canvasWidth - this.accentWidth;
+        const imageAreaWidth = this.canvasWidth - scaledAccentWidth;
         const imageAreaHeight = this.canvasHeight;
 
         // Calculate image dimensions to cover the entire canvas with 2:3 aspect ratio
@@ -858,8 +935,9 @@ const CanvasManager = {
         );
 
         // Create rounded rectangle clip path on main canvas
+        const scaledCornerRadius = this.cornerRadius * this.scaleFactor;
         this.ctx.save();
-        this.createRoundedRect(0, 0, this.canvasWidth, this.canvasHeight, this.cornerRadius);
+        this.createRoundedRect(0, 0, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
         this.ctx.clip();
 
         // Draw the temp canvas (with image) onto main canvas
@@ -870,20 +948,21 @@ const CanvasManager = {
         // Draw centered notch on right side (only if objekt border is enabled)
         if (this.showObjektBorder) {
             this.ctx.save();
-            const accentX = this.canvasWidth - this.accentWidth;
+            const scaledNotchHeight = this.notchHeight * this.scaleFactor;
+            const accentX = this.canvasWidth - scaledAccentWidth;
 
             // Calculate vertical centering
-            const notchY = (this.canvasHeight - this.notchHeight) / 2;
-            const notchRadius = 20; // Radius for the notch rounded corners (left side only)
+            const notchY = (this.canvasHeight - scaledNotchHeight) / 2;
+            const notchRadius = 20 * this.scaleFactor; // Radius for the notch rounded corners (left side only)
 
             // Create path for centered notch with rounded corners only on left side
             this.ctx.beginPath();
             this.ctx.moveTo(accentX, notchY + notchRadius);
             this.ctx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
             this.ctx.lineTo(this.canvasWidth, notchY); // Straight line to top-right (no rounding)
-            this.ctx.lineTo(this.canvasWidth, notchY + this.notchHeight); // Straight line down the right edge
-            this.ctx.lineTo(accentX + notchRadius, notchY + this.notchHeight);
-            this.ctx.arcTo(accentX, notchY + this.notchHeight, accentX, notchY + this.notchHeight - notchRadius, notchRadius);
+            this.ctx.lineTo(this.canvasWidth, notchY + scaledNotchHeight); // Straight line down the right edge
+            this.ctx.lineTo(accentX + notchRadius, notchY + scaledNotchHeight);
+            this.ctx.arcTo(accentX, notchY + scaledNotchHeight, accentX, notchY + scaledNotchHeight - notchRadius, notchRadius);
             this.ctx.closePath();
 
             // If border image is set, use it; otherwise use color
@@ -892,7 +971,7 @@ const CanvasManager = {
                 this.ctx.clip();
 
                 // Calculate dimensions to cover the notch area (zoom to fill, don't stretch)
-                const notchAspect = this.accentWidth / this.notchHeight;
+                const notchAspect = scaledAccentWidth / scaledNotchHeight;
                 const imgAspect = this.borderImage.width / this.borderImage.height;
 
                 let drawWidth, drawHeight;
@@ -900,14 +979,14 @@ const CanvasManager = {
 
                 if (imgAspect > notchAspect) {
                     // Image is wider - fit to height and crop sides
-                    drawHeight = this.notchHeight;
+                    drawHeight = scaledNotchHeight;
                     drawWidth = drawHeight * imgAspect;
-                    offsetX = (this.accentWidth - drawWidth) / 2;
+                    offsetX = (scaledAccentWidth - drawWidth) / 2;
                 } else {
                     // Image is taller - fit to width and crop top/bottom
-                    drawWidth = this.accentWidth;
+                    drawWidth = scaledAccentWidth;
                     drawHeight = drawWidth / imgAspect;
-                    offsetY = (this.notchHeight - drawHeight) / 2;
+                    offsetY = (scaledNotchHeight - drawHeight) / 2;
                 }
 
                 // Draw the border image to cover the notch area
@@ -934,7 +1013,8 @@ const CanvasManager = {
         if (this.frontLogoImage) {
             // Position logo inside the main image area
             // When objekt border is on, exclude the notch area; when off, use full canvas width
-            const imageAreaWidth = this.showObjektBorder ? this.canvasWidth - this.accentWidth : this.canvasWidth;
+            const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+            const imageAreaWidth = this.showObjektBorder ? this.canvasWidth - scaledAccentWidth : this.canvasWidth;
             const centerX = imageAreaWidth / 2;
             const centerY = this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
@@ -952,8 +1032,8 @@ const CanvasManager = {
 
         // If a front logo image is uploaded, use it
         if (this.frontLogoImage) {
-            const baseWidth = 100; // Base width for front logo at 100% zoom
-            const baseHeight = 100; // Base height for front logo at 100% zoom
+            const baseWidth = 100 * this.scaleFactor; // Base width for front logo at 100% zoom (scaled)
+            const baseHeight = 100 * this.scaleFactor; // Base height for front logo at 100% zoom (scaled)
 
             // Calculate dimensions to fit logo while maintaining aspect ratio
             const imgAspect = this.frontLogoImage.width / this.frontLogoImage.height;
@@ -977,9 +1057,9 @@ const CanvasManager = {
             const drawX = x - drawWidth / 2;
             const drawY = y - drawHeight / 2;
 
-            // Apply position offsets (base position + slider offset)
-            const finalX = drawX + this.frontLogoBaseX + this.frontLogoPosX;
-            const finalY = drawY + this.frontLogoBaseY + this.frontLogoPosY;
+            // Apply position offsets (base position + slider offset), scaled
+            const finalX = drawX + (this.frontLogoBaseX * this.scaleFactor) + this.frontLogoPosX;
+            const finalY = drawY + (this.frontLogoBaseY * this.scaleFactor) + this.frontLogoPosY;
 
             // Translate to center, rotate, translate back to draw position
             ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
@@ -1016,28 +1096,34 @@ const CanvasManager = {
     drawAccentText() {
         this.ctx.save();
 
-        const accentX = this.canvasWidth - this.accentWidth;
-        const centerX = accentX + this.accentWidth / 2;
+        const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+        const accentX = this.canvasWidth - scaledAccentWidth;
+        const centerX = accentX + scaledAccentWidth / 2;
 
         // Set text properties
         this.ctx.fillStyle = this.textColor;
-        this.ctx.font = '600 40.90875px "Helvetica Neue", sans-serif';
+        const scaledFontSize = 40.90875 * this.scaleFactor;
+        this.ctx.font = `600 ${scaledFontSize}px "Helvetica Neue", sans-serif`;
 
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
 
         // Draw top text (rotated 90° counterclockwise + 180° flip) - SeoYeon with reduced letter spacing
         this.ctx.save();
-        this.ctx.letterSpacing = '-2.045px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
-        this.ctx.translate(centerX, 104 + this.topTextHeight);
+        const scaledTopLetterSpacing = -2.045 * this.scaleFactor;
+        this.ctx.letterSpacing = `${scaledTopLetterSpacing}px`;
+        const scaledTopY = 104 * this.scaleFactor;
+        this.ctx.translate(centerX, scaledTopY + this.topTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
         this.ctx.restore();
 
         // Draw middle text (rotated 90° counterclockwise + 180° flip) - 100A with reduced letter spacing
         this.ctx.save();
-        this.ctx.font = '550 45px "SF Pro Display", sans-serif';
-        this.ctx.letterSpacing = '-1.975px'; // 25% reduction from 0px (approximately -0.05em or -2.045px at 40.90875px font size)
+        const scaledMiddleFontSize = 45 * this.scaleFactor;
+        this.ctx.font = `550 ${scaledMiddleFontSize}px "SF Pro Display", sans-serif`;
+        const scaledMiddleLetterSpacing = -1.975 * this.scaleFactor;
+        this.ctx.letterSpacing = `${scaledMiddleLetterSpacing}px`;
         this.ctx.translate(centerX, this.canvasHeight / 2.25 + this.middleTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.middleText, 0, 0);
@@ -1047,13 +1133,14 @@ const CanvasManager = {
         this.ctx.save();
 
         // Calculate notch boundaries for bottom text positioning
-        const notchY = (this.canvasHeight - this.notchHeight) / 2;
-        const notchBottom = notchY + this.notchHeight;
-        const defaultBottomY = this.canvasHeight - 227;
+        const scaledNotchHeight = this.notchHeight * this.scaleFactor;
+        const notchY = (this.canvasHeight - scaledNotchHeight) / 2;
+        const notchBottom = notchY + scaledNotchHeight;
+        const scaledDefaultBottomY = this.canvasHeight - (227 * this.scaleFactor);
 
         // Measure text width to determine if it needs adjustment
         let textWidth = 0;
-        const baseSpacing = -1.0973;
+        const baseSpacing = -1.0973 * this.scaleFactor;
 
         if (this.bottomText === 'tripleS') {
             // Calculate width for special "tripleS" rendering
@@ -1077,9 +1164,9 @@ const CanvasManager = {
         }
 
         // Calculate Y position, adjusting if text would overflow the notch
-        const bottomMargin = 20; // Padding from the bottom edge of the notch
-        let bottomTextY = defaultBottomY;
-        const textEnd = defaultBottomY + textWidth; // After rotation, text extends upward (positive direction)
+        const bottomMargin = 20 * this.scaleFactor; // Padding from the bottom edge of the notch
+        let bottomTextY = scaledDefaultBottomY;
+        const textEnd = scaledDefaultBottomY + textWidth; // After rotation, text extends upward (positive direction)
 
         if (textEnd > notchBottom - bottomMargin) {
             // Text overflows - align to right edge of notch with margin
@@ -1150,8 +1237,9 @@ const CanvasManager = {
         backCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
         // Draw rounded rectangle background (white)
+        const scaledCornerRadius = this.cornerRadius * this.scaleFactor;
         backCtx.save();
-        this.createRoundedRectOnContext(backCtx, 0, 0, this.canvasWidth, this.canvasHeight, this.cornerRadius);
+        this.createRoundedRectOnContext(backCtx, 0, 0, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
         backCtx.fillStyle = '#FFFFFF'; // White background
         backCtx.fill();
         backCtx.restore();
@@ -1160,18 +1248,19 @@ const CanvasManager = {
         // Width calculation: white background decreased by 16.22%, so yellow box expands
         // Original white width: accentWidth (82.61793)
         // New white width: accentWidth * (1 - 0.1622) = accentWidth * 0.8378
-        const whiteBackgroundWidth = this.accentWidth * 0.8378;
+        const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+        const whiteBackgroundWidth = scaledAccentWidth * 0.8378;
         const rectWidth = this.canvasWidth - whiteBackgroundWidth;
 
         // Height calculation: top and bottom white parts decreased by 15.625%
         // Original top/bottom white height: accentWidth (82.61793)
         // New top/bottom white height: accentWidth * (1 - 0.15625) = accentWidth * 0.84375
-        const whiteBackgroundHeight = this.accentWidth * 0.84375;
+        const whiteBackgroundHeight = scaledAccentWidth * 0.84375;
         const rectHeight = this.canvasHeight - (2 * whiteBackgroundHeight);
 
         const rectX = 0;
         const rectY = whiteBackgroundHeight;
-        const rectRadius = 26; // Corner radius for the info block (increased by 30% from 20)
+        const rectRadius = 26 * this.scaleFactor; // Corner radius for the info block (scaled)
 
         backCtx.save();
         // Draw content panel with rounded corners only on right side (top-right and bottom-right)
@@ -1219,9 +1308,9 @@ const CanvasManager = {
 
         // Draw top logo if present, otherwise draw filled hexagonal cube logo at top left
         if (this.topLogoImage) {
-            this.drawTopLogo(backCtx, this.topLogoBaseX, this.topLogoBaseY);
+            this.drawTopLogo(backCtx, this.topLogoBaseX * this.scaleFactor, this.topLogoBaseY * this.scaleFactor);
         } else {
-            this.drawFilledHexCubeIcon(backCtx, 47, 110);
+            this.drawFilledHexCubeIcon(backCtx, 47 * this.scaleFactor, 110 * this.scaleFactor);
         }
 
         // Draw the text content on the left side
@@ -1229,7 +1318,7 @@ const CanvasManager = {
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'top';
 
-        const leftMargin = 47;
+        const leftMargin = 47 * this.scaleFactor;
 
         // Calculate divider positions based on info block proportions
         // Info block is 100 units tall, dividers at: 17.5, 32.5, 47.5, 62.5, 83.5
@@ -1248,46 +1337,50 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider1Y, whiteBoxRightEdge - leftMargin, 1);
 
         // NAME section
-        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
+        const scaledLabelFontSize = 29.828 * this.scaleFactor;
+        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + 10);
+        backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + (10 * this.scaleFactor));
 
-        backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-1px'; // Increased by 50% from -2px (makes spacing less negative)
+        const scaledValueFontSize = 88 * this.scaleFactor;
+        backCtx.font = `500 ${scaledValueFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        const scaledLetterSpacing = -1 * this.scaleFactor;
+        backCtx.letterSpacing = `${scaledLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
         backCtx.strokeStyle = this.textColor;
-        backCtx.lineWidth = 2; // Fine tune thickness
-        backCtx.strokeText(this.backNameValue, leftMargin, divider1Y + 58); // Moved down 7px (was 51)
+        backCtx.lineWidth = 2 * this.scaleFactor;
+        backCtx.strokeText(this.backNameValue, leftMargin, divider1Y + (58 * this.scaleFactor));
         backCtx.fillStyle = this.textColor;
-        backCtx.fillText(this.backNameValue, leftMargin, divider1Y + 58);
+        backCtx.fillText(this.backNameValue, leftMargin, divider1Y + (58 * this.scaleFactor));
 
         // Horizontal divider 2 (1px solid line)
         backCtx.fillRect(leftMargin, divider2Y, whiteBoxRightEdge - leftMargin, 1);
 
         // CLASS section
-        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
+        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + 10);
+        backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + (10 * this.scaleFactor));
 
-        backCtx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
-        backCtx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
+        backCtx.font = `500 ${scaledValueFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        const scaledClassLetterSpacing = -1.67 * this.scaleFactor;
+        backCtx.letterSpacing = `${scaledClassLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
         backCtx.strokeStyle = this.textColor;
-        backCtx.lineWidth = 2; 
-        backCtx.strokeText(this.backClassValue, leftMargin, divider2Y + 58); // Moved down 7px (was 51)
+        backCtx.lineWidth = 2 * this.scaleFactor;
+        backCtx.strokeText(this.backClassValue, leftMargin, divider2Y + (58 * this.scaleFactor));
         backCtx.fillStyle = this.textColor;
-        backCtx.fillText(this.backClassValue, leftMargin, divider2Y + 58);
+        backCtx.fillText(this.backClassValue, leftMargin, divider2Y + (58 * this.scaleFactor));
 
         // Horizontal divider 3 (1px solid line)
         backCtx.fillRect(leftMargin, divider3Y, whiteBoxRightEdge - leftMargin, 1);
 
         // SEASON section
-        backCtx.font = '400 29.828px "Helvetica Neue", sans-serif'; // 18 * 1.6571 = 29.828
+        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
         backCtx.letterSpacing = '0px';
-        backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + 10);
+        backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + (10 * this.scaleFactor));
 
         // Draw SEASON value with special handling for outline "02"
-        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + 56); // Moved down 7px (was 49)
+        this.drawSeasonTextWithOutline(backCtx, this.backSeasonValue, leftMargin, divider3Y + (56 * this.scaleFactor));
 
         // Horizontal divider 4 (1px solid line)
         backCtx.fillRect(leftMargin, divider4Y, whiteBoxRightEdge - leftMargin, 1);
@@ -1342,40 +1435,43 @@ const CanvasManager = {
         // Draw rotated text on the sides
         backCtx.save();
         // Position text at the right edge of the yellow info block
-        const whiteBackgroundWidth2 = this.accentWidth * 0.8378;
+        const scaledAccentWidth2 = this.accentWidth * this.scaleFactor;
+        const whiteBackgroundWidth2 = scaledAccentWidth2 * 0.8378;
         const rectWidth2 = this.canvasWidth - whiteBackgroundWidth2;
-        const rectY2 = this.accentWidth * 0.84375;
+        const rectY2 = scaledAccentWidth2 * 0.84375;
         const rectHeight2 = this.canvasHeight - (2 * rectY2);
         const rightGap = rectWidth2 * 0.04; // 4% of info block width from right edge
-        const textX = rectWidth2 - rightGap - 18; // Additional 10px left
+        const textX = rectWidth2 - rightGap - (18 * this.scaleFactor);
         const topGap = rectHeight2 * 0.04; // 4% of info block height from top edge
-        const bottomGap = 30; // Gap from bottom of info block
+        const bottomGap = 30 * this.scaleFactor; // Gap from bottom of info block
 
         // Draw "SeoYeon" (name) - aligned to top corner of info block
-        backCtx.translate(textX, rectY2 + topGap - 10 + this.backTopTextHeight); // Moved up 10px + height offset
+        const scaledRotatedFontSize = 41.18 * this.scaleFactor;
+        backCtx.translate(textX, rectY2 + topGap - (10 * this.scaleFactor) + this.backTopTextHeight);
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = '600 41.18px "Helvetica Neue", sans-serif'; // Increased by 17.65% from 35px
+        backCtx.font = `600 ${scaledRotatedFontSize}px "Helvetica Neue", sans-serif`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
-        backCtx.letterSpacing = '-1.5px';
+        const scaledRotatedLetterSpacing = -1.5 * this.scaleFactor;
+        backCtx.letterSpacing = `${scaledRotatedLetterSpacing}px`;
         backCtx.fillText(this.backNameValue, 0, 0);
         backCtx.restore();
 
         // Draw group name text (e.g., "tripleS") - aligned to bottom corner of info block
         backCtx.save();
-        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - 135 + this.backBottomTextHeight); // Position at bottom + height offset
+        backCtx.translate(textX, rectY2 + rectHeight2 - bottomGap - (135 * this.scaleFactor) + this.backBottomTextHeight);
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = '600 41.18px "Helvetica Neue", sans-serif'; // Increased by 17.65% from 35px
+        backCtx.font = `600 ${scaledRotatedFontSize}px "Helvetica Neue", sans-serif`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
 
         // Special handling for "tripleS" text with custom letter pair spacing (same as front page)
         const text = this.backGroupName;
-        const baseSpacing = -1.5; // Base letter spacing for this text
+        const baseSpacing = -1.5 * this.scaleFactor; // Base letter spacing for this text (scaled)
         const extraGap100 = Math.abs(baseSpacing); // 100% increment (doubling the gap)
         const extraGap50 = Math.abs(baseSpacing) * 0.5; // 50% increment
         const reducedGap = baseSpacing * 0.15; // 15% reduction
@@ -1441,8 +1537,8 @@ const CanvasManager = {
 
         // If a logo image is uploaded, use it
         if (this.logoImage) {
-            const baseWidth = 80; // Base width for logo at 100% zoom
-            const baseHeight = 80; // Base height for logo at 100% zoom
+            const baseWidth = 80 * this.scaleFactor; // Base width for logo at 100% zoom (scaled)
+            const baseHeight = 80 * this.scaleFactor; // Base height for logo at 100% zoom (scaled)
 
             // Calculate dimensions to fit logo while maintaining aspect ratio
             const imgAspect = this.logoImage.width / this.logoImage.height;
@@ -1466,9 +1562,9 @@ const CanvasManager = {
             const drawX = x - drawWidth / 2;
             const drawY = y - drawHeight / 2;
 
-            // Apply position offsets (base position + slider offset)
-            const finalX = drawX + this.logoBaseX + this.logoPosX;
-            const finalY = drawY + this.logoBaseY + this.logoPosY;
+            // Apply position offsets (base position + slider offset), scaled
+            const finalX = drawX + (this.logoBaseX * this.scaleFactor) + this.logoPosX;
+            const finalY = drawY + (this.logoBaseY * this.scaleFactor) + this.logoPosY;
 
             // Translate to center, rotate, translate back to draw position
             ctx.translate(finalX + drawWidth / 2, finalY + drawHeight / 2);
@@ -1485,15 +1581,15 @@ const CanvasManager = {
     /**
      * Draw top logo image (replaces hex cube)
      * @param {CanvasRenderingContext2D} ctx - Canvas context
-     * @param {number} x - X position
-     * @param {number} y - Y position
+     * @param {number} x - X position (already scaled by caller)
+     * @param {number} y - Y position (already scaled by caller)
      */
     drawTopLogo(ctx, x, y) {
         ctx.save();
 
         if (this.topLogoImage) {
-            const baseWidth = 100; // Base width for top logo at 100% zoom
-            const baseHeight = 100; // Base height for top logo at 100% zoom
+            const baseWidth = 100 * this.scaleFactor; // Base width for top logo at 100% zoom (scaled)
+            const baseHeight = 100 * this.scaleFactor; // Base height for top logo at 100% zoom (scaled)
 
             // Calculate dimensions to fit logo while maintaining aspect ratio
             const imgAspect = this.topLogoImage.width / this.topLogoImage.height;
@@ -1536,14 +1632,14 @@ const CanvasManager = {
     /**
      * Draw outlined hexagonal cube logo (matching the reference card logo)
      * @param {CanvasRenderingContext2D} ctx - Canvas context
-     * @param {number} x - X position
-     * @param {number} y - Y position
+     * @param {number} x - X position (already scaled by caller)
+     * @param {number} y - Y position (already scaled by caller)
      */
     drawFilledHexCubeIcon(ctx, x, y) {
-        const size = 100;
+        const size = 100 * this.scaleFactor;
         ctx.save();
         ctx.strokeStyle = this.textColor;
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 3.5 * this.scaleFactor;
         ctx.lineJoin = 'miter';
         ctx.lineCap = 'square';
 
@@ -1596,8 +1692,10 @@ const CanvasManager = {
      */
     drawSeasonTextWithOutline(ctx, text, x, y) {
         ctx.save();
-        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
-        ctx.letterSpacing = '-1.67px'; // Increased by 16.67% from -2px (-2 * 1.1667 = -1.67)
+        const scaledFontSize = 88 * this.scaleFactor;
+        ctx.font = `500 ${scaledFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        const scaledLetterSpacing = -1.67 * this.scaleFactor;
+        ctx.letterSpacing = `${scaledLetterSpacing}px`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
 
@@ -1610,7 +1708,7 @@ const CanvasManager = {
 
             // Draw text part with stroke + fill for slightly thicker appearance
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 3; // Increased to 3 for visibility
+            ctx.lineWidth = 3 * this.scaleFactor;
             ctx.strokeText(textPart, x, y);
             ctx.fillStyle = this.textColor;
             ctx.fillText(textPart, x, y);
@@ -1620,12 +1718,12 @@ const CanvasManager = {
 
             // Draw number part (outlined)
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 2.0;
-            ctx.strokeText(numberPart, x + textWidth - 3, y);
+            ctx.lineWidth = 2.0 * this.scaleFactor;
+            ctx.strokeText(numberPart, x + textWidth - (3 * this.scaleFactor), y);
         } else {
             // If no numbers, just draw normally with stroke + fill
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 0.5;
+            ctx.lineWidth = 0.5 * this.scaleFactor;
             ctx.strokeText(text, x, y);
             ctx.fillStyle = this.textColor;
             ctx.fillText(text, x, y);
@@ -1647,7 +1745,7 @@ const CanvasManager = {
 
         // If a signature image is uploaded, use it
         if (this.signatureImage) {
-            const baseWidth = 220; // Base width for signature at 100% zoom
+            const baseWidth = 220 * this.scaleFactor; // Base width for signature at 100% zoom (scaled)
             const maxHeight = height; // Use available height as reference
 
             // Calculate dimensions to fit signature while maintaining aspect ratio
@@ -1680,11 +1778,12 @@ const CanvasManager = {
         } else {
             // Draw default procedural signature
             ctx.strokeStyle = this.textColor;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * this.scaleFactor;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             const centerY = y + height / 2;
+            const scale = this.scaleFactor;
 
             // Draw a flowing cursive signature
             ctx.beginPath();
@@ -1777,9 +1876,25 @@ const CanvasManager = {
      * Export canvas as downloadable image
      * @param {Array} textOverlays - Array of text overlay objects (not used anymore)
      * @param {string} format - Export format ('png' or 'jpeg')
-     * @param {string} filename - Download filename
+     * @param {string} filename - Download filename (optional, will be generated based on settings)
      */
-    async exportImage(textOverlays = [], format = 'png', filename = 'image') {
+    async exportImage(textOverlays = [], format = 'png', filename = null) {
+        // Generate filename based on settings if not provided
+        if (!filename) {
+            if (this.showObjektBorder) {
+                filename = 'objekt';
+            } else {
+                filename = 'photocard';
+            }
+            // Add card size info for non-objekt sizes
+            if (this.currentCardSize !== 'objekt') {
+                const preset = this.cardSizePresets[this.currentCardSize];
+                if (preset) {
+                    filename += `-${this.currentCardSize}`;
+                }
+            }
+        }
+
         if (this.enableBackSide) {
             // Export both front and back side
             // First, download the front side
