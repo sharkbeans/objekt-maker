@@ -63,7 +63,7 @@ Load a "model template" image as a reference overlay for alignment. Users can to
 
 ## Phase 4: Save Presets to LocalStorage
 
-**Status:** Planned
+**Status:** Done
 
 Save the full project state (all slider values, text, colors, sizes, etc.) to localStorage. Users can save multiple named presets and load them back.
 

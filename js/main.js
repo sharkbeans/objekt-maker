@@ -30,6 +30,10 @@ const App = {
             // Generate initial QR code (with retry for library loading)
             await this.initializeQRCode();
 
+            // Initialize PresetManager (Phase 4)
+            PresetManager.initUI();
+            console.log('[OK] PresetManager initialized');
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 

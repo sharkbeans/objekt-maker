@@ -58,6 +58,26 @@
                     </div>
                 </section>
 
+                <!-- Presets Section (Phase 4) -->
+                <section class="control-section">
+                    <div class="adjustment-controls collapsible-section collapsed">
+                        <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="bookmark" style="width: 16px; height: 16px;"></i>
+                                <span>PRESETS</span>
+                            </span>
+                            <span class="collapse-icon">−</span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <div id="presetList"></div>
+                            <button id="presetSaveBtn" class="btn btn-primary" style="width: 100%; margin-top: var(--space-sm);">
+                                <i data-lucide="save"></i> Save Preset
+                            </button>
+                            <p class="upload-hint" style="margin-top: var(--space-xs); text-align: center;">Save settings to load later. Images must be re-uploaded.</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Objekt Border Toggle -->
 
                     <div class="objekt-toggle-wrapper">
@@ -1123,6 +1143,7 @@
     <!-- JavaScript Modules -->
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/presets.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Initialize Lucide Icons -->

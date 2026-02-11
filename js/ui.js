@@ -1764,6 +1764,191 @@ const UIManager = {
     },
 
     /**
+     * Sync all UI controls from loaded preset data
+     * @param {Object} data - Preset data object
+     */
+    syncUIFromPreset(data) {
+        // Card size
+        if (data.currentCardSize && this.elements.cardSizePreset) {
+            this.elements.cardSizePreset.value = data.currentCardSize;
+            if (data.currentCardSize === 'custom') {
+                this.elements.customSizeInputs.style.display = 'flex';
+                this.elements.customSizeInputs.style.flexDirection = 'column';
+                this.elements.customSizeInputs.style.gap = 'var(--space-lg)';
+                if (data.canvasWidth && data.canvasHeight) {
+                    const widthMM = Math.round(data.canvasWidth / (300 / 25.4));
+                    const heightMM = Math.round(data.canvasHeight / (300 / 25.4));
+                    this.elements.customWidthMM.value = widthMM;
+                    this.elements.customHeightMM.value = heightMM;
+                    this.elements.customSizePixels.textContent = `${data.canvasWidth}x${data.canvasHeight} pixels at 300 DPI`;
+                }
+            } else {
+                this.elements.customSizeInputs.style.display = 'none';
+            }
+        }
+
+        // Objekt border toggle
+        if (data.showObjektBorder !== undefined && this.elements.objektBorderToggle) {
+            this.elements.objektBorderToggle.checked = data.showObjektBorder;
+            this.handleObjektBorderToggle(data.showObjektBorder);
+        }
+
+        // Image transform sliders
+        if (data.imageScale !== undefined) {
+            const zoom = Math.round(data.imageScale * 100);
+            this.syncSliderValue('zoom', zoom);
+        }
+        if (data.imagePosX !== undefined) this.syncSliderValue('panX', data.imagePosX);
+        if (data.imagePosY !== undefined) this.syncSliderValue('panY', data.imagePosY);
+
+        // Border color
+        if (data.accentColor) {
+            this._updateColorPreview(data.accentColor);
+            if (this.elements.borderColorHex) this.elements.borderColorHex.value = data.accentColor;
+            if (this.elements.notchColorPicker) this.elements.notchColorPicker.value = data.accentColor;
+            this._syncDropdownWithColor(data.accentColor);
+        }
+
+        // Front text
+        if (data.topText !== undefined && this.elements.topText) this.elements.topText.value = data.topText;
+        if (data.middleText !== undefined && this.elements.middleText) this.elements.middleText.value = data.middleText;
+        if (data.bottomText !== undefined && this.elements.bottomText) this.elements.bottomText.value = data.bottomText;
+
+        // Text color
+        if (data.textColor) {
+            if (this.elements.textColorPicker) this.elements.textColorPicker.value = data.textColor;
+            if (this.elements.textColorHex) this.elements.textColorHex.value = data.textColor;
+        }
+
+        // Text height sliders (front)
+        if (data.topTextHeight !== undefined) {
+            if (this.elements.topTextHeight) {
+                this.elements.topTextHeight.value = data.topTextHeight;
+                this.elements.topTextHeightValue.textContent = `${data.topTextHeight}px`;
+            }
+        }
+        if (data.middleTextHeight !== undefined) {
+            if (this.elements.middleTextHeight) {
+                this.elements.middleTextHeight.value = data.middleTextHeight;
+                this.elements.middleTextHeightValue.textContent = `${data.middleTextHeight}px`;
+            }
+        }
+        if (data.bottomTextHeight !== undefined) {
+            if (this.elements.bottomTextHeight) {
+                this.elements.bottomTextHeight.value = data.bottomTextHeight;
+                this.elements.bottomTextHeightValue.textContent = `${data.bottomTextHeight}px`;
+            }
+        }
+
+        // Front logo sliders
+        if (data.frontLogoZoom !== undefined) {
+            const v = Math.round(data.frontLogoZoom * 100);
+            this.syncFrontLogoSliderValue('zoom', v);
+        }
+        if (data.frontLogoPosX !== undefined) this.syncFrontLogoSliderValue('posX', data.frontLogoPosX);
+        if (data.frontLogoPosY !== undefined) this.syncFrontLogoSliderValue('posY', data.frontLogoPosY);
+        if (data.frontLogoRotation !== undefined) this.syncFrontLogoSliderValue('rotation', data.frontLogoRotation);
+
+        // Top logo sliders (back)
+        if (data.topLogoZoom !== undefined) {
+            const v = Math.round(data.topLogoZoom * 100);
+            this.syncTopLogoSliderValue('zoom', v);
+        }
+        if (data.topLogoPosX !== undefined) this.syncTopLogoSliderValue('posX', data.topLogoPosX);
+        if (data.topLogoPosY !== undefined) this.syncTopLogoSliderValue('posY', data.topLogoPosY);
+        if (data.topLogoRotation !== undefined) this.syncTopLogoSliderValue('rotation', data.topLogoRotation);
+
+        // Bottom logo sliders (back)
+        if (data.logoZoom !== undefined) {
+            const v = Math.round(data.logoZoom * 100);
+            this.syncLogoSliderValue('zoom', v);
+        }
+        if (data.logoPosX !== undefined) this.syncLogoSliderValue('posX', data.logoPosX);
+        if (data.logoPosY !== undefined) this.syncLogoSliderValue('posY', data.logoPosY);
+        if (data.logoRotation !== undefined) this.syncLogoSliderValue('rotation', data.logoRotation);
+
+        // Signature sliders
+        if (data.signatureZoom !== undefined) {
+            const v = Math.round(data.signatureZoom * 100);
+            this.syncSignatureSliderValue('zoom', v);
+        }
+        if (data.signaturePosX !== undefined) this.syncSignatureSliderValue('posX', data.signaturePosX);
+        if (data.signaturePosY !== undefined) this.syncSignatureSliderValue('posY', data.signaturePosY);
+
+        // Back side text fields (desktop + mobile)
+        if (data.backNameLabel !== undefined) {
+            if (this.elements.backNameLabel) this.elements.backNameLabel.value = data.backNameLabel;
+            if (this.elements.backNameLabelMobile) this.elements.backNameLabelMobile.value = data.backNameLabel;
+        }
+        if (data.backNameValue !== undefined) {
+            if (this.elements.backNameValue) this.elements.backNameValue.value = data.backNameValue;
+            if (this.elements.backNameValueMobile) this.elements.backNameValueMobile.value = data.backNameValue;
+        }
+        if (data.backClassLabel !== undefined) {
+            if (this.elements.backClassLabel) this.elements.backClassLabel.value = data.backClassLabel;
+            if (this.elements.backClassLabelMobile) this.elements.backClassLabelMobile.value = data.backClassLabel;
+        }
+        if (data.backClassValue !== undefined) {
+            if (this.elements.backClassValue) this.elements.backClassValue.value = data.backClassValue;
+            if (this.elements.backClassValueMobile) this.elements.backClassValueMobile.value = data.backClassValue;
+        }
+        if (data.backSeasonLabel !== undefined) {
+            if (this.elements.backSeasonLabel) this.elements.backSeasonLabel.value = data.backSeasonLabel;
+            if (this.elements.backSeasonLabelMobile) this.elements.backSeasonLabelMobile.value = data.backSeasonLabel;
+        }
+        if (data.backSeasonValue !== undefined) {
+            if (this.elements.backSeasonValue) this.elements.backSeasonValue.value = data.backSeasonValue;
+            if (this.elements.backSeasonValueMobile) this.elements.backSeasonValueMobile.value = data.backSeasonValue;
+        }
+        if (data.backGroupName !== undefined) {
+            if (this.elements.backGroupName) this.elements.backGroupName.value = data.backGroupName;
+            if (this.elements.backGroupNameMobile) this.elements.backGroupNameMobile.value = data.backGroupName;
+        }
+
+        // Back text height sliders
+        if (data.backTopTextHeight !== undefined) {
+            if (this.elements.backTopTextHeight) {
+                this.elements.backTopTextHeight.value = data.backTopTextHeight;
+                this.elements.backTopTextHeightValue.textContent = `${data.backTopTextHeight}px`;
+            }
+            if (this.elements.backTopTextHeightMobile) {
+                this.elements.backTopTextHeightMobile.value = data.backTopTextHeight;
+                this.elements.backTopTextHeightValueMobile.textContent = `${data.backTopTextHeight}px`;
+            }
+        }
+        if (data.backBottomTextHeight !== undefined) {
+            if (this.elements.backBottomTextHeight) {
+                this.elements.backBottomTextHeight.value = data.backBottomTextHeight;
+                this.elements.backBottomTextHeightValue.textContent = `${data.backBottomTextHeight}px`;
+            }
+            if (this.elements.backBottomTextHeightMobile) {
+                this.elements.backBottomTextHeightMobile.value = data.backBottomTextHeight;
+                this.elements.backBottomTextHeightValueMobile.textContent = `${data.backBottomTextHeight}px`;
+            }
+        }
+
+        // QR code link
+        if (data.qrCodeLink !== undefined) {
+            if (this.elements.qrCodeLink) this.elements.qrCodeLink.value = data.qrCodeLink;
+            if (this.elements.qrCodeLinkMobile) this.elements.qrCodeLinkMobile.value = data.qrCodeLink;
+            CanvasManager.generateQRCode();
+        }
+
+        // Template overlay
+        if (data.templateOpacity !== undefined && this.elements.templateOpacity) {
+            const pct = Math.round(data.templateOpacity * 100);
+            this.elements.templateOpacity.value = pct;
+            this.elements.templateOpacityValue.textContent = `${pct}%`;
+        }
+        if (data.showTemplate !== undefined && this.elements.templateToggle) {
+            this.elements.templateToggle.checked = data.showTemplate;
+        }
+
+        // Sync back side colors
+        this.syncBackColors();
+    },
+
+    /**
      * Handle border image upload for back side
      */
     async handleBorderImageUploadBack(event) {
@@ -2573,6 +2758,13 @@ const UIManager = {
             return;
         }
 
+        // Temporarily hide template overlay during export (template is for lineup only)
+        const templateWasVisible = CanvasManager.showTemplate;
+        if (templateWasVisible) {
+            CanvasManager.showTemplate = false;
+            CanvasManager.render();
+        }
+
         try {
             // Determine which canvas to export based on current view
             const canvas = this.currentView === 'front'
@@ -2598,6 +2790,12 @@ const UIManager = {
         } catch (error) {
             this.showErrorMessage('Failed to export image');
             console.error(error);
+        } finally {
+            // Restore template visibility after export
+            if (templateWasVisible) {
+                CanvasManager.showTemplate = true;
+                CanvasManager.render();
+            }
         }
     },
 

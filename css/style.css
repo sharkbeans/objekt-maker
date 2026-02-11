@@ -1961,3 +1961,35 @@ body {
         display: none !important;
     }
 }
+
+/* ========================================
+   Preset List (Phase 4)
+   ======================================== */
+
+.preset-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.preset-item-name {
+    font-size: 0.813rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.preset-item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}

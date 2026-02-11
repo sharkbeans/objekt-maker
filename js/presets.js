@@ -1,0 +1,329 @@
+/**
+ * presets.js
+ * Handles saving/loading project presets to localStorage
+ */
+
+const PresetManager = {
+    STORAGE_KEY: 'objektify_presets',
+    MAX_PRESETS: 20,
+
+    /**
+     * Collect current project state from CanvasManager into a serializable object
+     * @returns {Object} Preset data
+     */
+    collectState() {
+        return {
+            // Card size
+            currentCardSize: CanvasManager.currentCardSize,
+            canvasWidth: CanvasManager.canvasWidth,
+            canvasHeight: CanvasManager.canvasHeight,
+
+            // Objekt border
+            showObjektBorder: CanvasManager.showObjektBorder,
+
+            // Image transform
+            imageScale: CanvasManager.imageScale,
+            imagePosX: CanvasManager.imagePosX,
+            imagePosY: CanvasManager.imagePosY,
+
+            // Border color
+            accentColor: CanvasManager.accentColor,
+
+            // Front text
+            topText: CanvasManager.topText,
+            middleText: CanvasManager.middleText,
+            bottomText: CanvasManager.bottomText,
+            textColor: CanvasManager.textColor,
+            topTextHeight: CanvasManager.topTextHeight,
+            middleTextHeight: CanvasManager.middleTextHeight,
+            bottomTextHeight: CanvasManager.bottomTextHeight,
+
+            // Front logo transform
+            frontLogoZoom: CanvasManager.frontLogoZoom,
+            frontLogoPosX: CanvasManager.frontLogoPosX,
+            frontLogoPosY: CanvasManager.frontLogoPosY,
+            frontLogoRotation: CanvasManager.frontLogoRotation,
+
+            // Back side top logo transform
+            topLogoZoom: CanvasManager.topLogoZoom,
+            topLogoPosX: CanvasManager.topLogoPosX,
+            topLogoPosY: CanvasManager.topLogoPosY,
+            topLogoRotation: CanvasManager.topLogoRotation,
+
+            // Back side bottom logo transform
+            logoZoom: CanvasManager.logoZoom,
+            logoPosX: CanvasManager.logoPosX,
+            logoPosY: CanvasManager.logoPosY,
+            logoRotation: CanvasManager.logoRotation,
+
+            // Signature transform
+            signatureZoom: CanvasManager.signatureZoom,
+            signaturePosX: CanvasManager.signaturePosX,
+            signaturePosY: CanvasManager.signaturePosY,
+
+            // Back side labels and values
+            backNameLabel: CanvasManager.backNameLabel,
+            backNameValue: CanvasManager.backNameValue,
+            backClassLabel: CanvasManager.backClassLabel,
+            backClassValue: CanvasManager.backClassValue,
+            backSeasonLabel: CanvasManager.backSeasonLabel,
+            backSeasonValue: CanvasManager.backSeasonValue,
+            backGroupName: CanvasManager.backGroupName,
+            backTopTextHeight: CanvasManager.backTopTextHeight,
+            backBottomTextHeight: CanvasManager.backBottomTextHeight,
+
+            // QR code
+            qrCodeLink: CanvasManager.qrCodeLink,
+
+            // Template overlay settings
+            templateOpacity: CanvasManager.templateOpacity,
+            showTemplate: CanvasManager.showTemplate
+        };
+    },
+
+    /**
+     * Apply preset data to CanvasManager state
+     * @param {Object} data - Preset data
+     */
+    applyState(data) {
+        // Card size
+        if (data.currentCardSize) {
+            if (data.currentCardSize === 'custom' && data.canvasWidth && data.canvasHeight) {
+                CanvasManager.setCardSize('custom', data.canvasWidth, data.canvasHeight);
+            } else {
+                CanvasManager.setCardSize(data.currentCardSize);
+            }
+        }
+
+        // Objekt border
+        if (data.showObjektBorder !== undefined) {
+            CanvasManager.showObjektBorder = data.showObjektBorder;
+        }
+
+        // Image transform
+        if (data.imageScale !== undefined) CanvasManager.imageScale = data.imageScale;
+        if (data.imagePosX !== undefined) CanvasManager.imagePosX = data.imagePosX;
+        if (data.imagePosY !== undefined) CanvasManager.imagePosY = data.imagePosY;
+
+        // Border color
+        if (data.accentColor) CanvasManager.accentColor = data.accentColor;
+
+        // Front text
+        if (data.topText !== undefined) CanvasManager.topText = data.topText;
+        if (data.middleText !== undefined) CanvasManager.middleText = data.middleText;
+        if (data.bottomText !== undefined) CanvasManager.bottomText = data.bottomText;
+        if (data.textColor) CanvasManager.textColor = data.textColor;
+        if (data.topTextHeight !== undefined) CanvasManager.topTextHeight = data.topTextHeight;
+        if (data.middleTextHeight !== undefined) CanvasManager.middleTextHeight = data.middleTextHeight;
+        if (data.bottomTextHeight !== undefined) CanvasManager.bottomTextHeight = data.bottomTextHeight;
+
+        // Front logo
+        if (data.frontLogoZoom !== undefined) CanvasManager.frontLogoZoom = data.frontLogoZoom;
+        if (data.frontLogoPosX !== undefined) CanvasManager.frontLogoPosX = data.frontLogoPosX;
+        if (data.frontLogoPosY !== undefined) CanvasManager.frontLogoPosY = data.frontLogoPosY;
+        if (data.frontLogoRotation !== undefined) CanvasManager.frontLogoRotation = data.frontLogoRotation;
+
+        // Back top logo
+        if (data.topLogoZoom !== undefined) CanvasManager.topLogoZoom = data.topLogoZoom;
+        if (data.topLogoPosX !== undefined) CanvasManager.topLogoPosX = data.topLogoPosX;
+        if (data.topLogoPosY !== undefined) CanvasManager.topLogoPosY = data.topLogoPosY;
+        if (data.topLogoRotation !== undefined) CanvasManager.topLogoRotation = data.topLogoRotation;
+
+        // Back bottom logo
+        if (data.logoZoom !== undefined) CanvasManager.logoZoom = data.logoZoom;
+        if (data.logoPosX !== undefined) CanvasManager.logoPosX = data.logoPosX;
+        if (data.logoPosY !== undefined) CanvasManager.logoPosY = data.logoPosY;
+        if (data.logoRotation !== undefined) CanvasManager.logoRotation = data.logoRotation;
+
+        // Signature
+        if (data.signatureZoom !== undefined) CanvasManager.signatureZoom = data.signatureZoom;
+        if (data.signaturePosX !== undefined) CanvasManager.signaturePosX = data.signaturePosX;
+        if (data.signaturePosY !== undefined) CanvasManager.signaturePosY = data.signaturePosY;
+
+        // Back side labels
+        if (data.backNameLabel !== undefined) CanvasManager.backNameLabel = data.backNameLabel;
+        if (data.backNameValue !== undefined) CanvasManager.backNameValue = data.backNameValue;
+        if (data.backClassLabel !== undefined) CanvasManager.backClassLabel = data.backClassLabel;
+        if (data.backClassValue !== undefined) CanvasManager.backClassValue = data.backClassValue;
+        if (data.backSeasonLabel !== undefined) CanvasManager.backSeasonLabel = data.backSeasonLabel;
+        if (data.backSeasonValue !== undefined) CanvasManager.backSeasonValue = data.backSeasonValue;
+        if (data.backGroupName !== undefined) CanvasManager.backGroupName = data.backGroupName;
+        if (data.backTopTextHeight !== undefined) CanvasManager.backTopTextHeight = data.backTopTextHeight;
+        if (data.backBottomTextHeight !== undefined) CanvasManager.backBottomTextHeight = data.backBottomTextHeight;
+
+        // QR code
+        if (data.qrCodeLink !== undefined) CanvasManager.qrCodeLink = data.qrCodeLink;
+
+        // Template
+        if (data.templateOpacity !== undefined) CanvasManager.templateOpacity = data.templateOpacity;
+        if (data.showTemplate !== undefined) CanvasManager.showTemplate = data.showTemplate;
+
+        // Re-render
+        CanvasManager.render();
+        CanvasManager.updateBackSidePreview();
+    },
+
+    /**
+     * Get all saved presets from localStorage
+     * @returns {Array} Array of { name, data, timestamp }
+     */
+    getPresets() {
+        try {
+            const raw = localStorage.getItem(this.STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            console.error('Failed to read presets:', e);
+            return [];
+        }
+    },
+
+    /**
+     * Save a new preset
+     * @param {string} name - Preset name
+     * @returns {boolean} Success
+     */
+    savePreset(name) {
+        const presets = this.getPresets();
+
+        if (presets.length >= this.MAX_PRESETS) {
+            alert(`Maximum of ${this.MAX_PRESETS} presets reached. Delete one first.`);
+            return false;
+        }
+
+        const preset = {
+            name: name.trim(),
+            data: this.collectState(),
+            timestamp: Date.now()
+        };
+
+        presets.push(preset);
+
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(presets));
+            console.log('Preset saved:', name);
+            return true;
+        } catch (e) {
+            console.error('Failed to save preset:', e);
+            alert('Failed to save preset. LocalStorage may be full.');
+            return false;
+        }
+    },
+
+    /**
+     * Load a preset by index
+     * @param {number} index - Preset index
+     * @returns {boolean} Success
+     */
+    loadPreset(index) {
+        const presets = this.getPresets();
+        if (index < 0 || index >= presets.length) return false;
+
+        const preset = presets[index];
+        this.applyState(preset.data);
+        UIManager.syncUIFromPreset(preset.data);
+
+        console.log('Preset loaded:', preset.name);
+        return true;
+    },
+
+    /**
+     * Delete a preset by index
+     * @param {number} index - Preset index
+     * @returns {boolean} Success
+     */
+    deletePreset(index) {
+        const presets = this.getPresets();
+        if (index < 0 || index >= presets.length) return false;
+
+        const name = presets[index].name;
+        presets.splice(index, 1);
+
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(presets));
+            console.log('Preset deleted:', name);
+            return true;
+        } catch (e) {
+            console.error('Failed to delete preset:', e);
+            return false;
+        }
+    },
+
+    /**
+     * Render the preset list into the given container element
+     * @param {HTMLElement} container - The list container
+     */
+    renderPresetList(container) {
+        const presets = this.getPresets();
+        container.innerHTML = '';
+
+        if (presets.length === 0) {
+            container.innerHTML = '<p class="upload-hint" style="text-align: center; padding: var(--space-sm) 0;">No saved presets</p>';
+            return;
+        }
+
+        presets.forEach((preset, index) => {
+            const item = document.createElement('div');
+            item.className = 'preset-item';
+
+            const name = document.createElement('span');
+            name.className = 'preset-item-name';
+            name.textContent = preset.name;
+            name.title = preset.name;
+
+            const actions = document.createElement('div');
+            actions.className = 'preset-item-actions';
+
+            const loadBtn = document.createElement('button');
+            loadBtn.className = 'btn btn-secondary btn-small';
+            loadBtn.innerHTML = '<i data-lucide="upload"></i>';
+            loadBtn.title = 'Load preset';
+            loadBtn.addEventListener('click', () => {
+                this.loadPreset(index);
+                this.renderPresetList(container);
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-secondary btn-small';
+            deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+            deleteBtn.title = 'Delete preset';
+            deleteBtn.addEventListener('click', () => {
+                if (confirm(`Delete preset "${preset.name}"?`)) {
+                    this.deletePreset(index);
+                    this.renderPresetList(container);
+                }
+            });
+
+            actions.appendChild(loadBtn);
+            actions.appendChild(deleteBtn);
+            item.appendChild(name);
+            item.appendChild(actions);
+            container.appendChild(item);
+        });
+
+        // Re-initialize lucide icons for dynamically added elements
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    },
+
+    /**
+     * Initialize preset UI - bind save button and render list
+     */
+    initUI() {
+        const saveBtn = document.getElementById('presetSaveBtn');
+        const listContainer = document.getElementById('presetList');
+
+        if (!saveBtn || !listContainer) return;
+
+        saveBtn.addEventListener('click', () => {
+            const name = prompt('Enter a name for this preset:');
+            if (name && name.trim()) {
+                if (this.savePreset(name)) {
+                    this.renderPresetList(listContainer);
+                }
+            }
+        });
+
+        this.renderPresetList(listContainer);
+    }
+};
