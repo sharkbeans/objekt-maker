@@ -88,6 +88,10 @@ const CanvasManager = {
     // Objekt border toggle (Phase 1)
     showObjektBorder: true, // When false, renders as clean photocard without accent bar
 
+    // Overflow border settings
+    showOverflowBorder: false,
+    overflowBorderPercent: 2,
+
     // Reference Template Overlay (Phase 3)
     templateImage: null, // Template image for alignment reference
     templateOpacity: 0.5, // Template opacity (0-1)
@@ -1008,8 +1012,26 @@ const CanvasManager = {
             return;
         }
 
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+        // Calculate canvas size with overflow
+        const multiplier = this.showOverflowBorder ? (1 + this.overflowBorderPercent / 100) : 1;
+        const renderWidth = Math.round(this.canvasWidth * multiplier);
+        const renderHeight = Math.round(this.canvasHeight * multiplier);
+        const offset = Math.round((renderWidth - this.canvasWidth) / 2);
+
+        // Resize canvas if needed
+        if (this.canvas.width !== renderWidth || this.canvas.height !== renderHeight) {
+            this.canvas.width = renderWidth;
+            this.canvas.height = renderHeight;
+            this.ctx.imageSmoothingEnabled = true;
+            this.ctx.imageSmoothingQuality = 'high';
+        }
+
+        // Clear and draw gray background if overflow enabled
+        this.ctx.clearRect(0, 0, renderWidth, renderHeight);
+        if (this.showOverflowBorder) {
+            this.ctx.fillStyle = '#D3D3D3';
+            this.ctx.fillRect(0, 0, renderWidth, renderHeight);
+        }
 
         // Create a temporary canvas for the rounded image
         const tempCanvas = document.createElement('canvas');
@@ -1060,11 +1082,11 @@ const CanvasManager = {
         // Create rounded rectangle clip path on main canvas
         const scaledCornerRadius = this.cornerRadius * this.scaleFactor;
         this.ctx.save();
-        this.createRoundedRect(0, 0, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
+        this.createRoundedRect(offset, offset, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
         this.ctx.clip();
 
         // Draw the temp canvas (with image) onto main canvas
-        this.ctx.drawImage(tempCanvas, 0, 0);
+        this.ctx.drawImage(tempCanvas, offset, offset);
 
         this.ctx.restore();
 
@@ -1072,18 +1094,18 @@ const CanvasManager = {
         if (this.showObjektBorder) {
             this.ctx.save();
             const scaledNotchHeight = this.notchHeight * this.scaleFactor;
-            const accentX = this.canvasWidth - scaledAccentWidth;
+            const accentX = offset + this.canvasWidth - scaledAccentWidth;
 
             // Calculate vertical centering
-            const notchY = (this.canvasHeight - scaledNotchHeight) / 2;
+            const notchY = offset + (this.canvasHeight - scaledNotchHeight) / 2;
             const notchRadius = 20 * this.scaleFactor; // Radius for the notch rounded corners (left side only)
 
             // Create path for centered notch with rounded corners only on left side
             this.ctx.beginPath();
             this.ctx.moveTo(accentX, notchY + notchRadius);
             this.ctx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
-            this.ctx.lineTo(this.canvasWidth, notchY); // Straight line to top-right (no rounding)
-            this.ctx.lineTo(this.canvasWidth, notchY + scaledNotchHeight); // Straight line down the right edge
+            this.ctx.lineTo(offset + this.canvasWidth, notchY); // Straight line to top-right (no rounding)
+            this.ctx.lineTo(offset + this.canvasWidth, notchY + scaledNotchHeight); // Straight line down the right edge
             this.ctx.lineTo(accentX + notchRadius, notchY + scaledNotchHeight);
             this.ctx.arcTo(accentX, notchY + scaledNotchHeight, accentX, notchY + scaledNotchHeight - notchRadius, notchRadius);
             this.ctx.closePath();
@@ -1138,8 +1160,8 @@ const CanvasManager = {
             // When objekt border is on, exclude the notch area; when off, use full canvas width
             const scaledAccentWidth = this.accentWidth * this.scaleFactor;
             const imageAreaWidth = this.showObjektBorder ? this.canvasWidth - scaledAccentWidth : this.canvasWidth;
-            const centerX = imageAreaWidth / 2;
-            const centerY = this.canvasHeight / 2;
+            const centerX = offset + imageAreaWidth / 2;
+            const centerY = offset + this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
         }
 
@@ -1222,8 +1244,12 @@ const CanvasManager = {
     drawAccentText() {
         this.ctx.save();
 
+        const multiplier = this.showOverflowBorder ? (1 + this.overflowBorderPercent / 100) : 1;
+        const renderWidth = Math.round(this.canvasWidth * multiplier);
+        const offset = Math.round((renderWidth - this.canvasWidth) / 2);
+
         const scaledAccentWidth = this.accentWidth * this.scaleFactor;
-        const accentX = this.canvasWidth - scaledAccentWidth;
+        const accentX = offset + this.canvasWidth - scaledAccentWidth;
         const centerX = accentX + scaledAccentWidth / 2;
 
         // Set text properties
@@ -1238,7 +1264,7 @@ const CanvasManager = {
         this.ctx.save();
         const scaledTopLetterSpacing = -2.045 * this.scaleFactor;
         this.ctx.letterSpacing = `${scaledTopLetterSpacing}px`;
-        const scaledTopY = 104 * this.scaleFactor;
+        const scaledTopY = offset + 104 * this.scaleFactor;
         this.ctx.translate(centerX, scaledTopY + this.topTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.topText, 0, 0);
@@ -1250,7 +1276,7 @@ const CanvasManager = {
         this.ctx.font = `550 ${scaledMiddleFontSize}px "SF Pro Display", sans-serif`;
         const scaledMiddleLetterSpacing = -1.975 * this.scaleFactor;
         this.ctx.letterSpacing = `${scaledMiddleLetterSpacing}px`;
-        this.ctx.translate(centerX, this.canvasHeight / 2.25 + this.middleTextHeight);
+        this.ctx.translate(centerX, offset + this.canvasHeight / 2.25 + this.middleTextHeight);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
         this.ctx.fillText(this.middleText, 0, 0);
         this.ctx.restore();
@@ -1260,9 +1286,9 @@ const CanvasManager = {
 
         // Calculate notch boundaries for bottom text positioning
         const scaledNotchHeight = this.notchHeight * this.scaleFactor;
-        const notchY = (this.canvasHeight - scaledNotchHeight) / 2;
+        const notchY = offset + (this.canvasHeight - scaledNotchHeight) / 2;
         const notchBottom = notchY + scaledNotchHeight;
-        const scaledDefaultBottomY = this.canvasHeight - (227 * this.scaleFactor);
+        const scaledDefaultBottomY = offset + this.canvasHeight - (227 * this.scaleFactor);
 
         // Measure text width to determine if it needs adjustment
         let textWidth = 0;
@@ -2030,8 +2056,6 @@ const CanvasManager = {
 
         let result;
         if (this.enableBackSide) {
-            // Export both front and back side
-            // First, download the front side
             await new Promise((resolve) => {
                 this.canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
@@ -2044,7 +2068,6 @@ const CanvasManager = {
                 }, `image/${format}`, 0.95);
             });
 
-            // Then, download the back side
             const backCanvas = this.renderBackSide();
             await new Promise((resolve) => {
                 backCanvas.toBlob((blob) => {
@@ -2060,7 +2083,6 @@ const CanvasManager = {
 
             result = true;
         } else {
-            // Export only front side
             result = await new Promise((resolve) => {
                 this.canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
@@ -2068,8 +2090,6 @@ const CanvasManager = {
                     link.download = `${filename}.${format}`;
                     link.href = url;
                     link.click();
-
-                    // Clean up
                     URL.revokeObjectURL(url);
                     resolve(true);
                 }, `image/${format}`, 0.95);

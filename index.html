@@ -78,18 +78,6 @@
                     </div>
                 </section>
 
-                <!-- Objekt Border Toggle -->
-
-                    <div class="objekt-toggle-wrapper">
-                        <span class="objekt-toggle-label">
-                            Objekt Border
-                        </span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="objektBorderToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
                 <!-- Card Size Section -->
                 <section class="control-section">
                     <h2 class="section-title"> Card Size</h2>
@@ -134,6 +122,25 @@
                                 <span class="collapse-icon">−</span>
                             </h3>
                             <div class="collapsible-content">
+                                <label style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span>Objekt Border</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="objektBorderToggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span>Overflow Border</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="overflowBorderToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label id="overflowBorderSliderContainer" style="display: none;">
+                                    <span>Overflow Size:</span>
+                                    <input type="range" id="overflowBorderSlider" min="0.5" max="30" value="2" step="0.5">
+                                    <span id="overflowBorderValue">2%</span>
+                                </label>
                                 <label>
                                     <span>Zoom:</span>
                                     <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
@@ -1144,6 +1151,7 @@
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/presets.js"></script>
+    <script src="js/overflow-border.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Initialize Lucide Icons -->
