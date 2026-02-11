@@ -1066,12 +1066,35 @@
     <!-- Floating Adjustment Overlay (Mobile) -->
     <div id="floatingAdjustOverlay" class="floating-adjust-overlay">
         <div class="floating-adjust-header">
-            <span><i data-lucide="move"></i> Image Position</span>
+            <span><i data-lucide="move"></i> Adjustments</span>
             <button id="closeFloatingAdjust" class="floating-adjust-close" aria-label="Close">
                 <i data-lucide="x"></i>
             </button>
         </div>
         <div class="floating-adjust-content">
+            <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-md);">
+                <label style="display: flex; align-items: center; justify-content: space-between; flex: 1;">
+                    <span style="font-size: 0.75rem;">Objekt Border</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="objektBorderToggleMobile" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+                <label style="display: flex; align-items: center; justify-content: space-between; flex: 1;">
+                    <span style="font-size: 0.75rem;">Overflow Border</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="overflowBorderToggleMobile">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+            </div>
+            <label id="overflowBorderSliderContainerMobile" style="display: none;">
+                <span>Overflow Size:</span>
+                <div class="slider-group">
+                    <input type="range" id="overflowBorderSliderMobile" min="0.5" max="30" value="2" step="0.5">
+                    <span id="overflowBorderValueMobile">2%</span>
+                </div>
+            </label>
             <label>
                 <span>Zoom:</span>
                 <div class="slider-group">
@@ -1125,6 +1148,10 @@
                 <i data-lucide="type"></i>
                 <span>Text</span>
             </button>
+            <button class="nav-btn" data-target="template">
+                <i data-lucide="layers"></i>
+                <span>Template</span>
+            </button>
         </div>
         <div class="nav-section" id="backNavSection" style="display: none;">
             <button class="nav-btn" data-target="border-color-back">
@@ -1145,6 +1172,14 @@
             <button class="nav-btn" data-target="signature">
                 <i data-lucide="pen-tool"></i>
                 <span>Sign</span>
+            </button>
+            <button class="nav-btn" data-target="qr-code">
+                <i data-lucide="qr-code"></i>
+                <span>QR</span>
+            </button>
+            <button class="nav-btn" data-target="content">
+                <i data-lucide="text-initial"></i>
+                <span>Content</span>
             </button>
         </div>
     </div>
