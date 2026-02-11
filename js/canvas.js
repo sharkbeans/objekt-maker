@@ -88,6 +88,11 @@ const CanvasManager = {
     // Objekt border toggle (Phase 1)
     showObjektBorder: true, // When false, renders as clean photocard without accent bar
 
+    // Reference Template Overlay (Phase 3)
+    templateImage: null, // Template image for alignment reference
+    templateOpacity: 0.5, // Template opacity (0-1)
+    showTemplate: false, // Whether to show the template overlay
+
     /**
      * Initialize canvas manager
      * @param {HTMLCanvasElement} canvasElement - The canvas element
@@ -732,6 +737,124 @@ const CanvasManager = {
     },
 
     /**
+     * Load a template image from file (Phase 3)
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>} Success status
+     */
+    async loadTemplateImage(file) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.templateImage = img;
+                    this.showTemplate = true;
+                    console.log('Template image loaded:', img.width, 'x', img.height);
+                    this.render();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load template image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the template image
+     */
+    clearTemplateImage() {
+        this.templateImage = null;
+        this.showTemplate = false;
+        this.templateOpacity = 0.5;
+        this.render();
+    },
+
+    /**
+     * Set template opacity
+     * @param {number} opacity - Opacity value (0-1)
+     */
+    setTemplateOpacity(opacity) {
+        this.templateOpacity = Math.max(0, Math.min(1, opacity));
+        this.render();
+    },
+
+    /**
+     * Set template visibility
+     * @param {boolean} visible - Whether to show the template
+     */
+    setTemplateVisible(visible) {
+        this.showTemplate = visible;
+        this.render();
+    },
+
+    /**
+     * Render the template overlay on top of the canvas (Phase 3)
+     * Called at the end of render() when template is visible
+     */
+    renderTemplateOverlay() {
+        if (!this.templateImage || !this.showTemplate) {
+            return;
+        }
+
+        this.ctx.save();
+
+        // Apply opacity
+        this.ctx.globalAlpha = this.templateOpacity;
+
+        // Calculate dimensions to cover the canvas while maintaining aspect ratio
+        const imgAspect = this.templateImage.width / this.templateImage.height;
+        const canvasAspect = this.canvasWidth / this.canvasHeight;
+
+        let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+        if (imgAspect > canvasAspect) {
+            // Image is wider - fit to height
+            drawHeight = this.canvasHeight;
+            drawWidth = drawHeight * imgAspect;
+            offsetX = (this.canvasWidth - drawWidth) / 2;
+        } else {
+            // Image is taller - fit to width
+            drawWidth = this.canvasWidth;
+            drawHeight = drawWidth / imgAspect;
+            offsetY = (this.canvasHeight - drawHeight) / 2;
+        }
+
+        // Draw template overlay
+        this.ctx.drawImage(
+            this.templateImage,
+            offsetX,
+            offsetY,
+            drawWidth,
+            drawHeight
+        );
+
+        this.ctx.restore();
+    },
+
+    /**
      * Pan image position
      * @param {number} x - X offset
      * @param {number} y - Y offset
@@ -1019,6 +1142,9 @@ const CanvasManager = {
             const centerY = this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
         }
+
+        // Draw template overlay on top (Phase 3) - only for preview, not export
+        this.renderTemplateOverlay();
     },
 
     /**
@@ -1879,6 +2005,13 @@ const CanvasManager = {
      * @param {string} filename - Download filename (optional, will be generated based on settings)
      */
     async exportImage(textOverlays = [], format = 'png', filename = null) {
+        // Temporarily hide template overlay during export (Phase 3)
+        const templateWasVisible = this.showTemplate;
+        if (templateWasVisible) {
+            this.showTemplate = false;
+            this.render(); // Re-render without template
+        }
+
         // Generate filename based on settings if not provided
         if (!filename) {
             if (this.showObjektBorder) {
@@ -1895,6 +2028,7 @@ const CanvasManager = {
             }
         }
 
+        let result;
         if (this.enableBackSide) {
             // Export both front and back side
             // First, download the front side
@@ -1924,10 +2058,10 @@ const CanvasManager = {
                 }, `image/${format}`, 0.95);
             });
 
-            return true;
+            result = true;
         } else {
             // Export only front side
-            return new Promise((resolve) => {
+            result = await new Promise((resolve) => {
                 this.canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -1941,6 +2075,14 @@ const CanvasManager = {
                 }, `image/${format}`, 0.95);
             });
         }
+
+        // Restore template visibility after export (Phase 3)
+        if (templateWasVisible) {
+            this.showTemplate = true;
+            this.render(); // Re-render with template
+        }
+
+        return result;
     },
 
     /**
@@ -1963,6 +2105,10 @@ const CanvasManager = {
         this.signaturePosY = 0;
         this.textColor = '#000000';
         this.showObjektBorder = true; // Reset to objekt mode by default
+        // Reset template overlay (Phase 3)
+        this.templateImage = null;
+        this.templateOpacity = 0.5;
+        this.showTemplate = false;
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
     },

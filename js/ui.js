@@ -262,7 +262,16 @@ const UIManager = {
 
             // QR Code controls
             qrCodeLink: document.getElementById('qrCodeLink'),
-            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile')
+            qrCodeLinkMobile: document.getElementById('qrCodeLinkMobile'),
+
+            // Reference Template controls (Phase 3)
+            templateUpload: document.getElementById('templateUpload'),
+            templateUploadArea: document.getElementById('templateUploadArea'),
+            templateControlsContainer: document.getElementById('templateControlsContainer'),
+            templateToggle: document.getElementById('templateToggle'),
+            templateOpacity: document.getElementById('templateOpacity'),
+            templateOpacityValue: document.getElementById('templateOpacityValue'),
+            clearTemplateBtn: document.getElementById('clearTemplateBtn')
         };
 
         this.bindEvents();
@@ -650,6 +659,26 @@ const UIManager = {
         }
         if (this.elements.clearFrontLogoBtnMobile) {
             this.elements.clearFrontLogoBtnMobile.addEventListener('click', () => this.clearFrontLogoImage());
+        }
+
+        // Reference Template controls (Phase 3)
+        if (this.elements.templateUpload) {
+            this.elements.templateUpload.addEventListener('change', (e) => this.handleTemplateUpload(e));
+        }
+        if (this.elements.templateToggle) {
+            this.elements.templateToggle.addEventListener('change', (e) => {
+                CanvasManager.setTemplateVisible(e.target.checked);
+            });
+        }
+        if (this.elements.templateOpacity) {
+            this.elements.templateOpacity.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.templateOpacityValue.textContent = `${value}%`;
+                CanvasManager.setTemplateOpacity(value / 100);
+            });
+        }
+        if (this.elements.clearTemplateBtn) {
+            this.elements.clearTemplateBtn.addEventListener('click', () => this.clearTemplate());
         }
 
         // Signature modal controls
@@ -2219,6 +2248,58 @@ const UIManager = {
             this.elements.frontLogoControlsContainerMobile.style.display = 'none';
         }
         console.log('Front logo image cleared');
+    },
+
+    /**
+     * Handle template image upload (Phase 3)
+     */
+    async handleTemplateUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadTemplateImage(file);
+            // Show template controls
+            if (this.elements.templateControlsContainer) {
+                this.elements.templateControlsContainer.style.display = 'block';
+            }
+            // Hide upload area
+            if (this.elements.templateUploadArea) {
+                this.elements.templateUploadArea.style.display = 'none';
+            }
+            // Ensure toggle is checked
+            if (this.elements.templateToggle) {
+                this.elements.templateToggle.checked = true;
+            }
+            console.log('Template image loaded');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear template image (Phase 3)
+     */
+    clearTemplate() {
+        CanvasManager.clearTemplateImage();
+        if (this.elements.templateUpload) {
+            this.elements.templateUpload.value = '';
+        }
+        // Hide controls, show upload area
+        if (this.elements.templateControlsContainer) {
+            this.elements.templateControlsContainer.style.display = 'none';
+        }
+        if (this.elements.templateUploadArea) {
+            this.elements.templateUploadArea.style.display = 'block';
+        }
+        // Reset slider to default
+        if (this.elements.templateOpacity) {
+            this.elements.templateOpacity.value = 50;
+        }
+        if (this.elements.templateOpacityValue) {
+            this.elements.templateOpacityValue.textContent = '50%';
+        }
+        console.log('Template image cleared');
     },
 
     /**

@@ -23,7 +23,7 @@ Make the objekt-style accent bar and rotated text toggleable (on by default). Wh
 
 ## Phase 2: Card Size / Resize for Printing
 
-**Status:** Planned
+**Status:** Done
 
 Allow resizing the photocard for printing. The default size (768x1186px) stays as-is, but users can select common physical sizes or enter custom dimensions.
 
@@ -48,7 +48,7 @@ Allow resizing the photocard for printing. The default size (768x1186px) stays a
 
 ## Phase 3: Reference Template Overlay
 
-**Status:** Planned
+**Status:** Done
 
 Load a "model template" image as a reference overlay for alignment. Users can toggle it on/off and adjust opacity to line up their design against the ideal template shape.
 
