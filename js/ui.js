@@ -1792,6 +1792,28 @@ const UIManager = {
             this.handleObjektBorderToggle(data.showObjektBorder);
         }
 
+        // Overflow border toggle + slider
+        if (data.showOverflowBorder !== undefined) {
+            const overflowToggle = document.getElementById('overflowBorderToggle');
+            const overflowToggleMobile = document.getElementById('overflowBorderToggleMobile');
+            const overflowContainer = document.getElementById('overflowBorderSliderContainer');
+            const overflowContainerMobile = document.getElementById('overflowBorderSliderContainerMobile');
+            if (overflowToggle) overflowToggle.checked = data.showOverflowBorder;
+            if (overflowToggleMobile) overflowToggleMobile.checked = data.showOverflowBorder;
+            if (overflowContainer) overflowContainer.style.display = data.showOverflowBorder ? 'flex' : 'none';
+            if (overflowContainerMobile) overflowContainerMobile.style.display = data.showOverflowBorder ? 'flex' : 'none';
+        }
+        if (data.overflowBorderPercent !== undefined) {
+            const overflowSlider = document.getElementById('overflowBorderSlider');
+            const overflowSliderMobile = document.getElementById('overflowBorderSliderMobile');
+            const overflowValue = document.getElementById('overflowBorderValue');
+            const overflowValueMobile = document.getElementById('overflowBorderValueMobile');
+            if (overflowSlider) overflowSlider.value = data.overflowBorderPercent;
+            if (overflowSliderMobile) overflowSliderMobile.value = data.overflowBorderPercent;
+            if (overflowValue) overflowValue.textContent = `${data.overflowBorderPercent}%`;
+            if (overflowValueMobile) overflowValueMobile.textContent = `${data.overflowBorderPercent}%`;
+        }
+
         // Image transform sliders
         if (data.imageScale !== undefined) {
             const zoom = Math.round(data.imageScale * 100);

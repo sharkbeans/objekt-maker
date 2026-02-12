@@ -65,6 +65,9 @@ const PresetManager = {
             signaturePosX: CanvasManager.signaturePosX,
             signaturePosY: CanvasManager.signaturePosY,
 
+            // Back side enabled
+            enableBackSide: CanvasManager.enableBackSide,
+
             // Back side labels and values
             backNameLabel: CanvasManager.backNameLabel,
             backNameValue: CanvasManager.backNameValue,
@@ -151,6 +154,9 @@ const PresetManager = {
         if (data.signatureZoom !== undefined) CanvasManager.signatureZoom = data.signatureZoom;
         if (data.signaturePosX !== undefined) CanvasManager.signaturePosX = data.signaturePosX;
         if (data.signaturePosY !== undefined) CanvasManager.signaturePosY = data.signaturePosY;
+
+        // Back side enabled
+        if (data.enableBackSide !== undefined) CanvasManager.enableBackSide = data.enableBackSide;
 
         // Back side labels
         if (data.backNameLabel !== undefined) CanvasManager.backNameLabel = data.backNameLabel;

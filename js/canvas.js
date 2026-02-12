@@ -990,6 +990,11 @@ const CanvasManager = {
 
         // Render the back side to the preview canvas
         const backSideCanvas = this.renderBackSide();
+        // Resize DOM canvas to match rendered size (includes overflow border)
+        if (backCanvas.width !== backSideCanvas.width || backCanvas.height !== backSideCanvas.height) {
+            backCanvas.width = backSideCanvas.width;
+            backCanvas.height = backSideCanvas.height;
+        }
         const backCtx = backCanvas.getContext('2d');
         backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height);
         backCtx.drawImage(backSideCanvas, 0, 0);
@@ -1378,18 +1383,33 @@ const CanvasManager = {
      * @returns {HTMLCanvasElement} Canvas with back side rendered
      */
     renderBackSide() {
+        // Calculate canvas size with overflow (synced with front side)
+        const multiplier = this.showOverflowBorder ? (1 + this.overflowBorderPercent / 100) : 1;
+        const renderWidth = Math.round(this.canvasWidth * multiplier);
+        const renderHeight = Math.round(this.canvasHeight * multiplier);
+        const offsetX = Math.round((renderWidth - this.canvasWidth) / 2);
+        const offsetY = Math.round((renderHeight - this.canvasHeight) / 2);
+
         // Create a new canvas for the back side
         const backCanvas = document.createElement('canvas');
-        backCanvas.width = this.canvasWidth;
-        backCanvas.height = this.canvasHeight;
+        backCanvas.width = renderWidth;
+        backCanvas.height = renderHeight;
         const backCtx = backCanvas.getContext('2d');
 
         // Enable high quality rendering
         backCtx.imageSmoothingEnabled = true;
         backCtx.imageSmoothingQuality = 'high';
 
-        // Clear canvas
-        backCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+        // Clear and draw gray background if overflow enabled
+        backCtx.clearRect(0, 0, renderWidth, renderHeight);
+        if (this.showOverflowBorder) {
+            backCtx.fillStyle = '#D3D3D3';
+            backCtx.fillRect(0, 0, renderWidth, renderHeight);
+        }
+
+        // Offset all drawing by overflow border amount
+        backCtx.save();
+        backCtx.translate(offsetX, offsetY);
 
         // Draw rounded rectangle background (white)
         const scaledCornerRadius = this.cornerRadius * this.scaleFactor;
@@ -1677,6 +1697,9 @@ const CanvasManager = {
             const centerY = rectY + rectHeight / 2;
             this.drawLogo(backCtx, centerX, centerY);
         }
+
+        // Restore the overflow border translation
+        backCtx.restore();
 
         return backCanvas;
     },
