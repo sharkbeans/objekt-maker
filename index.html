@@ -235,6 +235,56 @@
                             </div>
                         </div>
 
+                        <!-- Custom Frame Section (included in export) -->
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
+                            <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="frame" style="width: 16px; height: 16px;"></i>
+                                    <span>FRAME</span>
+                                </span>
+                                <span class="collapse-icon">−</span>
+                            </h3>
+                            <div class="collapsible-content">
+                                <div class="upload-area" id="frameUploadArea">
+                                    <input type="file" id="frameUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    <label for="frameUpload" class="upload-label" style="padding: var(--space-sm);">
+                                        <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                        <span class="upload-text">Upload Frame (PNG recommended)</span>
+                                        <span class="upload-hint" style="font-size: 0.75em;">PNG with transparent background recommended</span>
+                                    </label>
+                                </div>
+                                <div id="frameControlsContainer" style="display: none; margin-top: var(--space-sm);">
+                                    <label>
+                                        <span>Opacity:</span>
+                                        <input type="range" id="frameOpacity" min="0" max="100" value="100" step="5">
+                                        <span id="frameOpacityValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Scale:</span>
+                                        <input type="range" id="frameScale" min="50" max="200" value="100" step="5">
+                                        <span id="frameScaleValue">100%</span>
+                                    </label>
+                                    <label>
+                                        <span>Position X:</span>
+                                        <input type="range" id="framePosX" min="-300" max="300" value="0" step="5">
+                                        <span id="framePosXValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Position Y:</span>
+                                        <input type="range" id="framePosY" min="-300" max="300" value="0" step="5">
+                                        <span id="framePosYValue">0px</span>
+                                    </label>
+                                    <label>
+                                        <span>Rotation:</span>
+                                        <input type="range" id="frameRotation" min="0" max="360" value="0" step="5">
+                                        <span id="frameRotationValue">0°</span>
+                                    </label>
+                                    <button id="clearFrameBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Frame</button>
+                                </div>
+                                <p class="upload-hint">Uploaded frame will be applied to the front photocard and included in downloads.</p>
+                            </div>
+                        </div>
+
                         <div id="frontTextSection" class="adjustment-controls collapsible-section collapsed objekt-only-control">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">

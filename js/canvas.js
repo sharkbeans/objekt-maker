@@ -96,6 +96,14 @@ const CanvasManager = {
     templateImage: null, // Template image for alignment reference
     templateOpacity: 0.5, // Template opacity (0-1)
     showTemplate: false, // Whether to show the template overlay
+    // Custom Frame Overlay (user-uploaded, included in export)
+    frameImage: null, // User uploaded frame (transparent background)
+    frameOpacity: 1, // Frame opacity (0-1)
+    frameScale: 1, // Frame scale (1 = 100%)
+    framePosX: 0, // Frame X offset
+    framePosY: 0, // Frame Y offset
+    frameRotation: 0, // Frame rotation degrees
+    showFrame: false, // Whether a frame is loaded/visible
 
     /**
      * Initialize canvas manager
@@ -797,6 +805,95 @@ const CanvasManager = {
     },
 
     /**
+     * Load a custom frame image from file (PNG preferred for transparency)
+     * @param {File} file
+     */
+    async loadFrameImage(file) {
+        return new Promise((resolve, reject) => {
+            // Prefer PNG (transparency) but allow JPG as fallback
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    this.frameImage = img;
+                    this.showFrame = true;
+                    // Reset frame transform defaults
+                    this.frameOpacity = 1;
+                    this.frameScale = 1;
+                    this.framePosX = 0;
+                    this.framePosY = 0;
+                    this.frameRotation = 0;
+                    console.log('Frame image loaded:', img.width, 'x', img.height);
+                    this.render();
+                    resolve(true);
+                };
+                img.onerror = () => reject(new Error('Failed to load frame image'));
+                img.src = e.target.result;
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the frame image
+     */
+    clearFrameImage() {
+        this.frameImage = null;
+        this.showFrame = false;
+        this.frameOpacity = 1;
+        this.frameScale = 1;
+        this.framePosX = 0;
+        this.framePosY = 0;
+        this.frameRotation = 0;
+        this.render();
+    },
+
+    /**
+     * Set frame opacity (0-1)
+     */
+    setFrameOpacity(opacity) {
+        this.frameOpacity = Math.max(0, Math.min(1, opacity));
+        this.render();
+    },
+
+    /**
+     * Set frame transform: scale
+     */
+    setFrameScale(scale) {
+        this.frameScale = scale;
+        this.render();
+    },
+
+    /**
+     * Set frame position offsets
+     */
+    setFramePosition(x, y) {
+        this.framePosX = x;
+        this.framePosY = y;
+        this.render();
+    },
+
+    /**
+     * Set frame rotation degrees
+     */
+    setFrameRotation(deg) {
+        this.frameRotation = deg;
+        this.render();
+    },
+
+    /**
      * Set template opacity
      * @param {number} opacity - Opacity value (0-1)
      */
@@ -1169,6 +1266,47 @@ const CanvasManager = {
             const centerX = offsetX + imageAreaWidth / 2;
             const centerY = offsetY + this.canvasHeight / 2;
             this.drawFrontLogo(this.ctx, centerX, centerY);
+        }
+
+        // Draw custom frame overlay (user-uploaded) - included in export
+        if (this.frameImage && this.showFrame) {
+            try {
+                this.ctx.save();
+                this.ctx.globalAlpha = this.frameOpacity;
+
+                // Calculate dimensions to cover the canvas while maintaining aspect ratio
+                const imgAspect = this.frameImage.width / this.frameImage.height;
+                const canvasAspect = this.canvasWidth / this.canvasHeight;
+
+                let drawWidth, drawHeight;
+
+                if (imgAspect > canvasAspect) {
+                    // Image is wider - fit to height
+                    drawHeight = this.canvasHeight * this.frameScale;
+                    drawWidth = drawHeight * imgAspect;
+                } else {
+                    // Image is taller - fit to width
+                    drawWidth = this.canvasWidth * this.frameScale;
+                    drawHeight = drawWidth / imgAspect;
+                }
+
+                // Center position with user offsets
+                const drawX = offsetX + (this.canvasWidth - drawWidth) / 2 + this.framePosX;
+                const drawY = offsetY + (this.canvasHeight - drawHeight) / 2 + this.framePosY;
+
+                // Apply rotation about center
+                const cx = drawX + drawWidth / 2;
+                const cy = drawY + drawHeight / 2;
+                this.ctx.translate(cx, cy);
+                this.ctx.rotate((this.frameRotation * Math.PI) / 180);
+                this.ctx.translate(-cx, -cy);
+
+                this.ctx.drawImage(this.frameImage, drawX, drawY, drawWidth, drawHeight);
+            } catch (err) {
+                console.error('Failed to render frame image', err);
+            } finally {
+                this.ctx.restore();
+            }
         }
 
         // Draw template overlay on top (Phase 3) - only for preview, not export

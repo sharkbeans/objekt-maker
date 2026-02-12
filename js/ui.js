@@ -272,6 +272,22 @@ const UIManager = {
             templateOpacity: document.getElementById('templateOpacity'),
             templateOpacityValue: document.getElementById('templateOpacityValue'),
             clearTemplateBtn: document.getElementById('clearTemplateBtn')
+            ,
+            // Custom Frame controls (user-uploaded, included in export)
+            frameUpload: document.getElementById('frameUpload'),
+            frameUploadArea: document.getElementById('frameUploadArea'),
+            frameControlsContainer: document.getElementById('frameControlsContainer'),
+            frameOpacity: document.getElementById('frameOpacity'),
+            frameOpacityValue: document.getElementById('frameOpacityValue'),
+            frameScale: document.getElementById('frameScale'),
+            frameScaleValue: document.getElementById('frameScaleValue'),
+            framePosX: document.getElementById('framePosX'),
+            framePosXValue: document.getElementById('framePosXValue'),
+            framePosY: document.getElementById('framePosY'),
+            framePosYValue: document.getElementById('framePosYValue'),
+            frameRotation: document.getElementById('frameRotation'),
+            frameRotationValue: document.getElementById('frameRotationValue'),
+            clearFrameBtn: document.getElementById('clearFrameBtn')
         };
 
         this.bindEvents();
@@ -679,6 +695,49 @@ const UIManager = {
         }
         if (this.elements.clearTemplateBtn) {
             this.elements.clearTemplateBtn.addEventListener('click', () => this.clearTemplate());
+        }
+
+        // Custom Frame controls
+        if (this.elements.frameUpload) {
+            this.elements.frameUpload.addEventListener('change', (e) => this.handleFrameImageUpload(e));
+        }
+        if (this.elements.frameOpacity) {
+            this.elements.frameOpacity.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frameOpacityValue.textContent = `${value}%`;
+                CanvasManager.setFrameOpacity(value / 100);
+            });
+        }
+        if (this.elements.frameScale) {
+            this.elements.frameScale.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frameScaleValue.textContent = `${value}%`;
+                CanvasManager.setFrameScale(value / 100);
+            });
+        }
+        if (this.elements.framePosX) {
+            this.elements.framePosX.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.framePosXValue.textContent = `${value}px`;
+                CanvasManager.setFramePosition(value, CanvasManager.framePosY);
+            });
+        }
+        if (this.elements.framePosY) {
+            this.elements.framePosY.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.framePosYValue.textContent = `${value}px`;
+                CanvasManager.setFramePosition(CanvasManager.framePosX, value);
+            });
+        }
+        if (this.elements.frameRotation) {
+            this.elements.frameRotation.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.frameRotationValue.textContent = `${value}°`;
+                CanvasManager.setFrameRotation(value);
+            });
+        }
+        if (this.elements.clearFrameBtn) {
+            this.elements.clearFrameBtn.addEventListener('click', () => this.clearFrameImage());
         }
 
         // Signature modal controls
@@ -2435,6 +2494,83 @@ const UIManager = {
             this.showSuccessMessage('Front logo image loaded successfully!');
         } catch (error) {
             this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Handle custom frame image upload
+     */
+    async handleFrameImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadFrameImage(file);
+
+            // Show controls container
+            if (this.elements.frameControlsContainer) {
+                this.elements.frameControlsContainer.style.display = 'block';
+            }
+
+            // Reset sliders to defaults
+            if (this.elements.frameOpacity) {
+                this.syncFrameSliderValue('opacity', 100);
+            }
+            if (this.elements.frameScale) {
+                this.syncFrameSliderValue('scale', 100);
+            }
+            if (this.elements.framePosX) {
+                this.syncFrameSliderValue('posX', 0);
+            }
+            if (this.elements.framePosY) {
+                this.syncFrameSliderValue('posY', 0);
+            }
+            if (this.elements.frameRotation) {
+                this.syncFrameSliderValue('rotation', 0);
+            }
+
+            CanvasManager.render();
+            this.showSuccessMessage('Frame image loaded successfully!');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear frame and hide controls
+     */
+    clearFrameImage() {
+        CanvasManager.clearFrameImage();
+        if (this.elements.frameControlsContainer) {
+            this.elements.frameControlsContainer.style.display = 'none';
+        }
+        // Reset UI values
+        if (this.elements.frameOpacityValue) this.elements.frameOpacityValue.textContent = '100%';
+        if (this.elements.frameScaleValue) this.elements.frameScaleValue.textContent = '100%';
+        if (this.elements.framePosXValue) this.elements.framePosXValue.textContent = '0px';
+        if (this.elements.framePosYValue) this.elements.framePosYValue.textContent = '0px';
+        if (this.elements.frameRotationValue) this.elements.frameRotationValue.textContent = '0°';
+    },
+
+    /**
+     * Sync frame slider values (helper) - mirrors pattern used for other sync helpers
+     */
+    syncFrameSliderValue(type, value) {
+        if (type === 'opacity') {
+            if (this.elements.frameOpacity) this.elements.frameOpacity.value = value;
+            if (this.elements.frameOpacityValue) this.elements.frameOpacityValue.textContent = `${value}%`;
+        } else if (type === 'scale') {
+            if (this.elements.frameScale) this.elements.frameScale.value = value;
+            if (this.elements.frameScaleValue) this.elements.frameScaleValue.textContent = `${value}%`;
+        } else if (type === 'posX') {
+            if (this.elements.framePosX) this.elements.framePosX.value = value;
+            if (this.elements.framePosXValue) this.elements.framePosXValue.textContent = `${value}px`;
+        } else if (type === 'posY') {
+            if (this.elements.framePosY) this.elements.framePosY.value = value;
+            if (this.elements.framePosYValue) this.elements.framePosYValue.textContent = `${value}px`;
+        } else if (type === 'rotation') {
+            if (this.elements.frameRotation) this.elements.frameRotation.value = value;
+            if (this.elements.frameRotationValue) this.elements.frameRotationValue.textContent = `${value}°`;
         }
     },
 
