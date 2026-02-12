@@ -44,8 +44,13 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+                <i data-lucide="menu"></i>
+            </button>
+            
             <!-- Controls Panel -->
-            <aside class="controls-panel">
+            <aside class="controls-panel" id="controlsPanel">
                 <section class="control-section">
                     <h2 class="section-title"><i data-lucide="camera"></i> Upload Image</h2>
                     <div class="upload-area" id="uploadArea">
@@ -59,6 +64,9 @@
                 </section>
 
                 <!-- Presets Section (Phase 4) -->
+                 <h2 class="section-title">
+                        <span>Saved</span>
+                    </h2>
                 <section class="control-section">
                     <div class="adjustment-controls collapsible-section collapsed">
                         <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
@@ -78,42 +86,13 @@
                     </div>
                 </section>
 
-                <!-- Card Size Section -->
-                <section class="control-section">
-                    <h2 class="section-title"> Card Size</h2>
-                    <div class="adjustment-controls">
-                        <label>
-                            <select id="cardSizePreset" class="dropdown-select">
-                                <option value="objekt" selected>Objekt Default (768x1186)</option>
-                                <option value="standard">Standard Photocard (638x1016)</option>
-                                <option value="credit">Credit Card (650x1004)</option>
-                                <option value="instax">Instax Mini (673x1051)</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                        </label>
-                        <div id="customSizeInputs" style="display: none;">
-                            <label>
-                                <span>Width (mm):</span>
-                                <input type="number" id="customWidthMM" class="text-input" placeholder="65" min="10" max="300" step="1">
-                            </label>
-                            <label>
-                                <span>Height (mm):</span>
-                                <input type="number" id="customHeightMM" class="text-input" placeholder="100" min="10" max="300" step="1">
-                            </label>
-                            <div class="upload-hint" style="text-align: center;">
-                                <span id="customSizePixels">Enter dimensions to see pixel size</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- Front Side Controls -->
                 <section class="control-section" id="frontSideSection">
                     <h2 class="section-title">
                         <span>Front Side</span>
                     </h2>
                     <div id="frontSideContent">
-                        <div class="adjustment-controls collapsible-section" style="margin-bottom: var(--space-lg);">
+                        <div class="adjustment-controls collapsible-section collapsed" style="margin-bottom: var(--space-lg);">
                             <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="brush" style="width: 16px; height: 16px;"></i>
@@ -350,6 +329,35 @@
                                     <button id="clearTemplateBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Template</button>
                                 </div>
                                 <p class="upload-hint">Overlay a reference image for alignment. Not included in export.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                   <!-- Card Size Section -->
+                <section class="control-section">
+                    <h2 class="section-title"> Card Size</h2>
+                    <div class="adjustment-controls">
+                        <label>
+                            <select id="cardSizePreset" class="dropdown-select">
+                                <option value="objekt" selected>Objekt Default (768x1186)</option>
+                                <option value="standard">Standard Photocard (638x1016)</option>
+                                <option value="credit">Credit Card (650x1004)</option>
+                                <option value="instax">Instax Mini (673x1051)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </label>
+                        <div id="customSizeInputs" style="display: none;">
+                            <label>
+                                <span>Width (mm):</span>
+                                <input type="number" id="customWidthMM" class="text-input" placeholder="65" min="10" max="300" step="1">
+                            </label>
+                            <label>
+                                <span>Height (mm):</span>
+                                <input type="number" id="customHeightMM" class="text-input" placeholder="100" min="10" max="300" step="1">
+                            </label>
+                            <div class="upload-hint" style="text-align: center;">
+                                <span id="customSizePixels">Enter dimensions to see pixel size</span>
                             </div>
                         </div>
                     </div>
@@ -1122,69 +1130,77 @@
         </div>
     </div>
 
-    <!-- Bottom Footer Navigation -->
-    <div class="bottom-nav" id="bottomNav">
-        <div class="nav-section" id="frontNavSection">
-            <button class="nav-btn" data-target="upload">
-                <i data-lucide="upload"></i>
-                <span>Upload</span>
-            </button>
-            <button class="nav-btn" data-target="adjust">
-                <i data-lucide="move"></i>
-                <span>Adjust</span>
-            </button>
-            <button id="scrollToPreviewBtnMobile" style="width: 48px; height: 48px; border-radius: 50%; background: #007bff; border: none; color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.3); display: flex; align-items: center; justify-content: center; flex: none;">
-                <i data-lucide="image" style="width: 20px; height: 20px;"></i>
-            </button>
-            <button class="nav-btn" data-target="border-color">
-            <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
-                <span>Border</span>
-            </button>
-            <button class="nav-btn" data-target="logo">
-                <i data-lucide="image"></i>
-                <span>Logo</span>
-            </button>
-            <button class="nav-btn" data-target="text">
-                <i data-lucide="type"></i>
-                <span>Text</span>
-            </button>
-            <button class="nav-btn" data-target="template">
-                <i data-lucide="layers"></i>
-                <span>Template</span>
-            </button>
-        </div>
-        <div class="nav-section" id="backNavSection" style="display: none;">
-            <button class="nav-btn" data-target="border-color-back">
-            <i data-lucide="credit-card" style="transform: rotate(90deg); width: 16px; height: 16px;"></i>
-                <span>Border</span>
-            </button>
-            <button class="nav-btn" data-target="text-back">
-                <i data-lucide="type"></i>
-                <span>Text</span>
-            </button>
-            <button id="scrollToPreviewBtnMobileBack" style="width: 48px; height: 48px; border-radius: 50%; background: #007bff; border: none; color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.3); display: flex; align-items: center; justify-content: center; flex: none;">
-                <i data-lucide="image" style="width: 20px; height: 20px;"></i>
-            </button>
-            <button class="nav-btn" data-target="logo-back">
-                <i data-lucide="image"></i>
-                <span>Logo</span>
-            </button>
-            <button class="nav-btn" data-target="signature">
-                <i data-lucide="pen-tool"></i>
-                <span>Sign</span>
-            </button>
-            <button class="nav-btn" data-target="qr-code">
-                <i data-lucide="qr-code"></i>
-                <span>QR</span>
-            </button>
-            <button class="nav-btn" data-target="content">
-                <i data-lucide="text-initial"></i>
-                <span>Content</span>
-            </button>
-        </div>
-    </div>
+
 
     <!-- JavaScript Modules -->
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('mobileMenuToggle');
+            const controlsPanel = document.getElementById('controlsPanel');
+            const overlay = document.createElement('div');
+            overlay.className = 'mobile-sidebar-overlay';
+            document.body.appendChild(overlay);
+
+            function openSidebar() {
+                controlsPanel.classList.add('open');
+                overlay.classList.add('visible');
+                if (menuToggle) menuToggle.style.display = 'none';
+            }
+
+            function closeSidebar() {
+                controlsPanel.classList.remove('open');
+                overlay.classList.remove('visible');
+                // Restore toggle button on mobile
+                if (menuToggle && window.innerWidth <= 768) {
+                    menuToggle.style.display = 'flex';
+                }
+            }
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    if (controlsPanel.classList.contains('open')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+            }
+
+            overlay.addEventListener('click', closeSidebar);
+
+            // Swipe left to close the controls panel
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isSwiping = false;
+
+            controlsPanel.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwiping = true;
+            }, { passive: true });
+
+            controlsPanel.addEventListener('touchmove', function(e) {
+                if (!isSwiping) return;
+                // Optional: could add visual drag feedback here
+            }, { passive: true });
+
+            controlsPanel.addEventListener('touchend', function(e) {
+                if (!isSwiping) return;
+                isSwiping = false;
+
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+
+                // Swipe left: negative deltaX, and more horizontal than vertical
+                if (deltaX < -60 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    closeSidebar();
+                }
+            }, { passive: true });
+        });
+    </script>
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/presets.js"></script>

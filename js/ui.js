@@ -1301,7 +1301,6 @@ const UIManager = {
         this.initSwipeGestures();
 
         // Initialize desktop navigation arrows
-        this.initDesktopArrows();
 
         // Initialize direct canvas manipulation (drag, wheel, touch, pinch)
         this.initCanvasDragPan();

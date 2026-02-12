@@ -132,6 +132,61 @@ body {
 }
 
 /* ========================================
+   Mobile Menu Toggle Button
+   ======================================== */
+
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1002;
+    background: var(--primary-color);
+    border: none;
+    border-radius: var(--radius-md);
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+.mobile-menu-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Mobile Sidebar Overlay */
+.mobile-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-sidebar-overlay.visible {
+    opacity: 1;
+}
+
+/* ========================================
    Controls Panel
    ======================================== */
 
@@ -980,6 +1035,40 @@ input[type="range"]::-moz-range-thumb:hover {
    ======================================== */
 
 @media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    .mobile-sidebar-overlay {
+        display: block;
+        pointer-events: none;
+    }
+
+    .mobile-sidebar-overlay.visible {
+        pointer-events: all;
+    }
+
+    .controls-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        max-height: 100vh;
+        width: 85%;
+        max-width: 360px;
+        border-radius: 0;
+        border: none;
+        border-right: 1px solid var(--border-color);
+        z-index: 1001;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding-top: 80px;
+    }
+
+    .controls-panel.open {
+        transform: translateX(0);
+    }
+
     .header {
         padding: var(--space-lg) var(--space-md);
         display: flex;
@@ -1013,7 +1102,6 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 
     .controls-panel {
-        position: static;
         padding: var(--space-md);
     }
 
@@ -1034,10 +1122,6 @@ input[type="range"]::-moz-range-thumb:hover {
         display: block !important;
     }
 
-    /* Hide only the Front Side adjustments subsection on mobile, not the entire Front Side section */
-    #frontSideContent .adjustment-controls:has(#zoomSlider) {
-        display: none;
-    }
 
     /* Show mobile action buttons */
     .mobile-actions {
@@ -1594,127 +1678,24 @@ input[type="range"]::-moz-range-thumb:hover {
   }
 }
 
-/* ========================================
-   Bottom Footer Navigation
-   ======================================== */
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--surface-color);
-    border-top: 1px solid var(--border-color);
-    padding: var(--space-sm) var(--space-md);
-    z-index: 1000;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.nav-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-width: 600px;
-    margin: 0 auto;
-    gap: 0;
-}
-
-.nav-section > * {
-    flex: 1;
-    max-width: 80px;
-}
-
-.nav-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: var(--space-xs) 4px;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: var(--radius-sm);
-    min-width: 50px;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.nav-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.nav-btn.active {
-    color: var(--primary-color);
-    background: rgba(41, 122, 255, 0.1);
-}
-
-.nav-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.nav-btn span {
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    line-height: 1;
-}
-
-/* Add bottom padding to body to prevent content from being hidden behind nav */
-body {
-    padding-bottom: 80px;
-}
-
-.canvas-nav-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
-    opacity: 0.7;
-}
-
-.canvas-nav-arrow:hover {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.7);
-    transform: translateY(-50%) scale(1.1);
-}
-
-.canvas-nav-arrow.left {
-    left: 160px;
-}
-
-.canvas-nav-arrow.right {
-    right: 160px;
-}
-
 /* Hide on desktop */
 @media (min-width: 769px) {
-    .bottom-nav {
+    .mobile-menu-toggle {
         display: none;
     }
     
-    body {
-        padding-bottom: 0;
+    .mobile-sidebar-overlay {
+        display: none;
     }
 }
 
-@media (max-width: 768px) {
-    .canvas-nav-arrow {
-        display: none;
-    }
+/* ========================================
+   Bottom Footer Navigation (REMOVED)
+   ======================================== */
+
+/* Remove bottom padding since bottom nav is removed */
+body {
+    padding-bottom: 0;
 }
 
 /* ========================================
