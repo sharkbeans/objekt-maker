@@ -64,6 +64,7 @@ body {
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
 }
 
 /* ========================================
@@ -1009,7 +1010,7 @@ input[type="range"]::-moz-range-thumb:hover {
     display: none;
     width: 100%;
     margin-top: var(--space-lg);
-    gap: var(--space-md);
+    gap: var(--space-sm);
 }
 
 .slider-group {
@@ -1035,6 +1036,17 @@ input[type="range"]::-moz-range-thumb:hover {
    ======================================== */
 
 @media (max-width: 768px) {
+    body {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100vh;
+    }
+
+    .header {
+        display: none;
+    }
+
     .mobile-menu-toggle {
         display: flex;
     }
@@ -1099,6 +1111,8 @@ input[type="range"]::-moz-range-thumb:hover {
 
     .main-content {
         padding: var(--space-md) var(--space-sm);
+        overflow-y: auto;
+        height: 100vh;
     }
 
     .controls-panel {
@@ -1126,7 +1140,13 @@ input[type="range"]::-moz-range-thumb:hover {
     /* Show mobile action buttons */
     .mobile-actions {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+    }
+
+    .mobile-actions .btn {
+        flex: 1;
+        padding: var(--space-md);
+        font-size: 0.95rem;
     }
 
     /* Make canvas wrapper container take appropriate space */
