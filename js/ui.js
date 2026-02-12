@@ -1370,7 +1370,173 @@ const UIManager = {
         this.initCanvasPinchZoom();
         this.initFloatingAdjustOverlay();
         this.initMobilePanSliders();
+        this.initSliderDragListeners();
 
+    },
+
+    /**
+     * Initialize slider drag listeners for mobile view
+     * When dragging a slider, hide all controls-panel content except the active slider
+     */
+    initSliderDragListeners() {
+        const controlsPanel = document.getElementById('controlsPanel');
+        if (!controlsPanel) {
+            console.warn('Controls panel not found');
+            return;
+        }
+
+        // Create the overlay element that will show during slider drag
+        let overlay = document.getElementById('sliderDragOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'sliderDragOverlay';
+            overlay.className = 'slider-drag-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        // Get all range inputs in the controls panel
+        const rangeInputs = controlsPanel.querySelectorAll('input[type="range"]');
+        console.log('Found ' + rangeInputs.length + ' range inputs for slider drag listeners');
+
+        rangeInputs.forEach(slider => {
+            // Mouse events - start drag
+            slider.addEventListener('mousedown', (e) => this.handleSliderDragStart(e, slider, controlsPanel, overlay));
+            
+            // Touch events - start drag
+            slider.addEventListener('touchstart', (e) => this.handleSliderDragStart(e, slider, controlsPanel, overlay));
+        });
+
+        // Global mouseup and touchend handlers to close modal after drag completes
+        document.addEventListener('mouseup', (e) => this.handleSliderDragEnd(e, controlsPanel, overlay));
+        document.addEventListener('touchend', (e) => this.handleSliderDragEnd(e, controlsPanel, overlay));
+        document.addEventListener('touchcancel', (e) => this.handleSliderDragEnd(e, controlsPanel, overlay));
+    },
+
+    /**
+     * Handle slider drag start - hide controls-panel and show overlay with slider
+     */
+    handleSliderDragStart(event, slider, controlsPanel, overlay) {
+        console.log('Slider drag started:', slider.id);
+
+        // Hide controls panel and sidebar overlay to remove dimming
+        controlsPanel.classList.add('slider-dragging');
+        const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.remove('visible');
+        }
+
+        // Get the label text
+        let labelText = '';
+        const label = slider.closest('label');
+        if (label) {
+            const labelSpan = label.querySelector('span:first-child');
+            if (labelSpan) {
+                labelText = labelSpan.textContent.trim();
+            }
+        }
+
+        // Get the value display element
+        let currentValue = '';
+        if (label) {
+            const valueSpan = label.querySelector('span:last-child');
+            if (valueSpan && valueSpan !== label.querySelector('span:first-child')) {
+                currentValue = valueSpan.textContent.trim();
+            }
+        }
+
+        // Clear and rebuild overlay
+        overlay.innerHTML = '';
+
+        // Add label
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'slider-drag-overlay-label';
+        labelDiv.textContent = labelText;
+        overlay.appendChild(labelDiv);
+
+        // Add slider and value container
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-drag-overlay-slider-container';
+
+        // Clone the slider
+        const clonedSlider = slider.cloneNode(true);
+        clonedSlider.className = 'slider-drag-overlay-slider';
+        clonedSlider.style.margin = '0';
+
+        // Create value display
+        const valueDisplay = document.createElement('div');
+        valueDisplay.className = 'slider-drag-overlay-value';
+        valueDisplay.textContent = currentValue;
+
+        sliderContainer.appendChild(clonedSlider);
+        sliderContainer.appendChild(valueDisplay);
+        overlay.appendChild(sliderContainer);
+
+        // Activate overlay
+        overlay.classList.add('active');
+
+        // Track that we're dragging
+        this._isActivelyDraggingSlider = true;
+        this._activeSliderInfo = {
+            original: slider,
+            cloned: clonedSlider,
+            overlay: overlay,
+            controlsPanel: controlsPanel,
+            valueDisplay: valueDisplay
+        };
+
+        // Sync input events from cloned slider to original
+        clonedSlider.addEventListener('input', (e) => {
+            slider.value = e.target.value;
+            valueDisplay.textContent = e.target.value;
+            // Trigger input event on original slider to update the UI
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        // Track when mouse/touch is released on the cloned slider
+        const handleDragEnd = () => {
+            this._isActivelyDraggingSlider = false;
+        };
+
+        clonedSlider.addEventListener('mouseup', handleDragEnd);
+        clonedSlider.addEventListener('touchend', handleDragEnd);
+
+        // Auto-focus the cloned slider for better UX
+        setTimeout(() => clonedSlider.focus(), 0);
+
+        event.preventDefault();
+    },
+
+    /**
+     * Handle slider drag end - restore controls-panel visibility
+     */
+    handleSliderDragEnd(event, controlsPanel, overlay) {
+        // Only close if we're not actively dragging
+        if (this._isActivelyDraggingSlider) {
+            console.log('Still dragging, keeping modal open');
+            return;
+        }
+
+        // Check if the event target is the cloned slider (still dragging)
+        if (this._activeSliderInfo && event.target === this._activeSliderInfo.cloned) {
+            return;
+        }
+
+        console.log('Slider drag ended, closing modal');
+
+        // Remove the dragging state from controls panel
+        controlsPanel.classList.remove('slider-dragging');
+
+        // Hide overlay
+        overlay.classList.remove('active');
+
+        // Restore sidebar overlay visibility if it was visible before
+        const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
+        if (sidebarOverlay && controlsPanel.classList.contains('open')) {
+            sidebarOverlay.classList.add('visible');
+        }
+
+        // Clear active drag reference
+        this._activeSliderInfo = null;
     },
 
     /**

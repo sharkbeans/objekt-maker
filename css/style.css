@@ -1175,6 +1175,70 @@ input[type="range"]::-moz-range-thumb:hover {
         width: 18px;
         height: 18px;
     }
+
+    /* ========================================
+       Slider Dragging State (Mobile)
+       ======================================== */
+
+    /* Overlay that appears when slider is being dragged */
+    .slider-drag-overlay {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2000;
+        background: transparent;
+        padding: var(--space-lg) var(--space-xl);
+        border-radius: var(--radius-md);
+        border: none;
+        box-shadow: none;
+        pointer-events: all;
+        min-width: 280px;
+        width: 90vw;
+        max-width: 360px;
+        display: none;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .slider-drag-overlay.active {
+        display: flex;
+    }
+
+    .slider-drag-overlay-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .slider-drag-overlay-slider-container {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+    }
+
+    .slider-drag-overlay-slider {
+        flex: 1;
+        height: 6px;
+    }
+
+    .slider-drag-overlay-value {
+        min-width: 50px;
+        text-align: right;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6);
+    }
+
+    /* When slider is being dragged, hide controls-panel */
+    .controls-panel.slider-dragging {
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
 }
 /* ========================================
    Collapsible Sections
