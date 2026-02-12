@@ -1875,6 +1875,10 @@ body {
     .floating-adjust-overlay {
         display: none !important;
     }
+
+    .slider-drag-overlay {
+        display: none !important;
+    }
 }
 
 /* Canvas cursor styles for drag interaction */

@@ -1401,7 +1401,7 @@ const UIManager = {
         rangeInputs.forEach(slider => {
             // Mouse events - start drag
             slider.addEventListener('mousedown', (e) => this.handleSliderDragStart(e, slider, controlsPanel, overlay));
-            
+
             // Touch events - start drag
             slider.addEventListener('touchstart', (e) => this.handleSliderDragStart(e, slider, controlsPanel, overlay));
         });
@@ -1416,6 +1416,9 @@ const UIManager = {
      * Handle slider drag start - hide controls-panel and show overlay with slider
      */
     handleSliderDragStart(event, slider, controlsPanel, overlay) {
+        // Only activate overlay on mobile
+        if (window.innerWidth > 768) return;
+
         console.log('Slider drag started:', slider.id);
 
         // Hide controls panel and sidebar overlay to remove dimming
