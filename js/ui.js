@@ -1994,7 +1994,7 @@ const UIManager = {
      * Sync all UI controls from loaded preset data
      * @param {Object} data - Preset data object
      */
-    syncUIFromPreset(data) {
+    async syncUIFromPreset(data) {
         // Card size
         if (data.currentCardSize && this.elements.cardSizePreset) {
             this.elements.cardSizePreset.value = data.currentCardSize;
@@ -2180,7 +2180,7 @@ const UIManager = {
         if (data.qrCodeLink !== undefined) {
             if (this.elements.qrCodeLink) this.elements.qrCodeLink.value = data.qrCodeLink;
             if (this.elements.qrCodeLinkMobile) this.elements.qrCodeLinkMobile.value = data.qrCodeLink;
-            CanvasManager.generateQRCode();
+            await CanvasManager.generateQRCode();
         }
 
         // Template overlay

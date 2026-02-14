@@ -232,13 +232,13 @@ const PresetManager = {
      * @param {number} index - Preset index
      * @returns {boolean} Success
      */
-    loadPreset(index) {
+    async loadPreset(index) {
         const presets = this.getPresets();
         if (index < 0 || index >= presets.length) return false;
 
         const preset = presets[index];
         this.applyState(preset.data);
-        UIManager.syncUIFromPreset(preset.data);
+        await UIManager.syncUIFromPreset(preset.data);
 
         console.log('Preset loaded:', preset.name);
         return true;

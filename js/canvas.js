@@ -280,10 +280,8 @@ const CanvasManager = {
     async setTextColor(color) {
         this.textColor = color;
         this.render();
-        // Regenerate QR code with new color
-        if (this.qrCodeImage || this.qrCodeCanvas) {
-            await this.generateQRCode();
-        }
+        // Always regenerate QR code with new color
+        await this.generateQRCode();
         this.updateBackSidePreview();
     },
 
@@ -365,10 +363,8 @@ const CanvasManager = {
                     this.borderImage = img;
                     console.log('Border image loaded:', img.width, 'x', img.height);
                     this.render();
-                    // Regenerate QR code before updating back side to ensure it displays
-                    if (this.qrCodeImage || this.qrCodeCanvas) {
-                        await this.generateQRCode();
-                    }
+                    // Always regenerate QR code to ensure it displays on back side
+                    await this.generateQRCode();
                     this.updateBackSidePreview();
                     resolve(true);
                 };
@@ -394,10 +390,8 @@ const CanvasManager = {
     async clearBorderImage() {
         this.borderImage = null;
         this.render();
-        // Regenerate QR code before updating back side to ensure it displays
-        if (this.qrCodeImage || this.qrCodeCanvas) {
-            await this.generateQRCode();
-        }
+        // Always regenerate QR code to ensure it displays on back side
+        await this.generateQRCode();
         this.updateBackSidePreview();
     },
 
