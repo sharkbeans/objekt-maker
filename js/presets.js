@@ -84,7 +84,11 @@ const PresetManager = {
 
             // Template overlay settings
             templateOpacity: CanvasManager.templateOpacity,
-            showTemplate: CanvasManager.showTemplate
+            showTemplate: CanvasManager.showTemplate,
+
+            // Back side template overlay settings
+            templateOpacityBack: CanvasManager.templateOpacityBack,
+            showTemplateBack: CanvasManager.showTemplateBack
         };
     },
 
@@ -175,6 +179,10 @@ const PresetManager = {
         // Template
         if (data.templateOpacity !== undefined) CanvasManager.templateOpacity = data.templateOpacity;
         if (data.showTemplate !== undefined) CanvasManager.showTemplate = data.showTemplate;
+
+        // Back side template
+        if (data.templateOpacityBack !== undefined) CanvasManager.templateOpacityBack = data.templateOpacityBack;
+        if (data.showTemplateBack !== undefined) CanvasManager.showTemplateBack = data.showTemplateBack;
 
         // Re-render
         CanvasManager.render();
