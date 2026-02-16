@@ -823,26 +823,26 @@ const UIManager = {
                 backdrop.addEventListener('click', () => this.closeSignatureModal());
             }
 
-            // Setup mobile slider transparency for signature modal sliders
+            // Setup slider transparency for signature modal sliders
             // Each slider's parent label is the container to keep visible (only the active slider)
             const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
 
             if (this.elements.signatureZoomSlider) {
-                this.setupMobileSliderTransparency(this.elements.signatureZoomSlider, {
+                this.setupSliderTransparency(this.elements.signatureZoomSlider, {
                     modal: modalContent,
                     backdrop: backdrop,
                     sliderContainer: this.elements.signatureZoomSlider.closest('label')
                 });
             }
             if (this.elements.signaturePosXSlider) {
-                this.setupMobileSliderTransparency(this.elements.signaturePosXSlider, {
+                this.setupSliderTransparency(this.elements.signaturePosXSlider, {
                     modal: modalContent,
                     backdrop: backdrop,
                     sliderContainer: this.elements.signaturePosXSlider.closest('label')
                 });
             }
             if (this.elements.signaturePosYSlider) {
-                this.setupMobileSliderTransparency(this.elements.signaturePosYSlider, {
+                this.setupSliderTransparency(this.elements.signaturePosYSlider, {
                     modal: modalContent,
                     backdrop: backdrop,
                     sliderContainer: this.elements.signaturePosYSlider.closest('label')
@@ -1601,23 +1601,24 @@ const UIManager = {
     },
 
     /**
-     * Setup mobile slider transparency behavior for modal sliders
-     * When a slider is touched on mobile, hide everything except the slider for better visibility
+     * Setup slider transparency behavior for modal sliders
+     * When a slider is interacted with (touch or mouse), hide everything except the slider for better visibility
      * @param {HTMLInputElement} slider - The range slider element
      * @param {Object} config - Configuration object
      * @param {HTMLElement} config.modal - The modal element
-     * @param {HTMLElement} config.backdrop - The backdrop element
+     * @param {HTMLElement} config.backdrop - The backdrop element (can be null)
      * @param {HTMLElement} config.sliderContainer - The container holding the slider to keep visible
      */
-    setupMobileSliderTransparency(slider, config) {
+    setupSliderTransparency(slider, config) {
         if (!slider) return;
 
         const { modal, backdrop, sliderContainer } = config;
-        const storageKey = `_mobileSliderOriginal_${slider.id || Math.random().toString(36).substr(2, 9)}`;
+        const storageKey = `_sliderOriginal_${slider.id || Math.random().toString(36).substr(2, 9)}`;
 
-        slider.addEventListener('touchstart', () => {
-            // Only on mobile
-            if (window.innerWidth > 768) return;
+        // Common function to activate transparency
+        const activateTransparency = () => {
+            // Don't activate if already active
+            if (this[storageKey]) return;
 
             // Hide backdrop
             if (backdrop) {
@@ -1691,9 +1692,10 @@ const UIManager = {
 
                 hideNonSliderElements(modal);
             }
-        });
+        };
 
-        slider.addEventListener('touchend', () => {
+        // Common function to deactivate transparency
+        const deactivateTransparency = () => {
             // Restore backdrop
             if (backdrop) {
                 backdrop.style.display = 'block';
@@ -1723,6 +1725,21 @@ const UIManager = {
                 // Clear storage
                 this[storageKey] = null;
             }
+        };
+
+        // Touch events
+        slider.addEventListener('touchstart', activateTransparency);
+        slider.addEventListener('touchend', deactivateTransparency);
+
+        // Mouse events for desktop/tablet
+        slider.addEventListener('mousedown', activateTransparency);
+        // Use document-level mouseup to ensure we catch the event even if mouse moves off slider
+        slider.addEventListener('mousedown', () => {
+            const handleMouseUp = () => {
+                deactivateTransparency();
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+            document.addEventListener('mouseup', handleMouseUp);
         });
     },
 
@@ -4001,64 +4018,16 @@ const UIManager = {
                 onChange(val);
             });
 
-            // On mobile/touch, hide the backdrop and make the modal transparent when slider is touched
-            slider.addEventListener('touchstart', (e) => {
-                const backdrop = document.getElementById('topLogoModalBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'none';
-                }
+            // Setup slider transparency (will be called after slider is added to DOM)
+            slider._setupTransparency = () => {
                 const modalElement = document.getElementById('topLogoModal');
-                if (modalElement) {
-                    // Store original styles for restoration
-                    this._originalTopLogoModalBackground = modalElement.style.background || '';
-                    // Hide modal background
-                    modalElement.style.background = 'transparent';
-                    modalElement.style.boxShadow = 'none';
-                    modalElement.style.padding = '0';
-
-                    // Hide all children except the controls container
-                    const controlsContainer = slider.closest('div')?.parentElement;
-                    if (controlsContainer && controlsContainer.classList.contains('canvas-text-editor')) {
-                        // If we're in text editor context, use that logic
-                    } else {
-                        // Otherwise, hide non-essential modal content
-                        Array.from(modalElement.children).forEach(child => {
-                            // Keep the control that contains the slider visible
-                            if (child.contains(slider) || child === controlsContainer) {
-                                child.style.display = 'block';
-                                child.style.visibility = 'visible';
-                                child.style.opacity = '1';
-                                child.style.pointerEvents = 'auto';
-                            } else {
-                                child.style.display = 'none';
-                            }
-                        });
-                    }
-                }
-            });
-
-            // On mobile/touch, restore the modal when slider interaction ends
-            slider.addEventListener('touchend', (e) => {
                 const backdrop = document.getElementById('topLogoModalBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'block';
-                }
-                const modalElement = document.getElementById('topLogoModal');
-                if (modalElement) {
-                    // Restore modal background
-                    modalElement.style.background = this._originalTopLogoModalBackground || '';
-                    modalElement.style.boxShadow = '';
-                    modalElement.style.padding = '';
-
-                    // Restore all children visibility
-                    Array.from(modalElement.children).forEach(child => {
-                        child.style.display = '';
-                        child.style.visibility = '';
-                        child.style.opacity = '';
-                        child.style.pointerEvents = '';
-                    });
-                }
-            });
+                this.setupSliderTransparency(slider, {
+                    modal: modalElement,
+                    backdrop: backdrop,
+                    sliderContainer: container
+                });
+            };
 
             sliderWrapper.appendChild(slider);
             sliderWrapper.appendChild(valueDisplay);
@@ -4137,6 +4106,12 @@ const UIManager = {
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
         }
+
+        // Setup slider transparency for all sliders (must be done after adding to DOM)
+        zoomSlider._setupTransparency();
+        posXSlider._setupTransparency();
+        posYSlider._setupTransparency();
+        rotationSlider._setupTransparency();
 
         // Prevent body scroll
         document.body.style.overflow = 'hidden';
@@ -4373,84 +4348,15 @@ const UIManager = {
             heightSlider.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
-            // On mobile/touch, minimize the editor when slider is touched (hide everything except this slider)
-            heightSlider.addEventListener('touchstart', (e) => {
-                const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'none';
-                }
-                const editor = document.getElementById('canvasTextEditor');
-                if (editor) {
-                    // Store original background for restoration
-                    this._originalEditorBackground = editor.style.background || '';
-                    // Hide editor background
-                    editor.style.background = 'transparent';
 
-                    // Get the content container
-                    const editorContent = editor.querySelector('.canvas-text-editor');
-                    if (editorContent) {
-                        this._originalContentBackground = editorContent.style.background || '';
-                        this._originalContentPadding = editorContent.style.padding || '';
-                        this._originalContentBoxShadow = editorContent.style.boxShadow || '';
-                        this._originalContentBorder = editorContent.style.border || '';
-
-                        // Hide content container background
-                        editorContent.style.background = 'transparent';
-                        editorContent.style.padding = '0';
-                        editorContent.style.boxShadow = 'none';
-                        editorContent.style.border = 'none';
-
-                        // Hide all children except the slider container
-                        const sliderContainer = heightSlider.closest('.canvas-editor-slider-container');
-                        Array.from(editorContent.children).forEach(child => {
-                            if (child !== sliderContainer) {
-                                child.style.display = 'none';
-                            } else {
-                                // Explicitly keep the slider container visible and ensure proper styling
-                                child.style.display = 'block';
-                                child.style.visibility = 'visible';
-                                child.style.opacity = '1';
-                                child.style.pointerEvents = 'auto';
-                                // Ensure the slider itself is visible and interactive
-                                const slider = child.querySelector('input[type="range"]');
-                                if (slider) {
-                                    slider.style.visibility = 'visible';
-                                    slider.style.opacity = '1';
-                                    slider.style.pointerEvents = 'auto';
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-
-            // On mobile/touch, restore the editor when slider interaction ends
-            heightSlider.addEventListener('touchend', () => {
-                const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'block';
-                }
-                const editor = document.getElementById('canvasTextEditor');
-                if (editor) {
-                    // Restore editor background
-                    editor.style.background = this._originalEditorBackground || '';
-
-                    // Get the content container
-                    const editorContent = editor.querySelector('.canvas-text-editor');
-                    if (editorContent) {
-                        // Restore content container styling
-                        editorContent.style.background = this._originalContentBackground || '';
-                        editorContent.style.padding = this._originalContentPadding || '';
-                        editorContent.style.boxShadow = this._originalContentBoxShadow || '';
-                        editorContent.style.border = this._originalContentBorder || '';
-
-                        // Restore all children
-                        Array.from(editorContent.children).forEach(child => {
-                            child.style.display = '';
-                        });
-                    }
-                }
-            });
+            // Setup slider transparency (deferred until editor is added to DOM)
+            heightSlider._setupTransparency = () => {
+                this.setupSliderTransparency(heightSlider, {
+                    modal: editorContent,
+                    backdrop: document.getElementById('canvasTextEditorBackdrop'),
+                    sliderContainer: sliderContainer
+                });
+            };
 
             // Handle slider input
             heightSlider.addEventListener('input', (e) => {
@@ -4606,6 +4512,8 @@ const UIManager = {
 
         // Add logo upload section for bottom text on both front and back sides
         const isBottomText = (side === 'front' && textType === 'bottom') || (side === 'back' && textType === 'bottomRotated');
+        // Track logo sliders for transparency setup later
+        const logoSliders = [];
         if (isBottomText) {
             // Create logo section container
             const logoSection = document.createElement('div');
@@ -4719,121 +4627,6 @@ const UIManager = {
                 slider.addEventListener('click', (e) => {
                     e.stopPropagation();
                 });
-                // On mobile/touch, minimize the editor when slider is touched (hide everything except this slider)
-                slider.addEventListener('touchstart', (e) => {
-                    const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                    if (backdrop) {
-                        backdrop.style.display = 'none';
-                    }
-                    const editor = document.getElementById('canvasTextEditor');
-                    if (editor) {
-                        // Store original background for restoration
-                        this._originalEditorBackground = editor.style.background || '';
-                        // Hide editor background
-                        editor.style.background = 'transparent';
-
-                        // Get the content container
-                        const editorContent = editor.querySelector('.canvas-text-editor');
-                        if (editorContent) {
-                            this._originalContentBackground = editorContent.style.background || '';
-                            this._originalContentPadding = editorContent.style.padding || '';
-                            this._originalContentBoxShadow = editorContent.style.boxShadow || '';
-                            this._originalContentBorder = editorContent.style.border || '';
-
-                            // Hide content container background
-                            editorContent.style.background = 'transparent';
-                            editorContent.style.padding = '0';
-                            editorContent.style.boxShadow = 'none';
-                            editorContent.style.border = 'none';
-
-                            // Hide all children except the slider container and its parents
-                            const sliderContainer = slider.closest('.canvas-editor-slider-container');
-                            const logoSection = slider.closest('.canvas-editor-logo-section');
-
-                            Array.from(editorContent.children).forEach(child => {
-                                if (child === logoSection || child === sliderContainer) {
-                                    // Keep logo section visible if slider is inside it
-                                    child.style.display = 'block';
-                                    child.style.visibility = 'visible';
-                                    child.style.opacity = '1';
-                                    child.style.pointerEvents = 'auto';
-                                } else if (logoSection && logoSection.contains(child)) {
-                                    // This child is inside logo section, check if it's the slider container
-                                    if (child === sliderContainer) {
-                                        child.style.display = 'block';
-                                        child.style.visibility = 'visible';
-                                        child.style.opacity = '1';
-                                        child.style.pointerEvents = 'auto';
-                                    }
-                                } else {
-                                    // Hide everything else
-                                    child.style.display = 'none';
-                                }
-                            });
-
-                            // If slider is in logo section, hide logo section children except slider
-                            if (logoSection) {
-                                Array.from(logoSection.children).forEach(child => {
-                                    const logoControls = logoSection.querySelector('.canvas-editor-logo-controls');
-                                    if (child === logoControls) {
-                                        child.style.display = 'block';
-                                        child.style.visibility = 'visible';
-                                        child.style.opacity = '1';
-                                        child.style.pointerEvents = 'auto';
-                                        // Hide all sliders in logo controls except the active one
-                                        Array.from(logoControls.children).forEach(logoChild => {
-                                            if (logoChild === sliderContainer) {
-                                                logoChild.style.display = 'block';
-                                                logoChild.style.visibility = 'visible';
-                                                logoChild.style.opacity = '1';
-                                                logoChild.style.pointerEvents = 'auto';
-                                                // Ensure the slider itself is visible and interactive
-                                                const activeSlider = logoChild.querySelector('input[type="range"]');
-                                                if (activeSlider) {
-                                                    activeSlider.style.visibility = 'visible';
-                                                    activeSlider.style.opacity = '1';
-                                                    activeSlider.style.pointerEvents = 'auto';
-                                                }
-                                            } else {
-                                                logoChild.style.display = 'none';
-                                            }
-                                        });
-                                    } else {
-                                        child.style.display = 'none';
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-
-                // On mobile/touch, restore the editor when slider interaction ends
-                slider.addEventListener('touchend', () => {
-                    const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                    if (backdrop) {
-                        backdrop.style.display = 'block';
-                    }
-                    const editor = document.getElementById('canvasTextEditor');
-                    if (editor) {
-                        // Restore editor background
-                        editor.style.background = this._originalEditorBackground || '';
-
-                        // Get the content container
-                        const editorContent = editor.querySelector('.canvas-text-editor');
-                        if (editorContent) {
-                            // Restore content container styling
-                            editorContent.style.background = this._originalContentBackground || '';
-                            editorContent.style.padding = this._originalContentPadding || '';
-                            editorContent.style.boxShadow = this._originalContentBoxShadow || '';
-                            editorContent.style.border = this._originalContentBorder || '';
-
-                            // Restore all children
-                            Array.from(editorContent.children).forEach(child => {
-                                child.style.display = '';
-                            });
-                        }
-                    }
-                });
 
                 slider.addEventListener('input', (e) => {
                     const val = parseInt(e.target.value);
@@ -4841,28 +4634,40 @@ const UIManager = {
                     onChange(val);
                 });
 
+                // Setup slider transparency (deferred until editor is added to DOM)
+                slider._setupTransparency = () => {
+                    this.setupSliderTransparency(slider, {
+                        modal: editorContent,
+                        backdrop: document.getElementById('canvasTextEditorBackdrop'),
+                        sliderContainer: container
+                    });
+                };
+
                 sliderWrapper.appendChild(slider);
                 sliderWrapper.appendChild(valueDisplay);
                 container.appendChild(sliderLabel);
                 container.appendChild(sliderWrapper);
 
-                return container;
+                // Track slider for later transparency setup
+                logoSliders.push(slider);
+
+                return { container, slider };
             };
 
             // Add zoom slider
             const currentZoom = isFrontSide ? CanvasManager.frontLogoZoom * 100 : CanvasManager.logoZoom * 100;
-            const zoomSlider = createSlider('Logo Zoom', 20, 300, currentZoom, (value) => {
+            const { container: zoomContainer } = createSlider('Logo Zoom', 20, 300, currentZoom, (value) => {
                 if (isFrontSide) {
                     CanvasManager.setFrontLogoZoom(value / 100);
                 } else {
                     CanvasManager.setLogoZoom(value / 100);
                 }
             });
-            logoControlsContainer.appendChild(zoomSlider);
+            logoControlsContainer.appendChild(zoomContainer);
 
             // Add position X slider
             const currentPosX = isFrontSide ? CanvasManager.frontLogoPosX : CanvasManager.logoPosX;
-            const posXSlider = createSlider('Position X', -100, 100, currentPosX, (value) => {
+            const { container: posXContainer } = createSlider('Position X', -100, 100, currentPosX, (value) => {
                 const currentY = isFrontSide ? CanvasManager.frontLogoPosY : CanvasManager.logoPosY;
                 if (isFrontSide) {
                     CanvasManager.setFrontLogoPosition(value, currentY);
@@ -4870,11 +4675,11 @@ const UIManager = {
                     CanvasManager.setLogoPosition(value, currentY);
                 }
             });
-            logoControlsContainer.appendChild(posXSlider);
+            logoControlsContainer.appendChild(posXContainer);
 
             // Add position Y slider
             const currentPosY = isFrontSide ? CanvasManager.frontLogoPosY : CanvasManager.logoPosY;
-            const posYSlider = createSlider('Position Y', -100, 100, currentPosY, (value) => {
+            const { container: posYContainer } = createSlider('Position Y', -100, 100, currentPosY, (value) => {
                 const currentX = isFrontSide ? CanvasManager.frontLogoPosX : CanvasManager.logoPosX;
                 if (isFrontSide) {
                     CanvasManager.setFrontLogoPosition(currentX, value);
@@ -4882,18 +4687,18 @@ const UIManager = {
                     CanvasManager.setLogoPosition(currentX, value);
                 }
             });
-            logoControlsContainer.appendChild(posYSlider);
+            logoControlsContainer.appendChild(posYContainer);
 
             // Add rotation slider
             const currentRotation = isFrontSide ? CanvasManager.frontLogoRotation : CanvasManager.logoRotation;
-            const rotationSlider = createSlider('Rotation', 0, 360, currentRotation, (value) => {
+            const { container: rotationContainer } = createSlider('Rotation', 0, 360, currentRotation, (value) => {
                 if (isFrontSide) {
                     CanvasManager.setFrontLogoRotation(value);
                 } else {
                     CanvasManager.setLogoRotation(value);
                 }
             });
-            logoControlsContainer.appendChild(rotationSlider);
+            logoControlsContainer.appendChild(rotationContainer);
 
             logoSection.appendChild(logoControlsContainer);
             editorContent.appendChild(logoSection);
@@ -5001,6 +4806,17 @@ const UIManager = {
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
         }
+
+        // Setup slider transparency for all sliders (must be done after adding to DOM)
+        if (heightSlider && heightSlider._setupTransparency) {
+            heightSlider._setupTransparency();
+        }
+        // Setup transparency for all logo sliders
+        logoSliders.forEach(slider => {
+            if (slider._setupTransparency) {
+                slider._setupTransparency();
+            }
+        });
 
         // Focus input and select all text
         input.focus();
@@ -5592,6 +5408,39 @@ const UIManager = {
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
             this.syncSliderValue('panY', value);
         });
+
+        // Setup slider transparency for floating overlay sliders
+        const contentArea = overlay.querySelector('.floating-adjust-content');
+        const overflowSliderMobile = document.getElementById('overflowBorderSliderMobile');
+
+        if (zoomSliderF) {
+            this.setupSliderTransparency(zoomSliderF, {
+                modal: contentArea,
+                backdrop: null,
+                sliderContainer: zoomSliderF.closest('label')
+            });
+        }
+        if (panXSliderF) {
+            this.setupSliderTransparency(panXSliderF, {
+                modal: contentArea,
+                backdrop: null,
+                sliderContainer: panXSliderF.closest('label')
+            });
+        }
+        if (panYSliderF) {
+            this.setupSliderTransparency(panYSliderF, {
+                modal: contentArea,
+                backdrop: null,
+                sliderContainer: panYSliderF.closest('label')
+            });
+        }
+        if (overflowSliderMobile) {
+            this.setupSliderTransparency(overflowSliderMobile, {
+                modal: contentArea,
+                backdrop: null,
+                sliderContainer: overflowSliderMobile.closest('label')
+            });
+        }
     },
 
     /**
