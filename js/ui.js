@@ -792,6 +792,58 @@ const UIManager = {
                 this.syncSignatureSliderValue('zoom', value);
                 CanvasManager.setSignatureZoom(value / 100);
             });
+
+            // On mobile/touch, hide the backdrop and make the modal transparent when slider is touched
+            this.elements.signatureZoomSlider.addEventListener('touchstart', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Store original styles for restoration
+                    this._originalSignatureModalBackground = modalContent.style.background || '';
+                    // Hide modal background
+                    modalContent.style.background = 'transparent';
+                    modalContent.style.boxShadow = 'none';
+                    modalContent.style.padding = '0';
+
+                    // Hide all children except the zoom section
+                    Array.from(modalContent.children).forEach(child => {
+                        if (child.contains(this.elements.signatureZoomSlider)) {
+                            child.style.display = 'block';
+                            child.style.visibility = 'visible';
+                            child.style.opacity = '1';
+                            child.style.pointerEvents = 'auto';
+                        } else {
+                            child.style.display = 'none';
+                        }
+                    });
+                }
+            });
+
+            // On mobile/touch, restore the modal when slider interaction ends
+            this.elements.signatureZoomSlider.addEventListener('touchend', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Restore modal background
+                    modalContent.style.background = this._originalSignatureModalBackground || '';
+                    modalContent.style.boxShadow = '';
+                    modalContent.style.padding = '';
+
+                    // Restore all children visibility
+                    Array.from(modalContent.children).forEach(child => {
+                        child.style.display = '';
+                        child.style.visibility = '';
+                        child.style.opacity = '';
+                        child.style.pointerEvents = '';
+                    });
+                }
+            });
         }
         if (this.elements.signaturePosXSlider) {
             this.elements.signaturePosXSlider.addEventListener('input', (e) => {
@@ -800,6 +852,58 @@ const UIManager = {
                 this.syncSignatureSliderValue('posX', value);
                 CanvasManager.setSignaturePosition(value, CanvasManager.signaturePosY);
             });
+
+            // On mobile/touch, hide the backdrop and make the modal transparent when slider is touched
+            this.elements.signaturePosXSlider.addEventListener('touchstart', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Store original styles for restoration
+                    this._originalSignatureModalBackground = modalContent.style.background || '';
+                    // Hide modal background
+                    modalContent.style.background = 'transparent';
+                    modalContent.style.boxShadow = 'none';
+                    modalContent.style.padding = '0';
+
+                    // Hide all children except the zoom section
+                    Array.from(modalContent.children).forEach(child => {
+                        if (child.contains(this.elements.signaturePosXSlider)) {
+                            child.style.display = 'block';
+                            child.style.visibility = 'visible';
+                            child.style.opacity = '1';
+                            child.style.pointerEvents = 'auto';
+                        } else {
+                            child.style.display = 'none';
+                        }
+                    });
+                }
+            });
+
+            // On mobile/touch, restore the modal when slider interaction ends
+            this.elements.signaturePosXSlider.addEventListener('touchend', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Restore modal background
+                    modalContent.style.background = this._originalSignatureModalBackground || '';
+                    modalContent.style.boxShadow = '';
+                    modalContent.style.padding = '';
+
+                    // Restore all children visibility
+                    Array.from(modalContent.children).forEach(child => {
+                        child.style.display = '';
+                        child.style.visibility = '';
+                        child.style.opacity = '';
+                        child.style.pointerEvents = '';
+                    });
+                }
+            });
         }
         if (this.elements.signaturePosYSlider) {
             this.elements.signaturePosYSlider.addEventListener('input', (e) => {
@@ -807,6 +911,58 @@ const UIManager = {
                 this.elements.signaturePosYValue.textContent = `${value}px`;
                 this.syncSignatureSliderValue('posY', value);
                 CanvasManager.setSignaturePosition(CanvasManager.signaturePosX, value);
+            });
+
+            // On mobile/touch, hide the backdrop and make the modal transparent when slider is touched
+            this.elements.signaturePosYSlider.addEventListener('touchstart', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Store original styles for restoration
+                    this._originalSignatureModalBackground = modalContent.style.background || '';
+                    // Hide modal background
+                    modalContent.style.background = 'transparent';
+                    modalContent.style.boxShadow = 'none';
+                    modalContent.style.padding = '0';
+
+                    // Hide all children except the zoom section
+                    Array.from(modalContent.children).forEach(child => {
+                        if (child.contains(this.elements.signaturePosYSlider)) {
+                            child.style.display = 'block';
+                            child.style.visibility = 'visible';
+                            child.style.opacity = '1';
+                            child.style.pointerEvents = 'auto';
+                        } else {
+                            child.style.display = 'none';
+                        }
+                    });
+                }
+            });
+
+            // On mobile/touch, restore the modal when slider interaction ends
+            this.elements.signaturePosYSlider.addEventListener('touchend', (e) => {
+                const backdrop = this.elements.signatureModal.querySelector('.signature-modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+                if (modalContent) {
+                    // Restore modal background
+                    modalContent.style.background = this._originalSignatureModalBackground || '';
+                    modalContent.style.boxShadow = '';
+                    modalContent.style.padding = '';
+
+                    // Restore all children visibility
+                    Array.from(modalContent.children).forEach(child => {
+                        child.style.display = '';
+                        child.style.visibility = '';
+                        child.style.opacity = '';
+                        child.style.pointerEvents = '';
+                    });
+                }
             });
         }
         if (this.elements.clearSignatureImage) {
