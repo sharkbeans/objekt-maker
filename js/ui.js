@@ -1423,8 +1423,11 @@ const UIManager = {
             document.body.appendChild(overlay);
         }
 
-        // Get all range inputs in the controls panel
-        const rangeInputs = controlsPanel.querySelectorAll('input[type="range"]');
+        // Get all range inputs in the controls panel and back side mobile section
+        const controlsPanelInputs = controlsPanel.querySelectorAll('input[type="range"]');
+        const backSideMobile = document.getElementById('backSideSectionMobile');
+        const backSideInputs = backSideMobile ? backSideMobile.querySelectorAll('input[type="range"]') : [];
+        const rangeInputs = [...controlsPanelInputs, ...backSideInputs];
         console.log('Found ' + rangeInputs.length + ' range inputs for slider drag listeners');
 
         rangeInputs.forEach(slider => {
