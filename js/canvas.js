@@ -96,6 +96,10 @@ const CanvasManager = {
     templateImage: null, // Template image for alignment reference
     templateOpacity: 0.5, // Template opacity (0-1)
     showTemplate: false, // Whether to show the template overlay
+    // Back Side Reference Template Overlay
+    templateImageBack: null, // Back side template image for alignment reference
+    templateOpacityBack: 0.5, // Back side template opacity (0-1)
+    showTemplateBack: false, // Whether to show the back side template overlay
     // Custom Frame Overlay (user-uploaded, included in export)
     frameImage: null, // User uploaded frame (transparent background)
     frameOpacity: 1, // Frame opacity (0-1)
@@ -906,6 +910,80 @@ const CanvasManager = {
     },
 
     /**
+     * Load a back side template image from file
+     * @param {File} file - Image file to load
+     * @returns {Promise<boolean>} Success status
+     */
+    async loadTemplateImageBack(file) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    this.templateImageBack = img;
+                    this.showTemplateBack = true;
+                    console.log('Back side template image loaded:', img.width, 'x', img.height);
+                    this.updateBackSidePreview();
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load template image'));
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Failed to read file'));
+            };
+
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Clear the back side template image
+     */
+    clearTemplateImageBack() {
+        this.templateImageBack = null;
+        this.showTemplateBack = false;
+        this.templateOpacityBack = 0.5;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set back side template opacity
+     * @param {number} opacity - Opacity value (0-1)
+     */
+    setTemplateOpacityBack(opacity) {
+        this.templateOpacityBack = Math.max(0, Math.min(1, opacity));
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set back side template visibility
+     * @param {boolean} visible - Whether to show the template
+     */
+    setTemplateVisibleBack(visible) {
+        this.showTemplateBack = visible;
+        this.updateBackSidePreview();
+    },
+
+    /**
      * Render the template overlay on top of the canvas (Phase 3)
      * Called at the end of render() when template is visible
      */
@@ -947,6 +1025,53 @@ const CanvasManager = {
         );
 
         this.ctx.restore();
+    },
+
+    /**
+     * Render the back side template overlay
+     * Called from renderBackSide() when back template is visible
+     * @param {CanvasRenderingContext2D} ctx - Back side canvas context
+     * @param {number} canvasWidth - Canvas width
+     * @param {number} canvasHeight - Canvas height
+     */
+    renderTemplateOverlayBack(ctx, canvasWidth, canvasHeight) {
+        if (!this.templateImageBack || !this.showTemplateBack) {
+            return;
+        }
+
+        ctx.save();
+
+        // Apply opacity
+        ctx.globalAlpha = this.templateOpacityBack;
+
+        // Calculate dimensions to cover the canvas while maintaining aspect ratio
+        const imgAspect = this.templateImageBack.width / this.templateImageBack.height;
+        const canvasAspect = canvasWidth / canvasHeight;
+
+        let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+        if (imgAspect > canvasAspect) {
+            // Image is wider - fit to height
+            drawHeight = canvasHeight;
+            drawWidth = drawHeight * imgAspect;
+            offsetX = (canvasWidth - drawWidth) / 2;
+        } else {
+            // Image is taller - fit to width
+            drawWidth = canvasWidth;
+            drawHeight = drawWidth / imgAspect;
+            offsetY = (canvasHeight - drawHeight) / 2;
+        }
+
+        // Draw template overlay
+        ctx.drawImage(
+            this.templateImageBack,
+            offsetX,
+            offsetY,
+            drawWidth,
+            drawHeight
+        );
+
+        ctx.restore();
     },
 
     /**
@@ -1830,6 +1955,9 @@ const CanvasManager = {
             this.drawLogo(backCtx, centerX, centerY);
         }
 
+        // Render back side template overlay if enabled
+        this.renderTemplateOverlayBack(backCtx, renderWidth, renderHeight);
+
         // Restore the overflow border translation
         backCtx.restore();
 
@@ -2189,11 +2317,15 @@ const CanvasManager = {
      * @param {string} filename - Download filename (optional, will be generated based on settings)
      */
     async exportImage(textOverlays = [], format = 'png', filename = null) {
-        // Temporarily hide template overlay during export (Phase 3)
+        // Temporarily hide template overlays during export (Phase 3)
         const templateWasVisible = this.showTemplate;
+        const templateBackWasVisible = this.showTemplateBack;
         if (templateWasVisible) {
             this.showTemplate = false;
             this.render(); // Re-render without template
+        }
+        if (templateBackWasVisible) {
+            this.showTemplateBack = false;
         }
 
         // Generate filename based on settings if not provided
@@ -2259,6 +2391,10 @@ const CanvasManager = {
             this.showTemplate = true;
             this.render(); // Re-render with template
         }
+        if (templateBackWasVisible) {
+            this.showTemplateBack = true;
+            this.updateBackSidePreview(); // Re-render back side with template
+        }
 
         return result;
     },
@@ -2287,6 +2423,10 @@ const CanvasManager = {
         this.templateImage = null;
         this.templateOpacity = 0.5;
         this.showTemplate = false;
+        // Reset back side template overlay
+        this.templateImageBack = null;
+        this.templateOpacityBack = 0.5;
+        this.showTemplateBack = false;
         this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         console.log('Canvas reset');
     },

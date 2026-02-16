@@ -271,7 +271,16 @@ const UIManager = {
             templateToggle: document.getElementById('templateToggle'),
             templateOpacity: document.getElementById('templateOpacity'),
             templateOpacityValue: document.getElementById('templateOpacityValue'),
-            clearTemplateBtn: document.getElementById('clearTemplateBtn')
+            clearTemplateBtn: document.getElementById('clearTemplateBtn'),
+
+            // Back Side Reference Template controls
+            templateUploadBack: document.getElementById('templateUploadBack'),
+            templateUploadAreaBack: document.getElementById('templateUploadAreaBack'),
+            templateControlsContainerBack: document.getElementById('templateControlsContainerBack'),
+            templateToggleBack: document.getElementById('templateToggleBack'),
+            templateOpacityBack: document.getElementById('templateOpacityBack'),
+            templateOpacityValueBack: document.getElementById('templateOpacityValueBack'),
+            clearTemplateBackBtn: document.getElementById('clearTemplateBackBtn')
             ,
             // Custom Frame controls (user-uploaded, included in export)
             frameUpload: document.getElementById('frameUpload'),
@@ -695,6 +704,26 @@ const UIManager = {
         }
         if (this.elements.clearTemplateBtn) {
             this.elements.clearTemplateBtn.addEventListener('click', () => this.clearTemplate());
+        }
+
+        // Back Side Reference Template controls
+        if (this.elements.templateUploadBack) {
+            this.elements.templateUploadBack.addEventListener('change', (e) => this.handleTemplateUploadBack(e));
+        }
+        if (this.elements.templateToggleBack) {
+            this.elements.templateToggleBack.addEventListener('change', (e) => {
+                CanvasManager.setTemplateVisibleBack(e.target.checked);
+            });
+        }
+        if (this.elements.templateOpacityBack) {
+            this.elements.templateOpacityBack.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.elements.templateOpacityValueBack.textContent = `${value}%`;
+                CanvasManager.setTemplateOpacityBack(value / 100);
+            });
+        }
+        if (this.elements.clearTemplateBackBtn) {
+            this.elements.clearTemplateBackBtn.addEventListener('click', () => this.clearTemplateBack());
         }
 
         // Custom Frame controls
@@ -2193,6 +2222,16 @@ const UIManager = {
             this.elements.templateToggle.checked = data.showTemplate;
         }
 
+        // Back side template overlay
+        if (data.templateOpacityBack !== undefined && this.elements.templateOpacityBack) {
+            const pct = Math.round(data.templateOpacityBack * 100);
+            this.elements.templateOpacityBack.value = pct;
+            this.elements.templateOpacityValueBack.textContent = `${pct}%`;
+        }
+        if (data.showTemplateBack !== undefined && this.elements.templateToggleBack) {
+            this.elements.templateToggleBack.checked = data.showTemplateBack;
+        }
+
         // Sync back side colors
         this.syncBackColors();
     },
@@ -2814,6 +2853,58 @@ const UIManager = {
     },
 
     /**
+     * Handle back side template image upload
+     */
+    async handleTemplateUploadBack(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await CanvasManager.loadTemplateImageBack(file);
+            // Show template controls
+            if (this.elements.templateControlsContainerBack) {
+                this.elements.templateControlsContainerBack.style.display = 'block';
+            }
+            // Hide upload area
+            if (this.elements.templateUploadAreaBack) {
+                this.elements.templateUploadAreaBack.style.display = 'none';
+            }
+            // Ensure toggle is checked
+            if (this.elements.templateToggleBack) {
+                this.elements.templateToggleBack.checked = true;
+            }
+            console.log('Back side template image loaded');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Clear back side template image
+     */
+    clearTemplateBack() {
+        CanvasManager.clearTemplateImageBack();
+        if (this.elements.templateUploadBack) {
+            this.elements.templateUploadBack.value = '';
+        }
+        // Hide controls, show upload area
+        if (this.elements.templateControlsContainerBack) {
+            this.elements.templateControlsContainerBack.style.display = 'none';
+        }
+        if (this.elements.templateUploadAreaBack) {
+            this.elements.templateUploadAreaBack.style.display = 'block';
+        }
+        // Reset slider to default
+        if (this.elements.templateOpacityBack) {
+            this.elements.templateOpacityBack.value = 50;
+        }
+        if (this.elements.templateOpacityValueBack) {
+            this.elements.templateOpacityValueBack.textContent = '50%';
+        }
+        console.log('Back side template image cleared');
+    },
+
+    /**
      * Sync logo slider values between desktop and mobile
      */
     syncLogoSliderValue(sliderType, value, isMobile = false) {
@@ -3084,11 +3175,16 @@ const UIManager = {
             return;
         }
 
-        // Temporarily hide template overlay during export (template is for lineup only)
+        // Temporarily hide template overlays during export (template is for lineup only)
         const templateWasVisible = CanvasManager.showTemplate;
-        if (templateWasVisible) {
+        const templateBackWasVisible = CanvasManager.showTemplateBack;
+        if (this.currentView === 'front' && templateWasVisible) {
             CanvasManager.showTemplate = false;
             CanvasManager.render();
+        }
+        if (this.currentView === 'back' && templateBackWasVisible) {
+            CanvasManager.showTemplateBack = false;
+            CanvasManager.updateBackSidePreview();
         }
 
         try {
@@ -3118,9 +3214,13 @@ const UIManager = {
             console.error(error);
         } finally {
             // Restore template visibility after export
-            if (templateWasVisible) {
+            if (this.currentView === 'front' && templateWasVisible) {
                 CanvasManager.showTemplate = true;
                 CanvasManager.render();
+            }
+            if (this.currentView === 'back' && templateBackWasVisible) {
+                CanvasManager.showTemplateBack = true;
+                CanvasManager.updateBackSidePreview();
             }
         }
     },
