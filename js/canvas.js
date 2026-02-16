@@ -1013,7 +1013,7 @@ const CanvasManager = {
             ctx.fillRect(0, 0, size, size);
 
             // Draw QR code modules
-            ctx.fillStyle = this.textColor;
+            ctx.fillStyle = '#000000'; // Always black for QR code readability
             for (let row = 0; row < moduleCount; row++) {
                 for (let col = 0; col < moduleCount; col++) {
                     if (qr.isDark(row, col)) {
@@ -1705,7 +1705,7 @@ const CanvasManager = {
         backCtx.fillRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
         // Add black border to white square (1px like divider lines)
-        backCtx.strokeStyle = this.textColor;
+        backCtx.strokeStyle = '#000000'; // Always black for QR code border
         backCtx.lineWidth = 1;
         backCtx.strokeRect(whiteBoxX, whiteBoxY, squareSize, squareSize);
 
