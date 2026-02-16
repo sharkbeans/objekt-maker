@@ -4259,6 +4259,154 @@ const UIManager = {
             });
         }
 
+        // Add text color picker for front side text
+        if (side === 'front' && (textType === 'top' || textType === 'middle' || textType === 'bottom')) {
+            const colorContainer = document.createElement('div');
+            colorContainer.className = 'canvas-editor-color-container';
+            colorContainer.style.cssText = 'margin-top: 16px;';
+
+            const colorLabel = document.createElement('label');
+            colorLabel.className = 'canvas-editor-slider-label';
+            colorLabel.textContent = 'Text Color';
+            colorLabel.style.cssText = 'display: block; margin-bottom: 8px;';
+
+            const colorInputWrapper = document.createElement('div');
+            colorInputWrapper.className = 'canvas-editor-color-wrapper';
+            colorInputWrapper.style.cssText = 'display: flex; gap: 12px; align-items: center;';
+
+            // Color picker input
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.className = 'canvas-editor-color-picker';
+            colorPicker.value = CanvasManager.textColor || '#000000';
+            colorPicker.style.cssText = 'width: 50px; height: 40px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: transparent;';
+
+            // Hex input
+            const hexInput = document.createElement('input');
+            hexInput.type = 'text';
+            hexInput.className = 'canvas-editor-hex-input';
+            hexInput.value = CanvasManager.textColor || '#000000';
+            hexInput.placeholder = '#000000';
+            hexInput.maxLength = 7;
+            hexInput.style.cssText = 'flex: 1; padding: 10px; font-size: 0.9rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-family: monospace;';
+
+            // Track if color picker is being actively used
+            this._isColorPickerActive = false;
+
+            // Handle color picker input
+            colorPicker.addEventListener('input', (e) => {
+                const color = e.target.value.toUpperCase();
+                hexInput.value = color;
+                CanvasManager.setTextColor(color);
+
+                // Sync to main UI controls
+                if (this.elements.textColorPicker) this.elements.textColorPicker.value = color;
+                if (this.elements.textColorHex) this.elements.textColorHex.value = color;
+            });
+
+            // Handle hex input
+            hexInput.addEventListener('input', (e) => {
+                let color = e.target.value.trim();
+
+                // Validate hex color format
+                if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                    color = color.toUpperCase();
+                    colorPicker.value = color;
+                    CanvasManager.setTextColor(color);
+
+                    // Sync to main UI controls
+                    if (this.elements.textColorPicker) this.elements.textColorPicker.value = color;
+                    if (this.elements.textColorHex) this.elements.textColorHex.value = color;
+                }
+            });
+
+            // Prevent event bubbling
+            colorPicker.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            hexInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // On mobile/touch, minimize the editor when color picker is touched
+            colorPicker.addEventListener('touchstart', (e) => {
+                this._isColorPickerActive = true;
+                const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                }
+                const editor = document.getElementById('canvasTextEditor');
+                if (editor) {
+                    // Store original background for restoration
+                    this._originalEditorBackground = editor.style.background || '';
+                    editor.style.background = 'transparent';
+
+                    const editorContent = editor.querySelector('.canvas-text-editor');
+                    if (editorContent) {
+                        this._originalContentBackground = editorContent.style.background || '';
+                        this._originalContentPadding = editorContent.style.padding || '';
+                        this._originalContentBoxShadow = editorContent.style.boxShadow || '';
+                        this._originalContentBorder = editorContent.style.border || '';
+
+                        editorContent.style.background = 'transparent';
+                        editorContent.style.padding = '0';
+                        editorContent.style.boxShadow = 'none';
+                        editorContent.style.border = 'none';
+
+                        // Hide all children except the color container
+                        Array.from(editorContent.children).forEach(child => {
+                            if (child !== colorContainer) {
+                                child.style.display = 'none';
+                            } else {
+                                child.style.display = 'block';
+                                child.style.visibility = 'visible';
+                                child.style.opacity = '1';
+                                child.style.pointerEvents = 'auto';
+                            }
+                        });
+                    }
+                }
+            });
+
+            // On mobile/touch, restore the editor when color picker interaction ends
+            colorPicker.addEventListener('touchend', () => {
+                this._isColorPickerActive = false;
+                const backdrop = document.getElementById('canvasTextEditorBackdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'block';
+                }
+                const editor = document.getElementById('canvasTextEditor');
+                if (editor) {
+                    editor.style.background = this._originalEditorBackground || '';
+
+                    const editorContent = editor.querySelector('.canvas-text-editor');
+                    if (editorContent) {
+                        editorContent.style.background = this._originalContentBackground || '';
+                        editorContent.style.padding = this._originalContentPadding || '';
+                        editorContent.style.boxShadow = this._originalContentBoxShadow || '';
+                        editorContent.style.border = this._originalContentBorder || '';
+
+                        // Restore all children
+                        Array.from(editorContent.children).forEach(child => {
+                            child.style.display = '';
+                        });
+                    }
+                }
+            });
+
+            // Similar events for hex input
+            hexInput.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            });
+
+            colorInputWrapper.appendChild(colorPicker);
+            colorInputWrapper.appendChild(hexInput);
+
+            colorContainer.appendChild(colorLabel);
+            colorContainer.appendChild(colorInputWrapper);
+            editorContent.appendChild(colorContainer);
+        }
+
         // Add logo upload section for bottom text on both front and back sides
         const isBottomText = (side === 'front' && textType === 'bottom') || (side === 'back' && textType === 'bottomRotated');
         if (isBottomText) {
