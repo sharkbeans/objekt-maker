@@ -24,7 +24,6 @@ const UIManager = {
             canvasContainer: document.getElementById('canvasContainer'),
             canvasWrapper: document.getElementById('canvasWrapper'),
             backCanvasWrapper: document.getElementById('backCanvasWrapper'),
-            canvasPlaceholder: document.getElementById('canvasPlaceholder'),
             canvasViewToggle: document.getElementById('canvasViewToggle'),
             toggleBtns: document.querySelectorAll('.toggle-btn'),
             frontSideSection: document.getElementById('frontSideSection'),
@@ -38,6 +37,8 @@ const UIManager = {
             panXValue: document.getElementById('panXValue'),
             panYSlider: document.getElementById('panYSlider'),
             panYValue: document.getElementById('panYValue'),
+            cornerRadiusSlider: document.getElementById('cornerRadiusSlider'),
+            cornerRadiusValue: document.getElementById('cornerRadiusValue'),
 
             // Mobile adjustment controls
             zoomSliderMobile: document.getElementById('zoomSliderMobile'),
@@ -320,11 +321,6 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
 
-        // Make canvas placeholder clickable to trigger image upload
-        this.elements.canvasPlaceholder.addEventListener('click', () => {
-            this.elements.imageUpload.click();
-        });
-
         // Make front canvas wrapper clickable to trigger image upload when no image is loaded
         this.elements.canvasWrapper.addEventListener('click', (e) => {
             // Only trigger if no image is loaded and click is not on an interactive element
@@ -353,6 +349,14 @@ const UIManager = {
             this.elements.panYValue.textContent = `${value}px`;
             this.syncSliderValue('panY', value);
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
+        });
+
+        this.elements.cornerRadiusSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.elements.cornerRadiusValue.textContent = `${value}px`;
+            this.syncSliderValue('cornerRadius', value);
+            CanvasManager.cornerRadius = value;
+            CanvasManager.render();
         });
 
         // Mobile adjustment controls
@@ -2250,6 +2254,7 @@ const UIManager = {
         }
         if (data.imagePosX !== undefined) this.syncSliderValue('panX', data.imagePosX);
         if (data.imagePosY !== undefined) this.syncSliderValue('panY', data.imagePosY);
+        if (data.cornerRadius !== undefined) this.syncSliderValue('cornerRadius', data.cornerRadius);
 
         // Border color
         if (data.accentColor) {
@@ -2480,6 +2485,13 @@ const UIManager = {
                 if (this.elements.panYValueFloating) this.elements.panYValueFloating.textContent = `${value}px`;
                 // Mobile edge slider (rotated, so negate value)
                 if (this.elements.mobilePanYSlider) this.elements.mobilePanYSlider.value = -value;
+                break;
+            case 'cornerRadius':
+                if (this.elements.cornerRadiusSlider) this.elements.cornerRadiusSlider.value = value;
+                if (this.elements.cornerRadiusValue) this.elements.cornerRadiusValue.textContent = `${value}px`;
+                // Floating overlay
+                if (this.elements.cornerRadiusSliderFloating) this.elements.cornerRadiusSliderFloating.value = value;
+                if (this.elements.cornerRadiusValueFloating) this.elements.cornerRadiusValueFloating.textContent = `${value}px`;
                 break;
         }
     },
@@ -3319,7 +3331,6 @@ const UIManager = {
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
         this.elements.canvasWrapper.classList.remove('clickable');
-        this.elements.canvasPlaceholder.classList.add('hidden');
     },
 
     /**
@@ -3328,7 +3339,6 @@ const UIManager = {
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
         this.elements.canvasWrapper.classList.add('clickable');
-        this.elements.canvasPlaceholder.classList.remove('hidden');
 
         // Hide scroll button when canvas is hidden
         if (this.elements.scrollToPreviewBtn) {
@@ -5360,9 +5370,11 @@ const UIManager = {
         const zoomSliderF = document.getElementById('zoomSliderFloating');
         const panXSliderF = document.getElementById('panXSliderFloating');
         const panYSliderF = document.getElementById('panYSliderFloating');
+        const cornerRadiusSliderF = document.getElementById('cornerRadiusSliderFloating');
         const zoomValueF = document.getElementById('zoomValueFloating');
         const panXValueF = document.getElementById('panXValueFloating');
         const panYValueF = document.getElementById('panYValueFloating');
+        const cornerRadiusValueF = document.getElementById('cornerRadiusValueFloating');
 
         if (!overlay) return;
 
@@ -5371,9 +5383,11 @@ const UIManager = {
         this.elements.zoomSliderFloating = zoomSliderF;
         this.elements.panXSliderFloating = panXSliderF;
         this.elements.panYSliderFloating = panYSliderF;
+        this.elements.cornerRadiusSliderFloating = cornerRadiusSliderF;
         this.elements.zoomValueFloating = zoomValueF;
         this.elements.panXValueFloating = panXValueF;
         this.elements.panYValueFloating = panYValueF;
+        this.elements.cornerRadiusValueFloating = cornerRadiusValueF;
 
         // Close button
         closeBtn?.addEventListener('click', () => this.hideFloatingAdjustOverlay());
@@ -5382,9 +5396,12 @@ const UIManager = {
         resetBtn?.addEventListener('click', () => {
             CanvasManager.setPan(0, 0);
             CanvasManager.setZoom(1);
+            CanvasManager.cornerRadius = 36;
             this.syncSliderValue('panX', 0);
             this.syncSliderValue('panY', 0);
             this.syncSliderValue('zoom', 100);
+            this.syncSliderValue('cornerRadius', 36);
+            CanvasManager.render();
         });
 
         // Floating slider events
@@ -5407,6 +5424,14 @@ const UIManager = {
             panYValueF.textContent = `${value}px`;
             CanvasManager.setPan(CanvasManager.imagePosX, parseInt(value));
             this.syncSliderValue('panY', value);
+        });
+
+        cornerRadiusSliderF?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            cornerRadiusValueF.textContent = `${value}px`;
+            CanvasManager.cornerRadius = value;
+            CanvasManager.render();
+            this.syncSliderValue('cornerRadius', value);
         });
 
         // Setup slider transparency for floating overlay sliders
@@ -5439,6 +5464,13 @@ const UIManager = {
                 modal: contentArea,
                 backdrop: null,
                 sliderContainer: overflowSliderMobile.closest('label')
+            });
+        }
+        if (cornerRadiusSliderF) {
+            this.setupSliderTransparency(cornerRadiusSliderF, {
+                modal: contentArea,
+                backdrop: null,
+                sliderContainer: cornerRadiusSliderF.closest('label')
             });
         }
     },
@@ -5552,7 +5584,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'canvasContainer',
         'canvasWrapper',
         'backCanvasWrapper',
-        'canvasPlaceholder',
         'preview'
     ];
 

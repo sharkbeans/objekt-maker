@@ -1245,7 +1245,7 @@ input[type="range"]::-moz-range-thumb:hover {
    ======================================== */
 
 .collapsible-section {
-    margin-bottom: var(--space-lg) !important;
+    margin-bottom: var(--space-md) !important;
     transition: margin-bottom 0.2s ease;
 }
 

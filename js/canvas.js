@@ -1393,6 +1393,10 @@ const CanvasManager = {
                 this.ctx.save();
                 this.ctx.globalAlpha = this.frameOpacity;
 
+                // Clip frame to the rounded rectangle
+                this.createRoundedRect(offsetX, offsetY, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
+                this.ctx.clip();
+
                 // Calculate dimensions to cover the canvas while maintaining aspect ratio
                 const imgAspect = this.frameImage.width / this.frameImage.height;
                 const canvasAspect = this.canvasWidth / this.canvasHeight;

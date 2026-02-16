@@ -82,6 +82,9 @@ const PresetManager = {
             // QR code
             qrCodeLink: CanvasManager.qrCodeLink,
 
+            // Corner rounding
+            cornerRadius: CanvasManager.cornerRadius,
+
             // Template overlay settings
             templateOpacity: CanvasManager.templateOpacity,
             showTemplate: CanvasManager.showTemplate,
@@ -172,6 +175,9 @@ const PresetManager = {
         if (data.backGroupName !== undefined) CanvasManager.backGroupName = data.backGroupName;
         if (data.backTopTextHeight !== undefined) CanvasManager.backTopTextHeight = data.backTopTextHeight;
         if (data.backBottomTextHeight !== undefined) CanvasManager.backBottomTextHeight = data.backBottomTextHeight;
+
+        // Corner rounding
+        if (data.cornerRadius !== undefined) CanvasManager.cornerRadius = data.cornerRadius;
 
         // QR code
         if (data.qrCodeLink !== undefined) CanvasManager.qrCodeLink = data.qrCodeLink;

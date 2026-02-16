@@ -137,6 +137,11 @@
                                     <input type="range" id="panYSlider" min="-300" max="300" value="0" step="5">
                                     <span id="panYValue">0px</span>
                                 </label>
+                                <label>
+                                    <span>Corner Rounding:</span>
+                                    <input type="range" id="cornerRadiusSlider" min="0" max="80" value="36" step="1">
+                                    <span id="cornerRadiusValue">36px</span>
+                                </label>
                             </div>
                         </div>
 
@@ -379,35 +384,6 @@
                                     <button id="clearTemplateBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Template</button>
                                 </div>
                                 <p class="upload-hint">Overlay a reference image for alignment. Not included in export.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                   <!-- Card Size Section -->
-                <section class="control-section">
-                    <h2 class="section-title"> Card Size</h2>
-                    <div class="adjustment-controls">
-                        <label>
-                            <select id="cardSizePreset" class="dropdown-select">
-                                <option value="objekt" selected>Objekt Default (768x1186)</option>
-                                <option value="standard">Standard Photocard (638x1016)</option>
-                                <option value="credit">Credit Card (650x1004)</option>
-                                <option value="instax">Instax Mini (673x1051)</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                        </label>
-                        <div id="customSizeInputs" style="display: none;">
-                            <label>
-                                <span>Width (mm):</span>
-                                <input type="number" id="customWidthMM" class="text-input" placeholder="65" min="10" max="300" step="1">
-                            </label>
-                            <label>
-                                <span>Height (mm):</span>
-                                <input type="number" id="customHeightMM" class="text-input" placeholder="100" min="10" max="300" step="1">
-                            </label>
-                            <div class="upload-hint" style="text-align: center;">
-                                <span id="customSizePixels">Enter dimensions to see pixel size</span>
                             </div>
                         </div>
                     </div>
@@ -718,6 +694,35 @@
                                 </div>
 
                                 <p class="upload-hint">Overlay a reference image for alignment. Not included in export.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card Size Section -->
+                <section class="control-section">
+                    <h2 class="section-title"> Card Size</h2>
+                    <div class="adjustment-controls">
+                        <label>
+                            <select id="cardSizePreset" class="dropdown-select">
+                                <option value="objekt" selected>Objekt Default (768x1186)</option>
+                                <option value="standard">Standard Photocard (638x1016)</option>
+                                <option value="credit">Credit Card (650x1004)</option>
+                                <option value="instax">Instax Mini (673x1051)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </label>
+                        <div id="customSizeInputs" style="display: none;">
+                            <label>
+                                <span>Width (mm):</span>
+                                <input type="number" id="customWidthMM" class="text-input" placeholder="65" min="10" max="300" step="1">
+                            </label>
+                            <label>
+                                <span>Height (mm):</span>
+                                <input type="number" id="customHeightMM" class="text-input" placeholder="100" min="10" max="300" step="1">
+                            </label>
+                            <div class="upload-hint" style="text-align: center;">
+                                <span id="customSizePixels">Enter dimensions to see pixel size</span>
                             </div>
                         </div>
                     </div>
@@ -1084,10 +1089,6 @@
                     </div>
                 </section>
 
-                <div class="canvas-placeholder" id="canvasPlaceholder">
-                    <p>Upload an image to get started</p>
-                </div>
-
                 <!-- Mobile Action Buttons (hidden on desktop) -->
                 <div class="mobile-actions">
                     <button id="exportBtnMobile" class="btn btn-primary"><i data-lucide="download"></i> Download Image</button>
@@ -1213,6 +1214,13 @@
                 <div class="slider-group">
                     <input type="range" id="panYSliderFloating" min="-300" max="300" value="0" step="5">
                     <span id="panYValueFloating">0px</span>
+                </div>
+            </label>
+            <label>
+                <span>Corner Rounding:</span>
+                <div class="slider-group">
+                    <input type="range" id="cornerRadiusSliderFloating" min="0" max="80" value="36" step="1">
+                    <span id="cornerRadiusValueFloating">36px</span>
                 </div>
             </label>
             <button id="resetPositionBtn" class="btn btn-secondary btn-small" style="width: 100%; margin-top: var(--space-sm);">
