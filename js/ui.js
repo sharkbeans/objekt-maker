@@ -822,6 +822,32 @@ const UIManager = {
             if (backdrop) {
                 backdrop.addEventListener('click', () => this.closeSignatureModal());
             }
+
+            // Setup mobile slider transparency for signature modal sliders
+            // Each slider's parent label is the container to keep visible (only the active slider)
+            const modalContent = this.elements.signatureModal.querySelector('.signature-modal-content');
+
+            if (this.elements.signatureZoomSlider) {
+                this.setupMobileSliderTransparency(this.elements.signatureZoomSlider, {
+                    modal: modalContent,
+                    backdrop: backdrop,
+                    sliderContainer: this.elements.signatureZoomSlider.closest('label')
+                });
+            }
+            if (this.elements.signaturePosXSlider) {
+                this.setupMobileSliderTransparency(this.elements.signaturePosXSlider, {
+                    modal: modalContent,
+                    backdrop: backdrop,
+                    sliderContainer: this.elements.signaturePosXSlider.closest('label')
+                });
+            }
+            if (this.elements.signaturePosYSlider) {
+                this.setupMobileSliderTransparency(this.elements.signaturePosYSlider, {
+                    modal: modalContent,
+                    backdrop: backdrop,
+                    sliderContainer: this.elements.signaturePosYSlider.closest('label')
+                });
+            }
         }
 
         // Signature toolbar controls (desktop)
@@ -1572,6 +1598,132 @@ const UIManager = {
 
         // Clear active drag reference
         this._activeSliderInfo = null;
+    },
+
+    /**
+     * Setup mobile slider transparency behavior for modal sliders
+     * When a slider is touched on mobile, hide everything except the slider for better visibility
+     * @param {HTMLInputElement} slider - The range slider element
+     * @param {Object} config - Configuration object
+     * @param {HTMLElement} config.modal - The modal element
+     * @param {HTMLElement} config.backdrop - The backdrop element
+     * @param {HTMLElement} config.sliderContainer - The container holding the slider to keep visible
+     */
+    setupMobileSliderTransparency(slider, config) {
+        if (!slider) return;
+
+        const { modal, backdrop, sliderContainer } = config;
+        const storageKey = `_mobileSliderOriginal_${slider.id || Math.random().toString(36).substr(2, 9)}`;
+
+        slider.addEventListener('touchstart', () => {
+            // Only on mobile
+            if (window.innerWidth > 768) return;
+
+            // Hide backdrop
+            if (backdrop) {
+                backdrop.style.display = 'none';
+            }
+
+            if (modal) {
+                // Store original styles
+                this[storageKey] = {
+                    modalBackground: modal.style.background || '',
+                    modalBoxShadow: modal.style.boxShadow || '',
+                    modalPadding: modal.style.padding || '',
+                    modalBorder: modal.style.border || '',
+                    hiddenChildren: [],
+                    transparentElements: [] // Elements that need background cleared
+                };
+
+                // Make modal transparent
+                modal.style.background = 'transparent';
+                modal.style.boxShadow = 'none';
+                modal.style.padding = '0';
+                modal.style.border = 'none';
+
+                // Recursively hide elements that don't contain the slider or sliderContainer
+                const hideNonSliderElements = (parent) => {
+                    Array.from(parent.children).forEach(child => {
+                        const isSliderContainer = sliderContainer && (child === sliderContainer || sliderContainer.contains(child));
+                        const containsSliderContainer = sliderContainer && child.contains(sliderContainer);
+                        const containsSlider = child.contains(slider);
+                        const isSliderParent = child === slider.parentElement || child.contains(slider.parentElement);
+
+                        if (isSliderContainer || child === slider.parentElement) {
+                            // This is the slider container or direct parent - keep fully visible
+                            child.style.display = 'block';
+                            child.style.visibility = 'visible';
+                            child.style.opacity = '1';
+                            child.style.pointerEvents = 'auto';
+                        } else if (containsSliderContainer || containsSlider || isSliderParent) {
+                            // This element contains the slider/container - keep visible but make transparent
+                            child.style.display = 'block';
+                            child.style.visibility = 'visible';
+                            child.style.opacity = '1';
+                            child.style.pointerEvents = 'auto';
+
+                            // Store and clear background/border for intermediate containers
+                            this[storageKey].transparentElements.push({
+                                element: child,
+                                background: child.style.background || '',
+                                backgroundColor: child.style.backgroundColor || '',
+                                border: child.style.border || '',
+                                boxShadow: child.style.boxShadow || '',
+                                padding: child.style.padding || ''
+                            });
+                            child.style.background = 'transparent';
+                            child.style.backgroundColor = 'transparent';
+                            child.style.border = 'none';
+                            child.style.boxShadow = 'none';
+                            child.style.padding = '0';
+
+                            hideNonSliderElements(child);
+                        } else {
+                            // Hide this element
+                            this[storageKey].hiddenChildren.push({
+                                element: child,
+                                display: child.style.display
+                            });
+                            child.style.display = 'none';
+                        }
+                    });
+                };
+
+                hideNonSliderElements(modal);
+            }
+        });
+
+        slider.addEventListener('touchend', () => {
+            // Restore backdrop
+            if (backdrop) {
+                backdrop.style.display = 'block';
+            }
+
+            if (modal && this[storageKey]) {
+                // Restore modal styles
+                modal.style.background = this[storageKey].modalBackground;
+                modal.style.boxShadow = this[storageKey].modalBoxShadow;
+                modal.style.padding = this[storageKey].modalPadding;
+                modal.style.border = this[storageKey].modalBorder;
+
+                // Restore transparent elements
+                this[storageKey].transparentElements.forEach(({ element, background, backgroundColor, border, boxShadow, padding }) => {
+                    element.style.background = background;
+                    element.style.backgroundColor = backgroundColor;
+                    element.style.border = border;
+                    element.style.boxShadow = boxShadow;
+                    element.style.padding = padding;
+                });
+
+                // Restore hidden children
+                this[storageKey].hiddenChildren.forEach(({ element, display }) => {
+                    element.style.display = display;
+                });
+
+                // Clear storage
+                this[storageKey] = null;
+            }
+        });
     },
 
     /**
