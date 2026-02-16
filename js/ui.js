@@ -4259,8 +4259,10 @@ const UIManager = {
             });
         }
 
-        // Add text color picker for front side text
-        if (side === 'front' && (textType === 'top' || textType === 'middle' || textType === 'bottom')) {
+        // Add text color picker for front and back side text
+        const isFrontText = side === 'front' && (textType === 'top' || textType === 'middle' || textType === 'bottom');
+        const isBackText = side === 'back' && (textType === 'nameLabel' || textType === 'nameValue' || textType === 'classLabel' || textType === 'classValue' || textType === 'seasonLabel' || textType === 'seasonValue' || textType === 'topRotated' || textType === 'bottomRotated');
+        if (isFrontText || isBackText) {
             const colorContainer = document.createElement('div');
             colorContainer.className = 'canvas-editor-color-container';
             colorContainer.style.cssText = 'margin-top: 16px;';
@@ -4290,18 +4292,22 @@ const UIManager = {
             hexInput.maxLength = 7;
             hexInput.style.cssText = 'flex: 1; padding: 10px; font-size: 0.9rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-family: monospace;';
 
-            // Track if color picker is being actively used
-            this._isColorPickerActive = false;
+            // Sync text color to all UI controls
+            const syncTextColorUI = (color) => {
+                if (this.elements.textColorPicker) this.elements.textColorPicker.value = color;
+                if (this.elements.textColorHex) this.elements.textColorHex.value = color;
+                if (this.elements.textColorPickerBack) this.elements.textColorPickerBack.value = color;
+                if (this.elements.textColorHexBack) this.elements.textColorHexBack.value = color;
+                if (this.elements.textColorPickerBackMobile) this.elements.textColorPickerBackMobile.value = color;
+                if (this.elements.textColorHexBackMobile) this.elements.textColorHexBackMobile.value = color;
+            };
 
             // Handle color picker input
             colorPicker.addEventListener('input', (e) => {
                 const color = e.target.value.toUpperCase();
                 hexInput.value = color;
                 CanvasManager.setTextColor(color);
-
-                // Sync to main UI controls
-                if (this.elements.textColorPicker) this.elements.textColorPicker.value = color;
-                if (this.elements.textColorHex) this.elements.textColorHex.value = color;
+                syncTextColorUI(color);
             });
 
             // Handle hex input
@@ -4313,10 +4319,7 @@ const UIManager = {
                     color = color.toUpperCase();
                     colorPicker.value = color;
                     CanvasManager.setTextColor(color);
-
-                    // Sync to main UI controls
-                    if (this.elements.textColorPicker) this.elements.textColorPicker.value = color;
-                    if (this.elements.textColorHex) this.elements.textColorHex.value = color;
+                    syncTextColorUI(color);
                 }
             });
 
@@ -4328,70 +4331,9 @@ const UIManager = {
                 e.stopPropagation();
             });
 
-            // On mobile/touch, minimize the editor when color picker is touched
+            // On mobile/touch, just stop propagation so the color picker opens normally
             colorPicker.addEventListener('touchstart', (e) => {
-                this._isColorPickerActive = true;
-                const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'none';
-                }
-                const editor = document.getElementById('canvasTextEditor');
-                if (editor) {
-                    // Store original background for restoration
-                    this._originalEditorBackground = editor.style.background || '';
-                    editor.style.background = 'transparent';
-
-                    const editorContent = editor.querySelector('.canvas-text-editor');
-                    if (editorContent) {
-                        this._originalContentBackground = editorContent.style.background || '';
-                        this._originalContentPadding = editorContent.style.padding || '';
-                        this._originalContentBoxShadow = editorContent.style.boxShadow || '';
-                        this._originalContentBorder = editorContent.style.border || '';
-
-                        editorContent.style.background = 'transparent';
-                        editorContent.style.padding = '0';
-                        editorContent.style.boxShadow = 'none';
-                        editorContent.style.border = 'none';
-
-                        // Hide all children except the color container
-                        Array.from(editorContent.children).forEach(child => {
-                            if (child !== colorContainer) {
-                                child.style.display = 'none';
-                            } else {
-                                child.style.display = 'block';
-                                child.style.visibility = 'visible';
-                                child.style.opacity = '1';
-                                child.style.pointerEvents = 'auto';
-                            }
-                        });
-                    }
-                }
-            });
-
-            // On mobile/touch, restore the editor when color picker interaction ends
-            colorPicker.addEventListener('touchend', () => {
-                this._isColorPickerActive = false;
-                const backdrop = document.getElementById('canvasTextEditorBackdrop');
-                if (backdrop) {
-                    backdrop.style.display = 'block';
-                }
-                const editor = document.getElementById('canvasTextEditor');
-                if (editor) {
-                    editor.style.background = this._originalEditorBackground || '';
-
-                    const editorContent = editor.querySelector('.canvas-text-editor');
-                    if (editorContent) {
-                        editorContent.style.background = this._originalContentBackground || '';
-                        editorContent.style.padding = this._originalContentPadding || '';
-                        editorContent.style.boxShadow = this._originalContentBoxShadow || '';
-                        editorContent.style.border = this._originalContentBorder || '';
-
-                        // Restore all children
-                        Array.from(editorContent.children).forEach(child => {
-                            child.style.display = '';
-                        });
-                    }
-                }
+                e.stopPropagation();
             });
 
             // Similar events for hex input
