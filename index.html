@@ -82,6 +82,20 @@
                                 <i data-lucide="save"></i> Save Preset
                             </button>
                             <p class="upload-hint" style="margin-top: var(--space-xs); text-align: center;">Save settings to load later. Images must be re-uploaded.</p>
+
+                            <!-- Share Template (Phase 5) -->
+                            <div style="border-top: 1px solid var(--border-color); margin-top: var(--space-md); padding-top: var(--space-md);">
+                                <button id="shareTemplateBtn" class="btn btn-secondary" style="width: 100%;">
+                                    <i data-lucide="share-2" style="width: 14px; height: 14px;"></i> Copy Share Link
+                                </button>
+                                <div style="margin-top: var(--space-sm); display: flex; gap: var(--space-xs);">
+                                    <input type="text" id="shareCodeInput" class="text-input" placeholder="Paste share link or code..." style="flex: 1; min-width: 0;">
+                                    <button id="importShareCodeBtn" class="btn btn-secondary btn-small" title="Import share code">
+                                        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                                <p class="upload-hint" style="margin-top: var(--space-xs); text-align: center;">Share layout settings via link. Images not included.</p>
+                            </div>
                         </div>
                     </div>
                 </section>

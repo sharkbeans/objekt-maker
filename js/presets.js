@@ -357,5 +357,126 @@ const PresetManager = {
         });
 
         this.renderPresetList(listContainer);
+
+        // Phase 5: Share Template
+        const shareBtn = document.getElementById('shareTemplateBtn');
+        const importBtn = document.getElementById('importShareCodeBtn');
+        const shareInput = document.getElementById('shareCodeInput');
+
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                this.copyShareURL();
+                const originalHTML = shareBtn.innerHTML;
+                shareBtn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i> Copied!';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                setTimeout(() => {
+                    shareBtn.innerHTML = originalHTML;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        if (importBtn && shareInput) {
+            importBtn.addEventListener('click', () => {
+                const input = shareInput.value.trim();
+                if (!input) return;
+                // Support both full URLs and bare codes
+                const match = input.match(/[?&]preset=([^&]+)/);
+                const code = match ? match[1] : input;
+                this.loadFromShareCode(code);
+                shareInput.value = '';
+            });
+
+            shareInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    importBtn.click();
+                }
+            });
+        }
+    },
+
+    // --- Phase 5: Template Share Codes ---
+
+    /**
+     * Encode current state as a base64url share code
+     * @returns {string} Share code
+     */
+    generateShareCode() {
+        const state = this.collectState();
+        // Exclude template overlay settings (require uploaded images)
+        delete state.templateOpacity;
+        delete state.showTemplate;
+        delete state.templateOpacityBack;
+        delete state.showTemplateBack;
+        const json = JSON.stringify(state);
+        return btoa(json)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+    },
+
+    /**
+     * Decode a base64url share code back to preset data
+     * @param {string} code - Share code
+     * @returns {Object} Preset data
+     */
+    decodeShareCode(code) {
+        let padded = code.replace(/-/g, '+').replace(/_/g, '/');
+        const remainder = padded.length % 4;
+        if (remainder) padded += '='.repeat(4 - remainder);
+        return JSON.parse(atob(padded));
+    },
+
+    /**
+     * Load preset from a share code
+     * @param {string} code - Share code
+     */
+    async loadFromShareCode(code) {
+        try {
+            const data = this.decodeShareCode(code);
+            this.applyState(data);
+            await UIManager.syncUIFromPreset(data);
+            console.log('Share code loaded successfully');
+        } catch (e) {
+            console.error('Failed to load share code:', e);
+            alert('Invalid share code. Please check and try again.');
+        }
+    },
+
+    /**
+     * Copy a share URL with the current state to clipboard
+     */
+    copyShareURL() {
+        const code = this.generateShareCode();
+        const url = `${location.origin}${location.pathname}?preset=${code}`;
+        navigator.clipboard.writeText(url).then(() => {
+            console.log('Share URL copied to clipboard');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            console.log('Share URL copied to clipboard (fallback)');
+        });
+    },
+
+    /**
+     * Check URL parameters for a share code and auto-load it
+     */
+    async checkURLParams() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('preset');
+        if (code) {
+            console.log('Found share code in URL, loading...');
+            await this.loadFromShareCode(code);
+            // Clean up URL without reloading
+            const cleanURL = location.origin + location.pathname;
+            window.history.replaceState({}, document.title, cleanURL);
+        }
     }
 };

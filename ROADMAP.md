@@ -92,7 +92,7 @@ Save the full project state (all slider values, text, colors, sizes, etc.) to lo
 
 ## Phase 5: Template Share Codes
 
-**Status:** Planned
+**Status:** Done
 
 Encode preset values into a shareable URL. When someone opens the link, the template auto-loads. Only non-image values are included (layout, text, colors, sizes).
 

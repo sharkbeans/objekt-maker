@@ -34,6 +34,9 @@ const App = {
             PresetManager.initUI();
             console.log('[OK] PresetManager initialized');
 
+            // Check for share code in URL (Phase 5)
+            await PresetManager.checkURLParams();
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 
