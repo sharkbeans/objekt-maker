@@ -100,6 +100,27 @@
                     </div>
                 </section>
 
+                <!-- Collection Section -->
+                <section class="control-section">
+                    <div class="adjustment-controls collapsible-section collapsed">
+                        <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="folder-open" style="width: 16px; height: 16px;"></i>
+                                <span>COLLECTION</span>
+                            </span>
+                            <span class="collapse-icon">−</span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <div id="savedCardsList" class="saved-cards-list"></div>
+                            <button id="saveToCollectionBtn" class="btn btn-primary" style="width: 100%; margin-top: var(--space-sm);">
+                                <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i> Save to Collection
+                            </button>
+                            <p class="upload-hint" style="margin-top: var(--space-xs); text-align: center;">Save complete photocards with images for your binder.</p>
+                            <div id="collectionStorageInfo" class="upload-hint" style="text-align: center; margin-top: var(--space-xs);"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Front Side Controls -->
                 <section class="control-section" id="frontSideSection">
                     <h2 class="section-title">
@@ -744,10 +765,6 @@
                 </section>
 
                 <section class="control-section">
-                    <!-- Scroll to Preview Button (mobile only) -->
-                    <button id="scrollToPreviewBtn" type="button" class="scroll-to-preview-btn">
-                        <i data-lucide="chevron-down"></i>Preview Image
-                    </button>
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
                     <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </section>
@@ -1318,6 +1335,7 @@
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/presets.js"></script>
+    <script src="js/savedcards.js"></script>
     <script src="js/overflow-border.js"></script>
     <script src="js/main.js"></script>
 

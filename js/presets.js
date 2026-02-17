@@ -86,7 +86,21 @@ const PresetManager = {
 
             // Back side template overlay settings
             templateOpacityBack: CanvasManager.templateOpacityBack,
-            showTemplateBack: CanvasManager.showTemplateBack
+            showTemplateBack: CanvasManager.showTemplateBack,
+
+            // Image transform
+            imageScale: CanvasManager.imageScale,
+            imagePosX: CanvasManager.imagePosX,
+            imagePosY: CanvasManager.imagePosY,
+            imageRotation: CanvasManager.imageRotation,
+
+            // Frame properties
+            frameOpacity: CanvasManager.frameOpacity,
+            frameScale: CanvasManager.frameScale,
+            framePosX: CanvasManager.framePosX,
+            framePosY: CanvasManager.framePosY,
+            frameRotation: CanvasManager.frameRotation,
+            showFrame: CanvasManager.showFrame
         };
     },
 
@@ -179,6 +193,20 @@ const PresetManager = {
         // Back side template
         if (data.templateOpacityBack !== undefined) CanvasManager.templateOpacityBack = data.templateOpacityBack;
         if (data.showTemplateBack !== undefined) CanvasManager.showTemplateBack = data.showTemplateBack;
+
+        // Image transform
+        if (data.imageScale !== undefined) CanvasManager.imageScale = data.imageScale;
+        if (data.imagePosX !== undefined) CanvasManager.imagePosX = data.imagePosX;
+        if (data.imagePosY !== undefined) CanvasManager.imagePosY = data.imagePosY;
+        if (data.imageRotation !== undefined) CanvasManager.imageRotation = data.imageRotation;
+
+        // Frame properties
+        if (data.frameOpacity !== undefined) CanvasManager.frameOpacity = data.frameOpacity;
+        if (data.frameScale !== undefined) CanvasManager.frameScale = data.frameScale;
+        if (data.framePosX !== undefined) CanvasManager.framePosX = data.framePosX;
+        if (data.framePosY !== undefined) CanvasManager.framePosY = data.framePosY;
+        if (data.frameRotation !== undefined) CanvasManager.frameRotation = data.frameRotation;
+        if (data.showFrame !== undefined) CanvasManager.showFrame = data.showFrame;
 
         // Re-render
         CanvasManager.render();

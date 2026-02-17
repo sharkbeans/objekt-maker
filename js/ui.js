@@ -1033,51 +1033,6 @@ const UIManager = {
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
 
-        // Mobile scroll to preview button
-        if (this.elements.scrollToPreviewBtn) {
-            this.elements.scrollToPreviewBtn.addEventListener('click', () => {
-            this.scrollToPreview();
-        });
-
-            // Show/hide scroll button based on scroll position on mobile
-            window.addEventListener('scroll', () => {
-                if (window.innerWidth <= 768 && CanvasManager.hasImage()) {
-                    const canvasContainer = this.elements.canvasContainer;
-                    if (canvasContainer) {
-                        const canvasRect = canvasContainer.getBoundingClientRect();
-                        const viewportHeight = window.innerHeight;
-
-                        // Show button if canvas/preview is mostly out of view (user is in toolbar area)
-                        // Canvas is considered "out of view" if its top is above the viewport
-                        // or if less than 30% of it is visible
-                        const isCanvasOutOfView = canvasRect.top < 0 && canvasRect.bottom < viewportHeight * 0.3;
-
-                        if (isCanvasOutOfView) {
-                            this.elements.scrollToPreviewBtn.style.display = 'flex';
-                        } else {
-                            this.elements.scrollToPreviewBtn.style.display = 'none';
-                        }
-                    }
-                }
-            });
-        }
-
-        // New mobile preview buttons in navigation
-        const scrollToPreviewBtnMobile = document.getElementById('scrollToPreviewBtnMobile');
-        const scrollToPreviewBtnMobileBack = document.getElementById('scrollToPreviewBtnMobileBack');
-        
-        if (scrollToPreviewBtnMobile) {
-            scrollToPreviewBtnMobile.addEventListener('click', () => {
-                this.scrollToPreview();
-            });
-        }
-        
-        if (scrollToPreviewBtnMobileBack) {
-            scrollToPreviewBtnMobileBack.addEventListener('click', () => {
-                this.scrollToPreview();
-            });
-        }
-
         // Canvas view toggle buttons
         this.elements.toggleBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -3339,11 +3294,6 @@ const UIManager = {
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
         this.elements.canvasWrapper.classList.add('clickable');
-
-        // Hide scroll button when canvas is hidden
-        if (this.elements.scrollToPreviewBtn) {
-            this.elements.scrollToPreviewBtn.style.display = 'none';
-        }
     },
 
     /**
@@ -5498,59 +5448,6 @@ window.UIManager = UIManager;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIManager;
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const scrollBtn = document.getElementById('scrollToPreviewBtn');
-
-    if (!scrollBtn) {
-        console.error('[ScrollToPreview] Button not found');
-        return;
-    }
-
-    // Ensure button doesn’t submit forms accidentally
-    scrollBtn.type = 'button';
-
-    // Common preview targets — adjust to match your layout
-    const possibleTargets = [
-        'previewContainer',
-        'canvasContainer',
-        'canvasWrapper',
-        'backCanvasWrapper',
-        'preview'
-    ];
-
-    const previewTarget = possibleTargets
-        .map(id => document.getElementById(id))
-        .find(el => el !== null);
-
-    if (!previewTarget) {
-        console.warn('[ScrollToPreview] No preview element found — will scroll down instead.');
-    }
-
-    // Attach click event
-    scrollBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-
-        // Small visual feedback (button click animation)
-        scrollBtn.style.transform = 'scale(0.96)';
-        setTimeout(() => (scrollBtn.style.transform = ''), 150);
-
-        // Scroll smoothly to target if found
-        if (previewTarget) {
-            previewTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            // Fallback scroll if no target element exists
-            window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
-        }
-    });
-
-    // Make sure Lucide icons render
-    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-        lucide.createIcons();
-    }
-
-    console.info('[ScrollToPreview] Initialized successfully');
-});
 
 // Bottom Navigation Functionality
 document.addEventListener('DOMContentLoaded', () => {

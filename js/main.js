@@ -37,6 +37,12 @@ const App = {
             // Check for share code in URL (Phase 5)
             await PresetManager.checkURLParams();
 
+            // Initialize SavedCardsManager
+            await SavedCardsManager.initDB();
+            await SavedCardsManager.renderCardsList();
+            SavedCardsManager.initUI();
+            console.log('[OK] SavedCardsManager initialized');
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 
