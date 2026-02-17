@@ -691,19 +691,20 @@
 
                                 <!-- Controls (hidden until template is uploaded) -->
                                 <div id="templateControlsContainerBack" style="display: none;">
-                                    <label>
-                                        <span style="display: flex; align-items: center; justify-content: space-between;">
-                                            <span>Show Template</span>
-                                            <input type="checkbox" id="templateToggleBack" checked style="width: auto; margin: 0;">
+                                    <div class="objekt-toggle-wrapper" style="margin-bottom: var(--space-md);">
+                                        <span class="objekt-toggle-label" style="font-size: 0.813rem; text-transform: none; letter-spacing: normal;">
+                                            Show Template
                                         </span>
-                                    </label>
-
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="templateToggleBack" checked>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
                                     <label>
                                         <span>Opacity:</span>
                                         <input type="range" id="templateOpacityBack" min="10" max="100" value="50" step="5">
                                         <span id="templateOpacityValueBack">50%</span>
                                     </label>
-
                                     <button id="clearTemplateBackBtn" type="button" class="btn btn-secondary" style="width: 100%; margin-top: var(--space-sm);"><i data-lucide="trash-2"></i> Clear Template</button>
                                 </div>
 
