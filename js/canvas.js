@@ -2461,28 +2461,34 @@ const CanvasManager = {
         const centerX = accentX + this.accentWidth / 2;
         const padding = 20; // Hit area padding
 
-        // Top text bounds
-        this.ctx.font = '600 40.90875px "Helvetica Neue", sans-serif';
+        // Top text bounds (text is rotated 90° CW, so width/height are swapped)
+        const topFontSize = 40.90875;
+        this.ctx.font = `600 ${topFontSize}px "Helvetica Neue", sans-serif`;
+        this.ctx.letterSpacing = '-2.045px';
         const topTextWidth = this.ctx.measureText(this.topText).width;
+        this.ctx.letterSpacing = '0px';
         const topTextY = 104 + this.topTextHeight;
         bounds.push({
             type: 'top',
-            x: centerX - topTextWidth / 2 - padding,
+            x: centerX - topFontSize / 2 - padding,
             y: topTextY - padding,
-            width: topTextWidth + padding * 2,
-            height: 40.90875 + padding * 2
+            width: topFontSize + padding * 2,
+            height: topTextWidth + padding * 2
         });
 
-        // Middle text bounds
-        this.ctx.font = '550 45px "SF Pro Display", sans-serif';
+        // Middle text bounds (text is rotated 90° CW, so width/height are swapped)
+        const middleFontSize = 45;
+        this.ctx.font = `550 ${middleFontSize}px "SF Pro Display", sans-serif`;
+        this.ctx.letterSpacing = '-1.975px';
         const middleTextWidth = this.ctx.measureText(this.middleText).width;
+        this.ctx.letterSpacing = '0px';
         const middleTextY = this.canvasHeight / 2.25 + this.middleTextHeight;
         bounds.push({
             type: 'middle',
-            x: centerX - middleTextWidth / 2 - padding,
+            x: centerX - middleFontSize / 2 - padding,
             y: middleTextY - padding,
-            width: middleTextWidth + padding * 2,
-            height: 45 + padding * 2
+            width: middleFontSize + padding * 2,
+            height: middleTextWidth + padding * 2
         });
 
         // Bottom text bounds (more complex due to rotation and positioning)

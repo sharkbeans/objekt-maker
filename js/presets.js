@@ -25,11 +25,6 @@ const PresetManager = {
             showOverflowBorder: CanvasManager.showOverflowBorder,
             overflowBorderPercent: CanvasManager.overflowBorderPercent,
 
-            // Image transform
-            imageScale: CanvasManager.imageScale,
-            imagePosX: CanvasManager.imagePosX,
-            imagePosY: CanvasManager.imagePosY,
-
             // Border color
             accentColor: CanvasManager.accentColor,
 
@@ -121,11 +116,6 @@ const PresetManager = {
         if (data.overflowBorderPercent !== undefined) {
             CanvasManager.overflowBorderPercent = data.overflowBorderPercent;
         }
-
-        // Image transform
-        if (data.imageScale !== undefined) CanvasManager.imageScale = data.imageScale;
-        if (data.imagePosX !== undefined) CanvasManager.imagePosX = data.imagePosX;
-        if (data.imagePosY !== undefined) CanvasManager.imagePosY = data.imagePosY;
 
         // Border color
         if (data.accentColor) CanvasManager.accentColor = data.accentColor;
