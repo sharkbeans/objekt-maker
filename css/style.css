@@ -1245,12 +1245,12 @@ input[type="range"]::-moz-range-thumb:hover {
    ======================================== */
 
 .collapsible-section {
-    margin-bottom: var(--space-md) !important;
+    margin-bottom: var(--space-xs) !important;
     transition: margin-bottom 0.2s ease;
 }
 
 .collapsible-section.collapsed {
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.05rem !important;
 }
 
 .collapsible-header {
@@ -2074,4 +2074,123 @@ body {
 
 .saved-card-delete:hover {
     background: rgba(220, 38, 38, 0.9);
+}
+
+/* ========================================
+   Undo/Redo Controls & History Panel
+   ======================================== */
+
+.canvas-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.undo-redo-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+    background: var(--surface-color);
+}
+
+.btn-icon:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* History Panel */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: left;
+    width: 100%;
+}
+
+.history-item:hover {
+    background: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.history-item.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.history-item.future {
+    opacity: 0.4;
+}
+
+.history-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-index {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    margin-left: var(--space-sm);
+    flex-shrink: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .canvas-top-bar {
+        gap: var(--space-sm);
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn-icon svg {
+        width: 16px;
+        height: 16px;
+    }
 }

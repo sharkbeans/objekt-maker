@@ -43,6 +43,10 @@ const App = {
             SavedCardsManager.initUI();
             console.log('[OK] SavedCardsManager initialized');
 
+            // Initialize HistoryManager (undo/redo)
+            HistoryManager.init();
+            console.log('[OK] HistoryManager initialized');
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 

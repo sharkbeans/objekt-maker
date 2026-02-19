@@ -121,6 +121,23 @@
                     </div>
                 </section>
 
+                <!-- History Panel -->
+                <section class="control-section">
+                    <div class="adjustment-controls collapsible-section collapsed">
+                        <h3 class="collapsible-header" style="font-size: 0.813rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="history" style="width: 16px; height: 16px;"></i>
+                                <span>HISTORY</span>
+                            </span>
+                            <span class="collapse-icon">−</span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <div id="historyList" class="history-list"></div>
+                            <p class="upload-hint" style="margin-top: var(--space-xs); text-align: center;">Click an entry to jump to that state. Use Ctrl+Z / Ctrl+Y.</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Front Side Controls -->
                 <section class="control-section" id="frontSideSection">
                     <h2 class="section-title">
@@ -772,15 +789,23 @@
 
             <!-- Canvas Area -->
             <div class="canvas-container" id="canvasContainer">
-                <!-- Canvas View Toggle Navigation - Always Visible -->
-                <div class="canvas-view-toggle" id="canvasViewToggle">
-                    <button class="toggle-btn active" data-view="front">
-                        <i data-lucide="image"></i>
-                        <span>Front Side</span>
+                <!-- Canvas Top Bar: View Toggle + Undo/Redo -->
+                <div class="canvas-top-bar">
+                    <button id="undoBtn" class="btn btn-icon" disabled title="Undo (Ctrl+Z)">
+                        <i data-lucide="undo-2"></i>
                     </button>
-                    <button class="toggle-btn" data-view="back">
-                        <i data-lucide="layers"></i>
-                        <span>Back Side</span>
+                    <div class="canvas-view-toggle" id="canvasViewToggle">
+                        <button class="toggle-btn active" data-view="front">
+                            <i data-lucide="image"></i>
+                            <span>Front Side</span>
+                        </button>
+                        <button class="toggle-btn" data-view="back">
+                            <i data-lucide="layers"></i>
+                            <span>Back Side</span>
+                        </button>
+                    </div>
+                    <button id="redoBtn" class="btn btn-icon" disabled title="Redo (Ctrl+Y)">
+                        <i data-lucide="redo-2"></i>
                     </button>
                 </div>
 
@@ -1337,6 +1362,7 @@
     <script src="js/presets.js"></script>
     <script src="js/savedcards.js"></script>
     <script src="js/overflow-border.js"></script>
+    <script src="js/history.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Initialize Lucide Icons -->

@@ -109,6 +109,14 @@ const SavedCardsManager = {
             images.frameImage = CanvasManager.frameImage.src;
         }
 
+        // Template images (front and back)
+        if (CanvasManager.templateImage && CanvasManager.templateImage.src) {
+            images.templateImage = CanvasManager.templateImage.src;
+        }
+        if (CanvasManager.templateImageBack && CanvasManager.templateImageBack.src) {
+            images.templateImageBack = CanvasManager.templateImageBack.src;
+        }
+
         return images;
     },
 
@@ -169,6 +177,7 @@ const SavedCardsManager = {
         // Collect data
         const settings = this.collectCompleteState();
         const images = this.extractImages();
+        const history = HistoryManager.exportHistory();
 
         // Generate thumbnails
         const thumbnails = {
@@ -190,7 +199,8 @@ const SavedCardsManager = {
             timestamp: Date.now(),
             settings,
             images,
-            thumbnails
+            thumbnails,
+            history
         };
 
         // Validate size (rough estimate)
@@ -247,6 +257,11 @@ const SavedCardsManager = {
                     // Apply settings
                     PresetManager.applyState(card.settings);
                     await UIManager.syncUIFromPreset(card.settings);
+
+                    // Restore history if available (for backward compatibility)
+                    if (card.history) {
+                        HistoryManager.importHistory(card.history);
+                    }
 
                     console.log('Card loaded:', card.name);
                     resolve();
@@ -315,6 +330,14 @@ const SavedCardsManager = {
         if (imageData.frameImage) {
             CanvasManager.frameImage = await loadImage(imageData.frameImage);
             CanvasManager.showFrame = true;
+        }
+
+        // Restore templates
+        if (imageData.templateImage) {
+            CanvasManager.templateImage = await loadImage(imageData.templateImage);
+        }
+        if (imageData.templateImageBack) {
+            CanvasManager.templateImageBack = await loadImage(imageData.templateImageBack);
         }
     },
 

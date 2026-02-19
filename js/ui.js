@@ -1364,6 +1364,9 @@ const UIManager = {
             });
         }
 
+        // History (undo/redo) event bindings
+        this.bindHistoryEvents();
+
         // Collapsible sections functionality
         this.initCollapsibleSections();
 
@@ -1386,6 +1389,173 @@ const UIManager = {
         this.initMobilePanSliders();
         this.initSliderDragListeners();
 
+    },
+
+    /**
+     * Bind history (undo/redo) capture events to all state-changing controls.
+     * Uses a generic approach: sliders capture on drag start/end, text/color/select on change.
+     */
+    bindHistoryEvents() {
+        // Helper: get a human-readable label from an input element
+        const getLabel = (el) => {
+            const label = el.closest('label');
+            if (label) {
+                const span = label.querySelector('span:first-child');
+                if (span) return span.textContent.trim();
+            }
+            // Fallback to id
+            return el.id || 'Setting';
+        };
+
+        // --- Range sliders: capture before/after on drag ---
+        const controlsPanel = document.getElementById('controlsPanel');
+        const backSideMobile = document.getElementById('backSideSectionMobile');
+        const signatureModal = document.querySelector('.signature-modal');
+        const containers = [controlsPanel, backSideMobile, signatureModal].filter(Boolean);
+
+        containers.forEach(container => {
+            container.querySelectorAll('input[type="range"]').forEach(slider => {
+                const label = getLabel(slider);
+
+                slider.addEventListener('mousedown', () => {
+                    HistoryManager.captureSliderStart();
+                });
+                slider.addEventListener('touchstart', () => {
+                    HistoryManager.captureSliderStart();
+                }, { passive: true });
+
+                slider.addEventListener('mouseup', () => {
+                    const value = slider.value;
+                    const unit = slider.id.includes('zoom') || slider.id.includes('Zoom') || slider.id.includes('opacity') || slider.id.includes('Opacity') || slider.id.includes('overflow') ? '%' :
+                                 slider.id.includes('rotation') || slider.id.includes('Rotation') ? '°' :
+                                 slider.id.includes('radius') ? 'px' : '';
+                    HistoryManager.captureSliderEnd(`${label}: ${value}${unit}`);
+                });
+                slider.addEventListener('touchend', () => {
+                    const value = slider.value;
+                    const unit = slider.id.includes('zoom') || slider.id.includes('Zoom') || slider.id.includes('opacity') || slider.id.includes('Opacity') || slider.id.includes('overflow') ? '%' :
+                                 slider.id.includes('rotation') || slider.id.includes('Rotation') ? '°' :
+                                 slider.id.includes('radius') ? 'px' : '';
+                    HistoryManager.captureSliderEnd(`${label}: ${value}${unit}`);
+                });
+            });
+        });
+
+        // Also capture slider end globally (in case mouseup happens outside the slider)
+        document.addEventListener('mouseup', () => {
+            if (HistoryManager._sliderBeforeState) {
+                HistoryManager.captureSliderEnd('Changed slider');
+            }
+        });
+        document.addEventListener('touchend', () => {
+            if (HistoryManager._sliderBeforeState) {
+                HistoryManager.captureSliderEnd('Changed slider');
+            }
+        });
+
+        // --- Text inputs: capture on change (blur) ---
+        const textIds = [
+            'topText', 'middleText', 'bottomText',
+            'backNameLabel', 'backNameValue', 'backClassLabel', 'backClassValue',
+            'backSeasonLabel', 'backSeasonValue', 'backGroupName', 'qrCodeLink',
+            'borderColorHex', 'textColorHex',
+            // Mobile variants
+            'backNameLabelMobile', 'backNameValueMobile', 'backClassLabelMobile', 'backClassValueMobile',
+            'backSeasonLabelMobile', 'backSeasonValueMobile', 'backGroupNameMobile', 'qrCodeLinkMobile',
+            'borderColorHexBack', 'textColorHexBack',
+            'borderColorHexBackMobile', 'textColorHexBackMobile',
+            // Custom size
+            'customWidthMM', 'customHeightMM'
+        ];
+
+        textIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => {
+                    const value = el.value.trim();
+                    // Use the actual value as the label, or a descriptive label if empty
+                    const label = value ? `"${value}"` : `Cleared ${getLabel(el)}`;
+                    HistoryManager.pushState(label);
+                });
+            }
+        });
+
+        // --- Color pickers: capture on change (when picker closes) ---
+        const colorPickerIds = [
+            'notchColorPicker', 'textColorPicker',
+            'notchColorPickerBack', 'textColorPickerBack',
+            'textColorPickerBackMobile'
+        ];
+
+        colorPickerIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => {
+                    const color = el.value.toUpperCase();
+                    HistoryManager.pushState(`Color: ${color}`);
+                });
+            }
+        });
+
+        // --- Preset color buttons: capture on click ---
+        document.querySelectorAll('.preset-color, .preset-color-text').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const color = btn.dataset.color || btn.style.backgroundColor;
+                setTimeout(() => HistoryManager.pushState(`Color: ${color}`), 0);
+            });
+        });
+
+        // --- Checkboxes/toggles: capture on change ---
+        const toggleIds = [
+            'objektBorderToggle', 'overflowBorderToggle', 'overflowBorderToggleMobile',
+            'templateToggle', 'templateToggleBack'
+        ];
+
+        toggleIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => {
+                    const state = el.checked ? 'Enabled' : 'Disabled';
+                    HistoryManager.pushState(`${state} ${getLabel(el)}`);
+                });
+            }
+        });
+
+        // --- Select dropdowns: capture on change ---
+        const selectIds = ['cardSizePreset', 'notchCategorySelect', 'notchColorSelect'];
+
+        selectIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => {
+                    const selectedText = el.options[el.selectedIndex]?.text || el.value;
+                    setTimeout(() => HistoryManager.pushState(`${getLabel(el)}: ${selectedText}`), 0);
+                });
+            }
+        });
+
+        // --- Keyboard shortcuts ---
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger when typing in an input/textarea
+            const tag = e.target.tagName;
+            const isTyping = tag === 'INPUT' || tag === 'TEXTAREA';
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                if (!isTyping) {
+                    e.preventDefault();
+                    HistoryManager.undo();
+                }
+            } else if (
+                ((e.ctrlKey || e.metaKey) && e.key === 'y') ||
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') ||
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z')
+            ) {
+                if (!isTyping) {
+                    e.preventDefault();
+                    HistoryManager.redo();
+                }
+            }
+        });
     },
 
     /**
@@ -2383,6 +2553,7 @@ const UIManager = {
                 this.elements.clearBorderImage.style.display = 'block';
             }
             this.showSuccessMessage('Border image loaded successfully!');
+            HistoryManager.pushState('Uploaded border image');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2403,6 +2574,7 @@ const UIManager = {
             this.elements.clearBorderImage.style.display = 'none';
         }
         console.log('Border image cleared');
+        HistoryManager.pushState('Cleared border image');
     },
 
     /**
@@ -2520,6 +2692,7 @@ const UIManager = {
             this.showCanvas();
             this.scrollToPreview();
             this.showSuccessMessage('Image loaded successfully!');
+            HistoryManager.pushState('Uploaded main image');
 
             // Show tooltip for top text field (only once per session)
             this.showTopTextTooltip();
@@ -2542,6 +2715,7 @@ const UIManager = {
             await CanvasManager.loadBorderImage(file);
             this.elements.clearBorderImage.style.display = 'block';
             this.showSuccessMessage('Border image loaded successfully!');
+            HistoryManager.pushState('Uploaded border image');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2555,6 +2729,7 @@ const UIManager = {
         this.elements.borderImageUpload.value = '';
         this.elements.clearBorderImage.style.display = 'none';
         console.log('Border image cleared');
+        HistoryManager.pushState('Cleared border image');
     },
 
     /**
@@ -2687,6 +2862,7 @@ const UIManager = {
 
             CanvasManager.render();
             this.showSuccessMessage('Logo image loaded successfully!');
+            HistoryManager.pushState('Uploaded back logo');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2708,6 +2884,7 @@ const UIManager = {
             this.elements.logoControlsContainerMobile.style.display = 'none';
         }
         console.log('Logo image cleared');
+        HistoryManager.pushState('Cleared back logo');
     },
 
     /**
@@ -2736,6 +2913,7 @@ const UIManager = {
             CanvasManager.setTopLogoRotation(0);
 
             this.showSuccessMessage('Top logo image loaded successfully!');
+            HistoryManager.pushState('Uploaded top logo');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2757,6 +2935,7 @@ const UIManager = {
             this.elements.topLogoControlsContainerMobile.style.display = 'none';
         }
         console.log('Top logo image cleared');
+        HistoryManager.pushState('Cleared top logo');
     },
 
     /**
@@ -2839,6 +3018,7 @@ const UIManager = {
 
             CanvasManager.render();
             this.showSuccessMessage('Front logo image loaded successfully!');
+            HistoryManager.pushState('Uploaded front logo');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2878,6 +3058,7 @@ const UIManager = {
 
             CanvasManager.render();
             this.showSuccessMessage('Frame image loaded successfully!');
+            HistoryManager.pushState('Uploaded frame');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2897,6 +3078,7 @@ const UIManager = {
         if (this.elements.framePosXValue) this.elements.framePosXValue.textContent = '0px';
         if (this.elements.framePosYValue) this.elements.framePosYValue.textContent = '0px';
         if (this.elements.frameRotationValue) this.elements.frameRotationValue.textContent = '0°';
+        HistoryManager.pushState('Cleared frame');
     },
 
     /**
@@ -2937,6 +3119,7 @@ const UIManager = {
             this.elements.frontLogoControlsContainerMobile.style.display = 'none';
         }
         console.log('Front logo image cleared');
+        HistoryManager.pushState('Cleared front logo');
     },
 
     /**
@@ -2961,6 +3144,7 @@ const UIManager = {
                 this.elements.templateToggle.checked = true;
             }
             console.log('Template image loaded');
+            HistoryManager.pushState('Uploaded template');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -2989,6 +3173,7 @@ const UIManager = {
             this.elements.templateOpacityValue.textContent = '50%';
         }
         console.log('Template image cleared');
+        HistoryManager.pushState('Cleared template');
     },
 
     /**
@@ -3013,6 +3198,7 @@ const UIManager = {
                 this.elements.templateToggleBack.checked = true;
             }
             console.log('Back side template image loaded');
+            HistoryManager.pushState('Uploaded back template');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -3041,6 +3227,7 @@ const UIManager = {
             this.elements.templateOpacityValueBack.textContent = '50%';
         }
         console.log('Back side template image cleared');
+        HistoryManager.pushState('Cleared back template');
     },
 
     /**
@@ -3200,6 +3387,7 @@ const UIManager = {
             }
 
             this.showSuccessMessage('Signature image loaded successfully!');
+            HistoryManager.pushState('Uploaded signature');
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -3235,6 +3423,7 @@ const UIManager = {
         }
 
         console.log('Signature image cleared');
+        HistoryManager.pushState('Cleared signature');
     },
 
     /**
@@ -4679,15 +4868,24 @@ const UIManager = {
             }
         };
 
+        // Wrap save to also push history
+        const originalSave = saveTextChanges;
+        const saveAndRecord = () => {
+            originalSave();
+            const value = input.value.trim();
+            const label = value ? `"${value}"` : 'Cleared text';
+            HistoryManager.pushState(label);
+        };
+
         // Store save function for access from outside click handler
-        this._currentEditorSaveFunction = saveTextChanges;
+        this._currentEditorSaveFunction = saveAndRecord;
 
         // Create and add backdrop
         const backdrop = document.createElement('div');
         backdrop.className = 'canvas-text-editor-backdrop';
         backdrop.id = 'canvasTextEditorBackdrop';
         backdrop.addEventListener('click', () => {
-            saveTextChanges();
+            saveAndRecord();
             this.removeTextEditor();
         });
 
@@ -4718,7 +4916,7 @@ const UIManager = {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 // Save changes
-                saveTextChanges();
+                saveAndRecord();
                 this.removeTextEditor();
             } else if (e.key === 'Escape') {
                 // Cancel without saving
@@ -5006,6 +5204,7 @@ const UIManager = {
             initialPanX = CanvasManager.imagePosX;
             initialPanY = CanvasManager.imagePosY;
             canvas.style.cursor = 'grabbing';
+            HistoryManager.captureSliderStart();
             e.preventDefault();
         });
 
@@ -5030,6 +5229,9 @@ const UIManager = {
             if (isDragging) {
                 isDragging = false;
                 canvas.style.cursor = CanvasManager.hasImage() ? 'grab' : 'pointer';
+                const x = Math.round(CanvasManager.imagePosX);
+                const y = Math.round(CanvasManager.imagePosY);
+                HistoryManager.captureSliderEnd(`Pan: ${x}, ${y}`);
             }
         });
 
@@ -5048,9 +5250,16 @@ const UIManager = {
         const canvas = document.getElementById('mainCanvas');
         if (!canvas) return;
 
+        let wheelTimeout = null;
+
         canvas.addEventListener('wheel', (e) => {
             if (!CanvasManager.hasImage()) return;
             e.preventDefault();
+
+            // Capture before state on first wheel in a series
+            if (!wheelTimeout) {
+                HistoryManager.captureSliderStart();
+            }
 
             const currentZoom = CanvasManager.imageScale * 100;
             // Scroll down = zoom out, scroll up = zoom in
@@ -5059,6 +5268,14 @@ const UIManager = {
 
             CanvasManager.setZoom(newZoom / 100);
             this.syncSliderValue('zoom', newZoom);
+
+            // Push to history after 500ms of no wheel events
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                const zoom = Math.round(CanvasManager.imageScale * 100);
+                HistoryManager.captureSliderEnd(`Zoom: ${zoom}%`);
+                wheelTimeout = null;
+            }, 500);
         }, { passive: false });
     },
 
@@ -5075,6 +5292,7 @@ const UIManager = {
             CanvasManager.setPan(0, 0);
             this.syncSliderValue('panX', 0);
             this.syncSliderValue('panY', 0);
+            HistoryManager.pushState('Reset pan position');
         };
 
         // Desktop double-click
@@ -5179,6 +5397,7 @@ const UIManager = {
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2 && CanvasManager.hasImage()) {
                 isTwoFingerGesture = true;
+                HistoryManager.captureSliderStart();
 
                 // Calculate initial distance for pinch-to-zoom
                 const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -5231,6 +5450,12 @@ const UIManager = {
         canvas.addEventListener('touchend', (e) => {
             // Only reset when all fingers are lifted
             if (e.touches.length === 0) {
+                if (isTwoFingerGesture) {
+                    const zoom = Math.round(CanvasManager.imageScale * 100);
+                    const x = Math.round(CanvasManager.imagePosX);
+                    const y = Math.round(CanvasManager.imagePosY);
+                    HistoryManager.captureSliderEnd(`Zoom: ${zoom}%, Pan: ${x}, ${y}`);
+                }
                 isTwoFingerGesture = false;
                 initialDistance = null;
                 initialZoom = null;

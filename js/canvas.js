@@ -2491,50 +2491,95 @@ const CanvasManager = {
             height: middleTextWidth + padding * 2
         });
 
-        // Bottom text bounds (more complex due to rotation and positioning)
-        const notchY = (this.canvasHeight - this.notchHeight) / 2;
-        const notchBottom = notchY + this.notchHeight;
-        const defaultBottomY = this.canvasHeight - 227;
+        // Bottom text/logo bounds (more complex due to rotation and positioning)
+        // If front logo is present, use logo bounds instead of text bounds
+        if (this.frontLogoImage) {
+            // Calculate logo position (same logic as in drawFrontLogo)
+            const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+            const imageAreaWidth = this.showObjektBorder ? this.canvasWidth - scaledAccentWidth : this.canvasWidth;
+            const logoCenterX = imageAreaWidth / 2;
+            const logoCenterY = this.canvasHeight / 2;
 
-        let textWidth = 0;
-        const baseSpacing = -1.0973;
+            const baseWidth = 100 * this.scaleFactor;
+            const baseHeight = 100 * this.scaleFactor;
 
-        if (this.bottomText === 'tripleS') {
-            const extraGap100 = Math.abs(baseSpacing);
-            const extraGap50 = Math.abs(baseSpacing) * 0.5;
-            const reducedGap = baseSpacing * 0.15;
+            // Calculate dimensions to fit logo while maintaining aspect ratio
+            const imgAspect = this.frontLogoImage.width / this.frontLogoImage.height;
+            let drawWidth, drawHeight;
 
-            for (let i = 0; i < this.bottomText.length; i++) {
-                const char = this.bottomText[i];
-                const charWidth = this.ctx.measureText(char).width;
-                textWidth += charWidth + baseSpacing;
-
-                if (i === 0 || i === 1) textWidth += extraGap100;
-                if (i === 5) textWidth += extraGap50;
-                if (i === 6) textWidth -= reducedGap;
+            if (imgAspect > baseWidth / baseHeight) {
+                drawWidth = baseWidth;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                drawHeight = baseHeight;
+                drawWidth = drawHeight * imgAspect;
             }
+
+            // Apply zoom
+            drawWidth *= this.frontLogoZoom;
+            drawHeight *= this.frontLogoZoom;
+
+            // Calculate final position
+            const drawX = logoCenterX - drawWidth / 2;
+            const drawY = logoCenterY - drawHeight / 2;
+            const finalX = drawX + (this.frontLogoBaseX * this.scaleFactor) + this.frontLogoPosX;
+            const finalY = drawY + (this.frontLogoBaseY * this.scaleFactor) + this.frontLogoPosY;
+
+            // Add larger padding for easier clicking
+            const logoPadding = 40;
+            bounds.push({
+                type: 'bottom',
+                x: finalX - logoPadding,
+                y: finalY - logoPadding,
+                width: drawWidth + logoPadding * 2,
+                height: drawHeight + logoPadding * 2
+            });
         } else {
-            this.ctx.letterSpacing = '-1.0973px';
-            textWidth = this.ctx.measureText(this.bottomText).width;
+            // Original text bounds calculation
+            const notchY = (this.canvasHeight - this.notchHeight) / 2;
+            const notchBottom = notchY + this.notchHeight;
+            const defaultBottomY = this.canvasHeight - 227;
+
+            let textWidth = 0;
+            const baseSpacing = -1.0973;
+
+            if (this.bottomText === 'tripleS') {
+                const extraGap100 = Math.abs(baseSpacing);
+                const extraGap50 = Math.abs(baseSpacing) * 0.5;
+                const reducedGap = baseSpacing * 0.15;
+
+                for (let i = 0; i < this.bottomText.length; i++) {
+                    const char = this.bottomText[i];
+                    const charWidth = this.ctx.measureText(char).width;
+                    textWidth += charWidth + baseSpacing;
+
+                    if (i === 0 || i === 1) textWidth += extraGap100;
+                    if (i === 5) textWidth += extraGap50;
+                    if (i === 6) textWidth -= reducedGap;
+                }
+            } else {
+                this.ctx.letterSpacing = '-1.0973px';
+                textWidth = this.ctx.measureText(this.bottomText).width;
+            }
+
+            const bottomMargin = 20;
+            let bottomTextY = defaultBottomY;
+            const textEnd = defaultBottomY + textWidth;
+
+            if (textEnd > notchBottom - bottomMargin) {
+                bottomTextY = notchBottom - textWidth - bottomMargin;
+            }
+
+            bottomTextY += this.bottomTextHeight;
+
+            bounds.push({
+                type: 'bottom',
+                x: centerX - padding,
+                y: bottomTextY - padding,
+                width: 45 + padding * 2,
+                height: textWidth + padding * 2
+            });
         }
-
-        const bottomMargin = 20;
-        let bottomTextY = defaultBottomY;
-        const textEnd = defaultBottomY + textWidth;
-
-        if (textEnd > notchBottom - bottomMargin) {
-            bottomTextY = notchBottom - textWidth - bottomMargin;
-        }
-
-        bottomTextY += this.bottomTextHeight;
-
-        bounds.push({
-            type: 'bottom',
-            x: centerX - padding,
-            y: bottomTextY - padding,
-            width: 45 + padding * 2,
-            height: textWidth + padding * 2
-        });
 
         return bounds;
     },
