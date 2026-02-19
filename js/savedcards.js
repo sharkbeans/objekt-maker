@@ -8,7 +8,7 @@ const SavedCardsManager = {
     DB_VERSION: 1,
     STORE_NAME: 'saved_cards',
     MAX_CARDS: 100,
-    MAX_CARD_SIZE_MB: 10,
+    MAX_CARD_SIZE_MB: 20,
     THUMBNAIL_WIDTH: 300,
     THUMBNAIL_HEIGHT: 460,
     THUMBNAIL_QUALITY: 0.8,

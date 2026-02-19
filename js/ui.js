@@ -3634,6 +3634,9 @@ const UIManager = {
             return;
         }
 
+        // Clear saved session state from localStorage
+        HistoryManager.clearSessionState();
+
         // Refresh the page to reset everything
         location.reload();
     },

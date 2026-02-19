@@ -5,6 +5,7 @@
 
 const HistoryManager = {
     MAX_HISTORY: 50,
+    STORAGE_KEY: 'objektify_session_state',
     _isRestoring: false,
     _currentIndex: -1,
     _history: [],
@@ -15,8 +16,11 @@ const HistoryManager = {
         this._history = [];
         this._currentIndex = -1;
 
-        // Push initial state
-        this.pushState('Initial state');
+        // Try to restore previous session
+        if (!this.loadSessionState()) {
+            // If no saved session, push initial state
+            this.pushState('Initial state');
+        }
 
         // Bind buttons
         this._undoBtn = document.getElementById('undoBtn');
@@ -66,6 +70,7 @@ const HistoryManager = {
         }
 
         this.updateUI();
+        this.saveSessionState();
     },
 
     async undo() {
@@ -77,9 +82,11 @@ const HistoryManager = {
         await this.restoreImages(entry.images);
         PresetManager.applyState(entry.state);
         await UIManager.syncUIFromPreset(entry.state);
+        this._ensureCanvasToggleVisibility();
         this._isRestoring = false;
 
         this.updateUI();
+        this.saveSessionState();
     },
 
     async redo() {
@@ -91,9 +98,11 @@ const HistoryManager = {
         await this.restoreImages(entry.images);
         PresetManager.applyState(entry.state);
         await UIManager.syncUIFromPreset(entry.state);
+        this._ensureCanvasToggleVisibility();
         this._isRestoring = false;
 
         this.updateUI();
+        this.saveSessionState();
     },
 
     async goToIndex(index) {
@@ -105,9 +114,11 @@ const HistoryManager = {
         await this.restoreImages(entry.images);
         PresetManager.applyState(entry.state);
         await UIManager.syncUIFromPreset(entry.state);
+        this._ensureCanvasToggleVisibility();
         this._isRestoring = false;
 
         this.updateUI();
+        this.saveSessionState();
     },
 
     canUndo() {
@@ -245,6 +256,113 @@ const HistoryManager = {
     },
 
     /**
+     * Save current session state to localStorage
+     */
+    saveSessionState() {
+        try {
+            const sessionData = {
+                history: this._history,
+                currentIndex: this._currentIndex,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
+            console.log('[Session] State saved to localStorage');
+        } catch (error) {
+            console.warn('[Session] Failed to save state:', error);
+            // If localStorage is full, try clearing old data
+            if (error.name === 'QuotaExceededError') {
+                try {
+                    localStorage.removeItem(this.STORAGE_KEY);
+                    console.warn('[Session] Cleared old session data due to quota exceeded');
+                } catch (e) {
+                    console.error('[Session] Could not clear storage:', e);
+                }
+            }
+        }
+    },
+
+    /**
+     * Load session state from localStorage
+     * @returns {boolean} True if state was loaded, false otherwise
+     */
+    loadSessionState() {
+        try {
+            const saved = localStorage.getItem(this.STORAGE_KEY);
+            if (!saved) {
+                console.log('[Session] No saved session found');
+                return false;
+            }
+
+            const sessionData = JSON.parse(saved);
+            if (!sessionData || !Array.isArray(sessionData.history)) {
+                console.warn('[Session] Invalid session data');
+                return false;
+            }
+
+            this._isRestoring = true;
+            this._history = sessionData.history;
+            this._currentIndex = sessionData.currentIndex;
+
+            // Restore the current state
+            if (this._currentIndex >= 0 && this._currentIndex < this._history.length) {
+                const entry = this._history[this._currentIndex];
+
+                // Restore images first
+                this.restoreImages(entry.images).then(() => {
+                    // Then apply state
+                    PresetManager.applyState(entry.state);
+                    UIManager.syncUIFromPreset(entry.state).then(() => {
+                        this._ensureCanvasToggleVisibility();
+                        this._isRestoring = false;
+                        this.updateUI();
+                        console.log('[Session] State restored from localStorage');
+                    });
+                });
+
+                return true;
+            }
+
+            this._isRestoring = false;
+            return false;
+        } catch (error) {
+            console.error('[Session] Failed to load state:', error);
+            this._isRestoring = false;
+            return false;
+        }
+    },
+
+    /**
+     * Clear saved session state
+     */
+    clearSessionState() {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            console.log('[Session] Session state cleared');
+        } catch (error) {
+            console.error('[Session] Failed to clear session state:', error);
+        }
+    },
+
+    /**
+     * Force canvas view toggle visibility to match current CanvasManager state
+     * This is a comprehensive fix that always ensures correct visibility
+     */
+    _ensureCanvasToggleVisibility() {
+        const canvasViewToggle = document.getElementById('canvasViewToggle');
+        if (!canvasViewToggle) return;
+
+        // Always check the CURRENT state from CanvasManager
+        // Show toggle if objekt border is enabled, hide if disabled
+        if (CanvasManager.showObjektBorder === true) {
+            canvasViewToggle.style.display = '';
+            console.log('[History] Canvas toggle forced VISIBLE (objekt border ON)');
+        } else {
+            canvasViewToggle.style.display = 'none';
+            console.log('[History] Canvas toggle forced HIDDEN (objekt border OFF)');
+        }
+    },
+
+    /**
      * Export history for saving to collection
      * @returns {Object} History data including stack and current index
      */
@@ -269,6 +387,9 @@ const HistoryManager = {
         this._history = JSON.parse(JSON.stringify(historyData.history));
         this._currentIndex = historyData.currentIndex;
         this._isRestoring = false;
+
+        // Ensure canvas toggle visibility matches current state
+        this._ensureCanvasToggleVisibility();
 
         this.updateUI();
         console.log('History imported:', this._history.length, 'entries');
