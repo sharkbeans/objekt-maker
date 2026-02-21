@@ -7,10 +7,8 @@ const BulkManager = {
     rows: [],          // Array of { image, fileName, topText, middleText, bottomText, backNameValue, backClassValue, backSeasonValue, imageScale, imagePosX, imagePosY }
     template: null,    // Snapshot of PresetManager.collectState() + image refs
     isOpen: false,
-    previewIndex: -1,
-
-    // Drag state for preview canvas
-    _drag: { active: false, startX: 0, startY: 0, initialPanX: 0, initialPanY: 0 },
+    editingRowIndex: -1,       // Index of row currently being edited on main canvas (-1 = not editing)
+    _templateBeforeEdit: null, // Deep copy of template.state before entering edit mode
 
     // DOM element refs
     elements: {},
@@ -29,24 +27,16 @@ const BulkManager = {
             clearAllBtn: document.getElementById('bulkClearAll'),
             tableContainer: document.getElementById('bulkTableContainer'),
             tableBody: document.getElementById('bulkTableBody'),
-            previewArea: document.getElementById('bulkPreviewArea'),
-            previewTitle: document.getElementById('bulkPreviewTitle'),
-            closePreviewBtn: document.getElementById('bulkClosePreview'),
-            previewFront: document.getElementById('bulkPreviewFront'),
-            previewBack: document.getElementById('bulkPreviewBack'),
             progress: document.getElementById('bulkProgress'),
             progressFill: document.getElementById('bulkProgressFill'),
             progressText: document.getElementById('bulkProgressText'),
             exportAllBtn: document.getElementById('bulkExportAll'),
             bulkCreateBtn: document.getElementById('bulkCreateBtn'),
             bulkCreateBtnMobile: document.getElementById('bulkCreateBtnMobile'),
-            // Preview adjustment controls
-            previewZoom: document.getElementById('bulkPreviewZoom'),
-            previewZoomValue: document.getElementById('bulkPreviewZoomValue'),
-            previewPanX: document.getElementById('bulkPreviewPanX'),
-            previewPanXValue: document.getElementById('bulkPreviewPanXValue'),
-            previewPanY: document.getElementById('bulkPreviewPanY'),
-            previewPanYValue: document.getElementById('bulkPreviewPanYValue'),
+            // Bulk edit banner (on main canvas)
+            backToBulkBanner: document.getElementById('bulkEditBanner'),
+            backToBulkLabel: document.getElementById('bulkEditLabel'),
+            backToBulkBtn: document.getElementById('backToBulkBtn'),
         };
 
         this.bindEvents();
@@ -87,134 +77,10 @@ const BulkManager = {
         this.elements.applyRow1Btn.addEventListener('click', () => this.applyRow1ToAll());
         this.elements.addMoreBtn.addEventListener('click', () => this.elements.fileInput.click());
         this.elements.clearAllBtn.addEventListener('click', () => this.clearAll());
-        this.elements.closePreviewBtn.addEventListener('click', () => this.closePreview());
         this.elements.exportAllBtn.addEventListener('click', () => this.exportAll());
 
-        // Preview canvas drag-to-pan
-        this.initPreviewDrag();
-        this.initPreviewWheel();
-        this.initPreviewSliders();
-    },
-
-    initPreviewDrag() {
-        const canvas = this.elements.previewFront;
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (this.previewIndex < 0) return;
-            const row = this.rows[this.previewIndex];
-            this._drag.active = true;
-            this._drag.startX = e.clientX;
-            this._drag.startY = e.clientY;
-            this._drag.initialPanX = row.imagePosX;
-            this._drag.initialPanY = row.imagePosY;
-            canvas.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!this._drag.active || this.previewIndex < 0) return;
-            const row = this.rows[this.previewIndex];
-            const canvas = this.elements.previewFront;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-
-            const deltaX = (e.clientX - this._drag.startX) * scaleX;
-            const deltaY = (e.clientY - this._drag.startY) * scaleX;
-
-            row.imagePosX = Math.max(-300, Math.min(300, Math.round(this._drag.initialPanX + deltaX)));
-            row.imagePosY = Math.max(-300, Math.min(300, Math.round(this._drag.initialPanY + deltaY)));
-
-            this.syncPreviewSliders(row);
-            this.refreshPreview();
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (this._drag.active) {
-                this._drag.active = false;
-                this.elements.previewFront.style.cursor = 'grab';
-            }
-        });
-
-        // Touch support
-        canvas.addEventListener('touchstart', (e) => {
-            if (this.previewIndex < 0 || e.touches.length !== 1) return;
-            const touch = e.touches[0];
-            const row = this.rows[this.previewIndex];
-            this._drag.active = true;
-            this._drag.startX = touch.clientX;
-            this._drag.startY = touch.clientY;
-            this._drag.initialPanX = row.imagePosX;
-            this._drag.initialPanY = row.imagePosY;
-        }, { passive: true });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if (!this._drag.active || this.previewIndex < 0 || e.touches.length !== 1) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const row = this.rows[this.previewIndex];
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-
-            const deltaX = (touch.clientX - this._drag.startX) * scaleX;
-            const deltaY = (touch.clientY - this._drag.startY) * scaleX;
-
-            row.imagePosX = Math.max(-300, Math.min(300, Math.round(this._drag.initialPanX + deltaX)));
-            row.imagePosY = Math.max(-300, Math.min(300, Math.round(this._drag.initialPanY + deltaY)));
-
-            this.syncPreviewSliders(row);
-            this.refreshPreview();
-        }, { passive: false });
-
-        canvas.addEventListener('touchend', () => {
-            this._drag.active = false;
-        }, { passive: true });
-    },
-
-    initPreviewWheel() {
-        this.elements.previewFront.addEventListener('wheel', (e) => {
-            if (this.previewIndex < 0) return;
-            e.preventDefault();
-            const row = this.rows[this.previewIndex];
-            const zoomDelta = e.deltaY > 0 ? -5 : 5;
-            row.imageScale = Math.max(50, Math.min(200, row.imageScale + zoomDelta));
-            this.syncPreviewSliders(row);
-            this.refreshPreview();
-        }, { passive: false });
-    },
-
-    initPreviewSliders() {
-        this.elements.previewZoom.addEventListener('input', (e) => {
-            if (this.previewIndex < 0) return;
-            const row = this.rows[this.previewIndex];
-            row.imageScale = parseInt(e.target.value);
-            this.elements.previewZoomValue.textContent = `${row.imageScale}%`;
-            this.refreshPreview();
-        });
-
-        this.elements.previewPanX.addEventListener('input', (e) => {
-            if (this.previewIndex < 0) return;
-            const row = this.rows[this.previewIndex];
-            row.imagePosX = parseInt(e.target.value);
-            this.elements.previewPanXValue.textContent = `${row.imagePosX}px`;
-            this.refreshPreview();
-        });
-
-        this.elements.previewPanY.addEventListener('input', (e) => {
-            if (this.previewIndex < 0) return;
-            const row = this.rows[this.previewIndex];
-            row.imagePosY = parseInt(e.target.value);
-            this.elements.previewPanYValue.textContent = `${row.imagePosY}px`;
-            this.refreshPreview();
-        });
-    },
-
-    syncPreviewSliders(row) {
-        this.elements.previewZoom.value = row.imageScale;
-        this.elements.previewZoomValue.textContent = `${row.imageScale}%`;
-        this.elements.previewPanX.value = row.imagePosX;
-        this.elements.previewPanXValue.textContent = `${row.imagePosX}px`;
-        this.elements.previewPanY.value = row.imagePosY;
-        this.elements.previewPanYValue.textContent = `${row.imagePosY}px`;
+        // Back to Bulk button (on main canvas banner)
+        this.elements.backToBulkBtn.addEventListener('click', () => this.exitEditMode());
     },
 
     captureTemplate() {
@@ -251,6 +117,11 @@ const BulkManager = {
     },
 
     openModal() {
+        // If already in edit mode, exit it first (save changes)
+        if (this.editingRowIndex >= 0) {
+            this.exitEditMode();
+            return;
+        }
         this.captureTemplate();
         this.isOpen = true;
         this.elements.modal.style.display = 'flex';
@@ -260,10 +131,15 @@ const BulkManager = {
     },
 
     closeModal() {
+        // If in edit mode, exit first (saves changes and restores template)
+        if (this.editingRowIndex >= 0) {
+            this._exitEditModeAndClose();
+            return;
+        }
         this.isOpen = false;
         this.elements.modal.style.display = 'none';
         document.body.style.overflow = '';
-        this.closePreview();
+        this.restoreTemplate();
     },
 
     handleFiles(fileList) {
@@ -309,11 +185,6 @@ const BulkManager = {
     removeRow(index) {
         this.rows.splice(index, 1);
         this.updateUI();
-        if (this.previewIndex === index) {
-            this.closePreview();
-        } else if (this.previewIndex > index) {
-            this.previewIndex--;
-        }
     },
 
     moveRow(fromIndex, direction) {
@@ -337,11 +208,23 @@ const BulkManager = {
             this.rows[i].backSeasonValue = first.backSeasonValue;
         }
         this.renderTable();
+
+        // Stop flash, show confirmation
+        const applyBtn = this.elements.applyRow1Btn;
+        applyBtn.classList.remove('bulk-apply-flash');
+        const original = applyBtn.innerHTML;
+        applyBtn.innerHTML = '<i data-lucide="check"></i> Applied to all!';
+        applyBtn.disabled = true;
+        lucide.createIcons();
+        setTimeout(() => {
+            applyBtn.innerHTML = original;
+            applyBtn.disabled = false;
+            lucide.createIcons();
+        }, 2000);
     },
 
     clearAll() {
         this.rows = [];
-        this.closePreview();
         this.updateUI();
     },
 
@@ -369,7 +252,7 @@ const BulkManager = {
 
         this.rows.forEach((row, index) => {
             const tr = document.createElement('tr');
-            if (index === 0) tr.classList.add('bulk-row-template');
+            if (index === 0) tr.classList.add('bulk-row-template', 'bulk-row-template-clickable');
             tr.innerHTML = `
                 <td class="bulk-col-num">${index + 1}</td>
                 <td class="bulk-col-thumb">
@@ -394,8 +277,8 @@ const BulkManager = {
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.backSeasonValue)}" data-index="${index}" data-field="backSeasonValue">
                 </td>
                 <td class="bulk-col-actions">
-                    <button class="bulk-action-btn" data-action="preview" data-index="${index}" title="Preview & Adjust">
-                        <i data-lucide="eye"></i>
+                    <button class="bulk-action-btn" data-action="edit" data-index="${index}" title="Edit on Canvas">
+                        <i data-lucide="pencil"></i>
                     </button>
                     <button class="bulk-action-btn" data-action="moveUp" data-index="${index}" title="Move up" ${index === 0 ? 'disabled' : ''}>
                         <i data-lucide="chevron-up"></i>
@@ -410,12 +293,20 @@ const BulkManager = {
             `;
             tbody.appendChild(tr);
 
+            // Make row 1 clickable (anywhere except inputs/buttons) to open canvas editor
+            if (index === 0) {
+                tr.addEventListener('click', (e) => {
+                    if (e.target.closest('input, button')) return;
+                    this.enterEditMode(0);
+                });
+            }
+
             // Add separator after row 1
             if (index === 0 && this.rows.length > 1) {
                 const colCount = showBack ? 9 : 6;
                 const sep = document.createElement('tr');
                 sep.classList.add('bulk-row-separator');
-                sep.innerHTML = `<td colspan="${colCount}"><p>All cards below inherit Row 1's text as default values. Edit individually as needed.</p></td>`;
+                sep.innerHTML = `<td colspan="${colCount}"><p>Row 1 is the template. Edit it on the canvas to set shared settings (border, signature, etc.). Text and image adjustments are saved per card.</p></td>`;
                 tbody.appendChild(sep);
             }
         });
@@ -436,7 +327,7 @@ const BulkManager = {
                 const action = button.dataset.action;
                 const idx = parseInt(button.dataset.index);
                 switch (action) {
-                    case 'preview': this.previewCard(idx); break;
+                    case 'edit': this.enterEditMode(idx); break;
                     case 'moveUp': this.moveRow(idx, -1); break;
                     case 'moveDown': this.moveRow(idx, 1); break;
                     case 'remove': this.removeRow(idx); break;
@@ -476,60 +367,157 @@ const BulkManager = {
         CanvasManager.imagePosY = row.imagePosY;
     },
 
-    previewCard(index) {
+    async enterEditMode(index) {
         if (index < 0 || index >= this.rows.length) return;
-        this.previewIndex = index;
 
+        this.editingRowIndex = index;
         const row = this.rows[index];
-        this.elements.previewTitle.textContent = `Preview - Card ${index + 1}`;
-        this.elements.previewArea.style.display = 'block';
 
-        // Sync sliders to this row's values
-        this.syncPreviewSliders(row);
+        // Save a deep copy of the template state before editing (to restore transforms/image later)
+        this._templateBeforeEdit = JSON.parse(JSON.stringify(this.template.state));
 
-        // Render preview
-        this.refreshPreview();
-
-        // Scroll preview into view
-        this.elements.previewArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    },
-
-    refreshPreview() {
-        if (this.previewIndex < 0 || this.previewIndex >= this.rows.length) return;
-        const row = this.rows[this.previewIndex];
-
-        // Apply this row's data to CanvasManager and render
+        // Load row onto canvas
         this.applyRowToCanvas(row);
         CanvasManager.showTemplate = false;
         CanvasManager.showTemplateBack = false;
         CanvasManager.render();
+        CanvasManager.updateBackSidePreview();
 
-        // Copy front canvas to preview
-        const mainCanvas = document.getElementById('mainCanvas');
-        const pf = this.elements.previewFront;
-        pf.width = mainCanvas.width;
-        pf.height = mainCanvas.height;
-        pf.getContext('2d').drawImage(mainCanvas, 0, 0);
+        // Sync sidebar UI to the loaded row state
+        const mergedState = Object.assign({}, this.template.state, {
+            topText: row.topText,
+            middleText: row.middleText,
+            bottomText: row.bottomText,
+            backNameValue: row.backNameValue,
+            backClassValue: row.backClassValue,
+            backSeasonValue: row.backSeasonValue,
+            imageScale: row.imageScale / 100,
+            imagePosX: row.imagePosX,
+            imagePosY: row.imagePosY,
+            showTemplate: false,
+            showTemplateBack: false,
+        });
+        await UIManager.syncUIFromPreset(mergedState);
 
-        // Render back side
-        if (CanvasManager.showObjektBorder) {
-            const backCanvas = CanvasManager.renderBackSide();
-            const pb = this.elements.previewBack;
-            pb.width = backCanvas.width;
-            pb.height = backCanvas.height;
-            pb.getContext('2d').drawImage(backCanvas, 0, 0);
-            this.elements.previewBack.parentElement.style.display = '';
-        } else {
-            this.elements.previewBack.parentElement.style.display = 'none';
-        }
+        // Hide bulk modal (keep rows/template state intact)
+        this.elements.modal.style.display = 'none';
+        this.isOpen = false;
+        document.body.style.overflow = '';
 
-        // Restore original state so main editor isn't affected
-        this.restoreTemplate();
+        // Show bulk-edit banner on canvas
+        const isTemplate = index === 0;
+        this.elements.backToBulkLabel.textContent = isTemplate
+            ? `Editing Card 1 (Template)`
+            : `Editing Card ${index + 1}`;
+        this.elements.backToBulkBanner.style.display = 'flex';
+        lucide.createIcons();
     },
 
-    closePreview() {
-        this.previewIndex = -1;
-        this.elements.previewArea.style.display = 'none';
+    exitEditMode() {
+        if (this.editingRowIndex < 0) return;
+
+        const row = this.rows[this.editingRowIndex];
+
+        // Save per-row data from current canvas state
+        row.topText = CanvasManager.topText;
+        row.middleText = CanvasManager.middleText;
+        row.bottomText = CanvasManager.bottomText;
+        row.backNameValue = CanvasManager.backNameValue;
+        row.backClassValue = CanvasManager.backClassValue;
+        row.backSeasonValue = CanvasManager.backSeasonValue;
+        row.imageScale = Math.round(CanvasManager.imageScale * 100);
+        row.imagePosX = CanvasManager.imagePosX;
+        row.imagePosY = CanvasManager.imagePosY;
+
+        // Update template: capture current canvas state (picks up border, signature, logo changes)
+        const originalTemplateImage = this.template.uploadedImage;
+        this.captureTemplate();
+
+        // Restore the original (non-row) template image
+        this.template.uploadedImage = originalTemplateImage;
+
+        // Restore template image transforms to pre-edit values (transforms are per-row, not template)
+        this.template.state.imageScale = this._templateBeforeEdit.imageScale;
+        this.template.state.imagePosX = this._templateBeforeEdit.imagePosX;
+        this.template.state.imagePosY = this._templateBeforeEdit.imagePosY;
+        this.template.state.imageRotation = this._templateBeforeEdit.imageRotation;
+
+        // Template text should always reflect Row 1 (the template row)
+        if (this.rows.length > 0) {
+            this.template.state.topText = this.rows[0].topText;
+            this.template.state.middleText = this.rows[0].middleText;
+            this.template.state.bottomText = this.rows[0].bottomText;
+            this.template.state.backNameValue = this.rows[0].backNameValue;
+            this.template.state.backClassValue = this.rows[0].backClassValue;
+            this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
+        }
+
+        // Hide banner
+        this.elements.backToBulkBanner.style.display = 'none';
+        this.editingRowIndex = -1;
+        this._templateBeforeEdit = null;
+
+        // Restore canvas to template state and sync sidebar UI
+        this.restoreTemplate();
+        UIManager.syncUIFromPreset(this.template.state);
+
+        // Reopen bulk modal
+        this.isOpen = true;
+        this.elements.modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        this.updateUI();
+        lucide.createIcons();
+
+        // Flash the "Apply Row 1 to All" button as a hint
+        const applyBtn = this.elements.applyRow1Btn;
+        applyBtn.classList.remove('bulk-apply-flash');
+        void applyBtn.offsetWidth; // force reflow so re-adding the class restarts animation
+        applyBtn.classList.add('bulk-apply-flash');
+        applyBtn.addEventListener('animationend', () => applyBtn.classList.remove('bulk-apply-flash'), { once: true });
+    },
+
+    // Called when the modal close button is clicked while in edit mode
+    _exitEditModeAndClose() {
+        if (this.editingRowIndex < 0) return;
+
+        const row = this.rows[this.editingRowIndex];
+
+        // Save per-row data
+        row.topText = CanvasManager.topText;
+        row.middleText = CanvasManager.middleText;
+        row.bottomText = CanvasManager.bottomText;
+        row.backNameValue = CanvasManager.backNameValue;
+        row.backClassValue = CanvasManager.backClassValue;
+        row.backSeasonValue = CanvasManager.backSeasonValue;
+        row.imageScale = Math.round(CanvasManager.imageScale * 100);
+        row.imagePosX = CanvasManager.imagePosX;
+        row.imagePosY = CanvasManager.imagePosY;
+
+        // Update template (same logic as exitEditMode)
+        const originalTemplateImage = this.template.uploadedImage;
+        this.captureTemplate();
+        this.template.uploadedImage = originalTemplateImage;
+        this.template.state.imageScale = this._templateBeforeEdit.imageScale;
+        this.template.state.imagePosX = this._templateBeforeEdit.imagePosX;
+        this.template.state.imagePosY = this._templateBeforeEdit.imagePosY;
+        this.template.state.imageRotation = this._templateBeforeEdit.imageRotation;
+        if (this.rows.length > 0) {
+            this.template.state.topText = this.rows[0].topText;
+            this.template.state.middleText = this.rows[0].middleText;
+            this.template.state.bottomText = this.rows[0].bottomText;
+            this.template.state.backNameValue = this.rows[0].backNameValue;
+            this.template.state.backClassValue = this.rows[0].backClassValue;
+            this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
+        }
+
+        // Hide banner and close completely
+        this.elements.backToBulkBanner.style.display = 'none';
+        this.editingRowIndex = -1;
+        this._templateBeforeEdit = null;
+        this.isOpen = false;
+
+        // Restore template on canvas
+        this.restoreTemplate();
     },
 
     canvasToBlob(canvas) {

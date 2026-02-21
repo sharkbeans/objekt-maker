@@ -793,6 +793,17 @@
 
             <!-- Canvas Area -->
             <div class="canvas-container" id="canvasContainer">
+                <!-- Bulk Edit Banner (shown when editing a card from bulk mode) -->
+                <div id="bulkEditBanner" class="bulk-edit-banner" style="display:none;">
+                    <div class="bulk-edit-banner-info">
+                        <i data-lucide="layers"></i>
+                        <span id="bulkEditLabel">Editing Card 1</span>
+                    </div>
+                    <button id="backToBulkBtn" class="btn btn-secondary btn-small">
+                        <i data-lucide="arrow-left"></i> Back to Bulk
+                    </button>
+                </div>
+
                 <!-- Canvas Top Bar: View Toggle + Undo/Redo -->
                 <div class="canvas-top-bar">
                     <button id="undoBtn" class="btn btn-icon" disabled title="Undo (Ctrl+Z)">
@@ -1218,43 +1229,6 @@
                     </table>
                 </div>
 
-                <!-- Preview Area -->
-                <div class="bulk-preview-area" id="bulkPreviewArea" style="display: none;">
-                    <div class="bulk-preview-header">
-                        <h4 id="bulkPreviewTitle">Preview - Card 1</h4>
-                        <button id="bulkClosePreview" class="btn btn-secondary btn-small"><i data-lucide="x"></i> Close Preview</button>
-                    </div>
-                    <div class="bulk-preview-canvases">
-                        <div class="bulk-preview-card">
-                            <span>Front</span>
-                            <canvas id="bulkPreviewFront" style="cursor: grab;"></canvas>
-                        </div>
-                        <div class="bulk-preview-card">
-                            <span>Back</span>
-                            <canvas id="bulkPreviewBack"></canvas>
-                        </div>
-                    </div>
-                    <div class="bulk-preview-controls">
-                        <p class="upload-hint" style="margin-bottom: var(--space-sm); text-align: center;">Drag to pan, scroll to zoom. Adjustments are saved per card.</p>
-                        <div class="bulk-preview-sliders">
-                            <label>
-                                <span>Zoom:</span>
-                                <input type="range" id="bulkPreviewZoom" min="50" max="200" value="100" step="5">
-                                <span id="bulkPreviewZoomValue">100%</span>
-                            </label>
-                            <label>
-                                <span>Horizontal:</span>
-                                <input type="range" id="bulkPreviewPanX" min="-300" max="300" value="0" step="5">
-                                <span id="bulkPreviewPanXValue">0px</span>
-                            </label>
-                            <label>
-                                <span>Vertical:</span>
-                                <input type="range" id="bulkPreviewPanY" min="-300" max="300" value="0" step="5">
-                                <span id="bulkPreviewPanYValue">0px</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div class="bulk-modal-footer">
                 <!-- Progress Bar -->
