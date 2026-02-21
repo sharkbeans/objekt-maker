@@ -32,6 +32,9 @@
 
     <!-- QR Code Library - Nayuki QR Code Generator -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+    <!-- JSZip for bulk export -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -783,6 +786,7 @@
 
                 <section class="control-section">
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
+                    <button id="bulkCreateBtn" class="btn btn-secondary btn-large"><i data-lucide="layers"></i> Bulk Create</button>
                     <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </section>
             </aside>
@@ -1149,6 +1153,7 @@
                 <!-- Mobile Action Buttons (hidden on desktop) -->
                 <div class="mobile-actions">
                     <button id="exportBtnMobile" class="btn btn-primary"><i data-lucide="download"></i> Download Image</button>
+                    <button id="bulkCreateBtnMobile" class="btn btn-secondary"><i data-lucide="layers"></i> Bulk Create</button>
                     <button id="resetBtnMobile" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </div>
             </div>
@@ -1161,6 +1166,110 @@
             <p>&copy; Objektify | All processing happens in your browser</p>
         </div>
     </footer>
+
+    <!-- Bulk Create Modal -->
+    <div id="bulkModal" class="bulk-modal" style="display: none;">
+        <div class="bulk-modal-backdrop"></div>
+        <div class="bulk-modal-content">
+            <div class="bulk-modal-header">
+                <h3><i data-lucide="layers"></i> Bulk Create</h3>
+                <button class="bulk-modal-close" id="closeBulkModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="bulk-modal-body">
+                <!-- Upload Zone -->
+                <div class="bulk-upload-zone" id="bulkUploadZone">
+                    <input type="file" id="bulkImageUpload" accept="image/jpeg,image/png" multiple hidden>
+                    <div class="bulk-upload-content">
+                        <i data-lucide="image-plus" style="width: 48px; height: 48px; color: var(--text-secondary);"></i>
+                        <p style="font-weight: 600; margin-top: var(--space-sm);">Drop images here or click to upload</p>
+                        <p class="upload-hint">JPG or PNG, up to 5MB each</p>
+                    </div>
+                </div>
+
+                <!-- Bulk Actions Bar -->
+                <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+                    <span class="bulk-count" id="bulkCount">0 cards</span>
+                    <div class="bulk-actions-right">
+                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small"><i data-lucide="copy"></i> Apply Row 1 to All</button>
+                        <button id="bulkAddMore" class="btn btn-secondary btn-small"><i data-lucide="plus"></i> Add More</button>
+                        <button id="bulkClearAll" class="btn btn-secondary btn-small"><i data-lucide="trash-2"></i> Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="bulk-table-container" id="bulkTableContainer" style="display: none;">
+                    <table class="bulk-table">
+                        <thead>
+                            <tr>
+                                <th class="bulk-col-num">#</th>
+                                <th class="bulk-col-thumb">Image</th>
+                                <th class="bulk-col-text">Top Text</th>
+                                <th class="bulk-col-text">Middle Text</th>
+                                <th class="bulk-col-text">Bottom Text</th>
+                                <th class="bulk-col-text bulk-back-col">Name</th>
+                                <th class="bulk-col-text bulk-back-col">Class</th>
+                                <th class="bulk-col-text bulk-back-col">Season</th>
+                                <th class="bulk-col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Preview Area -->
+                <div class="bulk-preview-area" id="bulkPreviewArea" style="display: none;">
+                    <div class="bulk-preview-header">
+                        <h4 id="bulkPreviewTitle">Preview - Card 1</h4>
+                        <button id="bulkClosePreview" class="btn btn-secondary btn-small"><i data-lucide="x"></i> Close Preview</button>
+                    </div>
+                    <div class="bulk-preview-canvases">
+                        <div class="bulk-preview-card">
+                            <span>Front</span>
+                            <canvas id="bulkPreviewFront" style="cursor: grab;"></canvas>
+                        </div>
+                        <div class="bulk-preview-card">
+                            <span>Back</span>
+                            <canvas id="bulkPreviewBack"></canvas>
+                        </div>
+                    </div>
+                    <div class="bulk-preview-controls">
+                        <p class="upload-hint" style="margin-bottom: var(--space-sm); text-align: center;">Drag to pan, scroll to zoom. Adjustments are saved per card.</p>
+                        <div class="bulk-preview-sliders">
+                            <label>
+                                <span>Zoom:</span>
+                                <input type="range" id="bulkPreviewZoom" min="50" max="200" value="100" step="5">
+                                <span id="bulkPreviewZoomValue">100%</span>
+                            </label>
+                            <label>
+                                <span>Horizontal:</span>
+                                <input type="range" id="bulkPreviewPanX" min="-300" max="300" value="0" step="5">
+                                <span id="bulkPreviewPanXValue">0px</span>
+                            </label>
+                            <label>
+                                <span>Vertical:</span>
+                                <input type="range" id="bulkPreviewPanY" min="-300" max="300" value="0" step="5">
+                                <span id="bulkPreviewPanYValue">0px</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bulk-modal-footer">
+                <!-- Progress Bar -->
+                <div class="bulk-progress" id="bulkProgress" style="display: none;">
+                    <div class="bulk-progress-bar">
+                        <div class="bulk-progress-fill" id="bulkProgressFill"></div>
+                    </div>
+                    <span class="bulk-progress-text" id="bulkProgressText">0%</span>
+                </div>
+                <button id="bulkExportAll" class="btn btn-primary" disabled>
+                    <i data-lucide="download"></i> Download All as ZIP
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Signature Upload Modal -->
     <div id="signatureModal" class="signature-modal" style="display: none;">
@@ -1363,6 +1472,7 @@
     <script src="js/savedcards.js"></script>
     <script src="js/overflow-border.js"></script>
     <script src="js/history.js"></script>
+    <script src="js/bulk.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Initialize Lucide Icons -->

@@ -47,6 +47,10 @@ const App = {
             HistoryManager.init();
             console.log('[OK] HistoryManager initialized');
 
+            // Initialize BulkManager
+            BulkManager.init();
+            console.log('[OK] BulkManager initialized');
+
             this.initialized = true;
             console.log('[OK] Photocard Maker ready!');
 
