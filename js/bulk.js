@@ -116,6 +116,10 @@ const BulkManager = {
         CanvasManager.updateBackSidePreview();
     },
 
+    isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    },
+
     openModal() {
         // If already in edit mode, exit it first (save changes)
         if (this.editingRowIndex >= 0) {
@@ -127,6 +131,9 @@ const BulkManager = {
         this.elements.modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         this.updateUI();
+        this.elements.exportAllBtn.innerHTML = this.isMobile()
+            ? '<i data-lucide="share-2"></i> Share All'
+            : '<i data-lucide="download"></i> Download All as ZIP';
         lucide.createIcons();
     },
 
@@ -532,9 +539,9 @@ const BulkManager = {
     async exportAll() {
         if (this.rows.length === 0) return;
 
-        const zip = new JSZip();
         const total = this.rows.length;
         const showBack = CanvasManager.showObjektBorder;
+        const mobile = this.isMobile();
 
         // Show progress
         this.elements.progress.style.display = 'flex';
@@ -547,12 +554,15 @@ const BulkManager = {
         const templateBackWasVisible = CanvasManager.showTemplateBack;
 
         try {
+            // Generate all images into a flat list
+            const generatedFiles = [];
+
             for (let i = 0; i < total; i++) {
                 const row = this.rows[i];
                 const num = String(i + 1).padStart(2, '0');
 
                 // Update progress
-                const progress = Math.round(((i) / total) * 100);
+                const progress = Math.round((i / total) * 100);
                 this.elements.progressFill.style.width = `${progress}%`;
                 this.elements.progressText.textContent = `${progress}% (${i}/${total})`;
 
@@ -565,27 +575,49 @@ const BulkManager = {
                 // Capture front
                 const mainCanvas = document.getElementById('mainCanvas');
                 const frontBlob = await this.canvasToBlob(mainCanvas);
-                zip.file(`card-${num}-front.png`, frontBlob);
+                generatedFiles.push({ name: `card-${num}-front.png`, blob: frontBlob });
 
                 // Capture back (if applicable)
                 if (showBack) {
                     const backCanvas = CanvasManager.renderBackSide();
                     const backBlob = await this.canvasToBlob(backCanvas);
-                    zip.file(`card-${num}-back.png`, backBlob);
+                    generatedFiles.push({ name: `card-${num}-back.png`, blob: backBlob });
                 }
 
                 // Small delay to let UI update
                 await new Promise(r => setTimeout(r, 10));
             }
 
-            // Final progress
             this.elements.progressFill.style.width = '100%';
+
+            // Mobile: try Web Share API with all files
+            if (mobile) {
+                const shareFiles = generatedFiles.map(({ name, blob }) =>
+                    new File([blob], name, { type: 'image/png' })
+                );
+                if (navigator.canShare && navigator.canShare({ files: shareFiles })) {
+                    this.elements.progressText.textContent = '100% - Sharing...';
+                    try {
+                        await navigator.share({ files: shareFiles, title: 'Objektify Bulk Export' });
+                        this.elements.progressText.textContent = 'Done!';
+                        return;
+                    } catch (e) {
+                        if (e.name === 'AbortError') {
+                            this.elements.progressText.textContent = 'Cancelled';
+                            return;
+                        }
+                        // Share failed — fall through to ZIP
+                    }
+                }
+            }
+
+            // Desktop or mobile fallback: ZIP download
             this.elements.progressText.textContent = '100% - Zipping...';
-
-            // Generate ZIP
+            const zip = new JSZip();
+            for (const { name, blob } of generatedFiles) {
+                zip.file(name, blob);
+            }
             const zipBlob = await zip.generateAsync({ type: 'blob' });
-
-            // Download
             const url = URL.createObjectURL(zipBlob);
             const link = document.createElement('a');
             link.download = 'objektify-bulk.zip';
@@ -607,11 +639,14 @@ const BulkManager = {
             CanvasManager.updateBackSidePreview();
 
             // Reset UI after short delay
+            const btnLabel = mobile
+                ? '<i data-lucide="share-2"></i> Share All'
+                : '<i data-lucide="download"></i> Download All as ZIP';
             setTimeout(() => {
                 this.elements.progress.style.display = 'none';
                 this.elements.progressFill.style.width = '0%';
                 this.elements.exportAllBtn.disabled = false;
-                this.elements.exportAllBtn.innerHTML = '<i data-lucide="download"></i> Download All as ZIP';
+                this.elements.exportAllBtn.innerHTML = btnLabel;
                 lucide.createIcons();
             }, 2000);
         }
