@@ -909,6 +909,10 @@ const UIManager = {
         // Text controls
         this.elements.topText.addEventListener('input', (e) => {
             CanvasManager.setText(e.target.value, undefined, undefined);
+            // Sync front name to back name
+            CanvasManager.setBackSideData({ nameValue: e.target.value });
+            this.elements.backNameValue.value = e.target.value;
+            if (this.elements.backNameValueMobile) this.elements.backNameValueMobile.value = e.target.value;
         });
 
         this.elements.middleText.addEventListener('input', (e) => {
@@ -1172,6 +1176,9 @@ const UIManager = {
         this.elements.backNameValue.addEventListener('input', (e) => {
             CanvasManager.setBackSideData({ nameValue: e.target.value });
             if (this.elements.backNameValueMobile) this.elements.backNameValueMobile.value = e.target.value;
+            // Sync back name to front name
+            CanvasManager.setText(e.target.value, undefined, undefined);
+            this.elements.topText.value = e.target.value;
         });
 
         this.elements.backClassLabel.addEventListener('input', (e) => {
@@ -1217,6 +1224,9 @@ const UIManager = {
             this.elements.backNameValueMobile.addEventListener('input', (e) => {
                 CanvasManager.setBackSideData({ nameValue: e.target.value });
                 this.elements.backNameValue.value = e.target.value;
+                // Sync back name to front name
+                CanvasManager.setText(e.target.value, undefined, undefined);
+                this.elements.topText.value = e.target.value;
             });
 
             this.elements.backClassLabelMobile.addEventListener('input', (e) => {
@@ -2734,45 +2744,32 @@ const UIManager = {
 
     /**
      * Handle objekt border toggle
-     * When disabled: hides accent bar, disables back side view, hides objekt-specific controls
+     * When disabled: hides accent bar, hides objekt-specific controls
+     * Back side remains accessible regardless of border state
      * @param {boolean} enabled - Whether objekt border is enabled
      */
     handleObjektBorderToggle(enabled) {
         CanvasManager.showObjektBorder = enabled;
         CanvasManager.render();
 
-        // Show/hide the back side toggle button and related controls
-        const backToggleBtn = document.querySelector('.toggle-btn[data-view="back"]');
-        const canvasViewToggle = this.elements.canvasViewToggle;
-
         // Show/hide objekt-only controls (border color, border image, front text)
         const objektOnlyControls = document.querySelectorAll('.objekt-only-control');
 
         if (enabled) {
-            // Show back side toggle
-            if (backToggleBtn) backToggleBtn.style.display = '';
-            if (canvasViewToggle) canvasViewToggle.style.display = '';
-
             // Show objekt-only controls
             objektOnlyControls.forEach(control => {
                 control.style.display = '';
             });
         } else {
-            // Hide back side toggle and force front view
-            if (backToggleBtn) backToggleBtn.style.display = 'none';
-
-            // If currently on back view, switch to front
-            if (this.currentView === 'back') {
-                this.switchCanvasView('front');
-            }
-
-            // Hide the entire toggle when only front is available
-            if (canvasViewToggle) canvasViewToggle.style.display = 'none';
-
             // Hide objekt-only controls
             objektOnlyControls.forEach(control => {
                 control.style.display = 'none';
             });
+        }
+
+        // Re-render back side if currently viewing it
+        if (this.currentView === 'back') {
+            CanvasManager.updateBackSidePreview();
         }
 
         console.log('Objekt border toggled:', enabled ? 'ON' : 'OFF');
@@ -4805,6 +4802,10 @@ const UIManager = {
                     case 'top':
                         CanvasManager.setText(newValue, undefined, undefined);
                         if (inputElement) inputElement.value = newValue;
+                        // Sync front name to back name
+                        CanvasManager.setBackSideData({ nameValue: newValue });
+                        this.elements.backNameValue.value = newValue;
+                        if (this.elements.backNameValueMobile) this.elements.backNameValueMobile.value = newValue;
                         break;
                     case 'middle':
                         CanvasManager.setText(undefined, newValue, undefined);
@@ -4826,6 +4827,9 @@ const UIManager = {
                         break;
                     case 'nameValue':
                         updateData.nameValue = newValue;
+                        // Sync back name to front name
+                        CanvasManager.setText(newValue, undefined, undefined);
+                        this.elements.topText.value = newValue;
                         break;
                     case 'classLabel':
                         updateData.classLabel = newValue;
@@ -4841,6 +4845,9 @@ const UIManager = {
                         break;
                     case 'topRotated':
                         updateData.nameValue = newValue;
+                        // Sync back name to front name
+                        CanvasManager.setText(newValue, undefined, undefined);
+                        this.elements.topText.value = newValue;
                         break;
                     case 'bottomRotated':
                         // Don't restore bottom text if back logo is present

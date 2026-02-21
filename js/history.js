@@ -351,15 +351,8 @@ const HistoryManager = {
         const canvasViewToggle = document.getElementById('canvasViewToggle');
         if (!canvasViewToggle) return;
 
-        // Always check the CURRENT state from CanvasManager
-        // Show toggle if objekt border is enabled, hide if disabled
-        if (CanvasManager.showObjektBorder === true) {
-            canvasViewToggle.style.display = '';
-            console.log('[History] Canvas toggle forced VISIBLE (objekt border ON)');
-        } else {
-            canvasViewToggle.style.display = 'none';
-            console.log('[History] Canvas toggle forced HIDDEN (objekt border OFF)');
-        }
+        // Always keep the canvas view toggle visible so back side is accessible
+        canvasViewToggle.style.display = '';
     },
 
     /**
