@@ -236,7 +236,7 @@ const PresetManager = {
         const presets = this.getPresets();
 
         if (presets.length >= this.MAX_PRESETS) {
-            alert(`Maximum of ${this.MAX_PRESETS} presets reached. Delete one first.`);
+            ToastManager.warning(`Maximum of ${this.MAX_PRESETS} presets reached. Delete one first.`);
             return false;
         }
 
@@ -254,7 +254,7 @@ const PresetManager = {
             return true;
         } catch (e) {
             console.error('Failed to save preset:', e);
-            alert('Failed to save preset. LocalStorage may be full.');
+            ToastManager.error('Failed to save preset. LocalStorage may be full.');
             return false;
         }
     },
@@ -457,7 +457,7 @@ const PresetManager = {
             console.log('Share code loaded successfully');
         } catch (e) {
             console.error('Failed to load share code:', e);
-            alert('Invalid share code. Please check and try again.');
+            ToastManager.error('Invalid share code. Please check and try again.');
         }
     },
 
@@ -469,6 +469,7 @@ const PresetManager = {
         const url = `${location.origin}${location.pathname}?preset=${code}`;
         navigator.clipboard.writeText(url).then(() => {
             console.log('Share URL copied to clipboard');
+            ToastManager.success('Share URL copied to clipboard!');
         }).catch(() => {
             // Fallback for older browsers
             const textarea = document.createElement('textarea');
@@ -480,6 +481,7 @@ const PresetManager = {
             document.execCommand('copy');
             document.body.removeChild(textarea);
             console.log('Share URL copied to clipboard (fallback)');
+            ToastManager.success('Share URL copied to clipboard!');
         });
     },
 

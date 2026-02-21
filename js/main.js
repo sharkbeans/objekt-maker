@@ -108,7 +108,7 @@ const App = {
      * Show error message
      */
     showError(message) {
-        alert(message);
+        ToastManager.error(message);
     },
 
     /**

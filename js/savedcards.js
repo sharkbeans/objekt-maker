@@ -471,7 +471,7 @@ const SavedCardsManager = {
                             await this.deleteCard(card.id);
                             await this.renderCardsList();
                         } catch (error) {
-                            alert(`Failed to delete card: ${error.message}`);
+                            ToastManager.error(`Failed to delete card: ${error.message}`);
                         }
                     }
                 });
@@ -480,10 +480,9 @@ const SavedCardsManager = {
                 item.addEventListener('click', async () => {
                     try {
                         await this.loadCard(card.id);
-                        // Show success feedback (optional)
-                        console.log('Card loaded successfully');
+                        ToastManager.success('Card loaded!');
                     } catch (error) {
-                        alert(`Failed to load card: ${error.message}`);
+                        ToastManager.error(`Failed to load card: ${error.message}`);
                     }
                 });
 
@@ -508,7 +507,7 @@ const SavedCardsManager = {
         if (saveBtn) {
             saveBtn.addEventListener('click', async () => {
                 if (!CanvasManager.uploadedImage) {
-                    alert('Please upload an image first.');
+                    ToastManager.warning('Please upload an image first.');
                     return;
                 }
 
@@ -518,9 +517,9 @@ const SavedCardsManager = {
                 try {
                     await this.saveCard(name.trim());
                     await this.renderCardsList();
-                    alert('Photocard saved to collection!');
+                    ToastManager.success('Photocard saved to collection!');
                 } catch (error) {
-                    alert(`Failed to save: ${error.message}`);
+                    ToastManager.error(`Failed to save: ${error.message}`);
                 }
             });
         }

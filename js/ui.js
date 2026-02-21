@@ -3642,9 +3642,8 @@ const UIManager = {
      * Show success message
      */
     showSuccessMessage(message) {
-        // Simple console log for now - can be enhanced with toast notifications
         console.log('[SUCCESS]', message);
-        alert(message);
+        ToastManager.success(message);
     },
 
     /**
@@ -3652,7 +3651,7 @@ const UIManager = {
      */
     showErrorMessage(message) {
         console.error('[ERROR]', message);
-        alert(message);
+        ToastManager.error(message);
     },
 
     /**
@@ -4119,7 +4118,7 @@ const UIManager = {
                     rotationSlider.value = 0;
                     rotationValue.textContent = '0°';
                 } catch (error) {
-                    alert(error.message);
+                    ToastManager.error(error.message);
                 }
             }
         });
