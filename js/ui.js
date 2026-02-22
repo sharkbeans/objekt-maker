@@ -7,6 +7,21 @@ const UIManager = {
     elements: {},
     currentView: 'front', // Track current view ('front' or 'back')
 
+    // Google Fonts curated list
+    googleFonts: [
+        'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Raleway', 'Poppins',
+        'Nunito', 'Inter', 'Playfair Display', 'Merriweather',
+        'Libre Baskerville', 'EB Garamond', 'Cormorant Garamond',
+        'Dancing Script', 'Pacifico', 'Lobster', 'Great Vibes', 'Satisfy',
+        'Sacramento', 'Josefin Sans', 'Quicksand', 'Comfortaa', 'Righteous',
+        'Orbitron', 'Space Grotesk', 'Syne', 'Outfit', 'Plus Jakarta Sans',
+        'DM Sans', 'Figtree', 'Urbanist', 'Bebas Neue', 'Black Han Sans',
+        'Noto Sans KR', 'Noto Serif KR', 'Black Ops One', 'Permanent Marker',
+        'Caveat', 'Kalam'
+    ],
+    loadedFonts: new Set(),
+    fontObserver: null,
+
     /**
      * Initialize UI manager and bind all event listeners
      */
@@ -111,6 +126,14 @@ const UIManager = {
             textColorPicker: document.getElementById('textColorPicker'),
             textColorHex: document.getElementById('textColorHex'),
             presetColorsText: document.querySelectorAll('.preset-color-text'),
+
+            // Font picker
+            fontPickerBtn: document.getElementById('fontPickerBtn'),
+            fontPickerPreview: document.getElementById('fontPickerPreview'),
+            fontPickerModal: document.getElementById('fontPickerModal'),
+            closeFontPicker: document.getElementById('closeFontPicker'),
+            fontSearchInput: document.getElementById('fontSearchInput'),
+            fontList: document.getElementById('fontList'),
 
             // Text height sliders (Front - Desktop)
             topTextHeight: document.getElementById('topTextHeight'),
@@ -950,6 +973,30 @@ const UIManager = {
                 CanvasManager.setTextColor(color);
             });
         });
+
+        // Font picker
+        if (this.elements.fontPickerBtn) {
+            this.elements.fontPickerBtn.addEventListener('click', () => this.openFontPicker());
+        }
+        if (this.elements.closeFontPicker) {
+            this.elements.closeFontPicker.addEventListener('click', () => this.closeFontPicker());
+        }
+        if (this.elements.fontPickerModal) {
+            const backdrop = this.elements.fontPickerModal.querySelector('.font-picker-modal-backdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', () => this.closeFontPicker());
+            }
+        }
+        if (this.elements.fontSearchInput) {
+            this.elements.fontSearchInput.addEventListener('input', (e) => {
+                this.renderFontList(e.target.value.trim());
+            });
+        }
+        if (this.elements.fontPickerModal) {
+            this.elements.fontPickerModal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') this.closeFontPicker();
+            });
+        }
 
         // Text height sliders (Front - Desktop)
         if (this.elements.topTextHeight) {
@@ -2410,6 +2457,13 @@ const UIManager = {
             if (this.elements.textColorHex) this.elements.textColorHex.value = data.textColor;
         }
 
+        // Font family
+        if (data.fontFamily && this.elements.fontPickerPreview) {
+            this.loadGoogleFont(data.fontFamily);
+            this.elements.fontPickerPreview.textContent = data.fontFamily;
+            this.elements.fontPickerPreview.style.fontFamily = `'${data.fontFamily}', sans-serif`;
+        }
+
         // Text height sliders (front)
         if (data.topTextHeight !== undefined) {
             if (this.elements.topTextHeight) {
@@ -3347,6 +3401,110 @@ const UIManager = {
 
         this.elements.signatureModal.style.display = 'none';
         document.body.style.overflow = ''; // Restore scroll
+    },
+
+    /**
+     * Load a Google Font by injecting a stylesheet link
+     */
+    loadGoogleFont(fontName) {
+        if (this.loadedFonts.has(fontName)) return;
+        this.loadedFonts.add(fontName);
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}&display=swap`;
+        document.head.appendChild(link);
+    },
+
+    /**
+     * Open the font picker modal
+     */
+    openFontPicker() {
+        if (!this.elements.fontPickerModal) return;
+        this.elements.fontPickerModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        this.elements.fontSearchInput.value = '';
+        this.renderFontList('');
+        this.elements.fontSearchInput.focus();
+        if (window.lucide) lucide.createIcons();
+    },
+
+    /**
+     * Close the font picker modal
+     */
+    closeFontPicker() {
+        if (!this.elements.fontPickerModal) return;
+        this.elements.fontPickerModal.style.display = 'none';
+        document.body.style.overflow = '';
+        // Clean up observer
+        if (this.fontObserver) {
+            this.fontObserver.disconnect();
+            this.fontObserver = null;
+        }
+    },
+
+    /**
+     * Render the font list with optional search filter
+     */
+    renderFontList(filter) {
+        const container = this.elements.fontList;
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        // Clean up previous observer
+        if (this.fontObserver) {
+            this.fontObserver.disconnect();
+        }
+
+        const currentFont = CanvasManager.fontFamily;
+        const lowerFilter = filter.toLowerCase();
+
+        // Include default font + Google Fonts
+        const allFonts = ['Helvetica Neue', ...this.googleFonts];
+        const filtered = allFonts.filter(f => f.toLowerCase().includes(lowerFilter));
+
+        // Create IntersectionObserver for lazy font loading
+        this.fontObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const item = entry.target;
+                    const fontName = item.dataset.font;
+                    if (fontName !== 'Helvetica Neue') {
+                        this.loadGoogleFont(fontName);
+                    }
+                    item.style.fontFamily = `'${fontName}', sans-serif`;
+                    this.fontObserver.unobserve(item);
+                }
+            });
+        }, { root: container, rootMargin: '50px' });
+
+        filtered.forEach(fontName => {
+            const item = document.createElement('div');
+            item.className = 'font-list-item';
+            if (fontName === currentFont) item.classList.add('active');
+            item.textContent = fontName;
+            item.dataset.font = fontName;
+
+            item.addEventListener('click', () => {
+                // Load the font for canvas rendering
+                if (fontName !== 'Helvetica Neue') {
+                    this.loadGoogleFont(fontName);
+                }
+                CanvasManager.setFontFamily(fontName);
+
+                // Update preview button
+                if (this.elements.fontPickerPreview) {
+                    this.elements.fontPickerPreview.textContent = fontName;
+                    this.elements.fontPickerPreview.style.fontFamily = `'${fontName}', sans-serif`;
+                }
+
+                this.closeFontPicker();
+                HistoryManager.pushState(`Font: ${fontName}`);
+            });
+
+            container.appendChild(item);
+            this.fontObserver.observe(item);
+        });
     },
 
     /**

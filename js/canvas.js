@@ -60,6 +60,7 @@ const CanvasManager = {
     middleText: '100A',
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
+    fontFamily: 'Helvetica Neue', // Font family for front text
 
     // Text height offsets (Front side)
     topTextHeight: 0,
@@ -287,6 +288,15 @@ const CanvasManager = {
         // Always regenerate QR code with new color
         await this.generateQRCode();
         this.updateBackSidePreview();
+    },
+
+    /**
+     * Set font family for front text
+     * @param {string} family - Font family name
+     */
+    setFontFamily(family) {
+        this.fontFamily = family;
+        this.render();
     },
 
     /**
@@ -1524,7 +1534,7 @@ const CanvasManager = {
         // Set text properties
         this.ctx.fillStyle = this.textColor;
         const scaledFontSize = 40.90875 * this.scaleFactor;
-        this.ctx.font = `600 ${scaledFontSize}px "Helvetica Neue", sans-serif`;
+        this.ctx.font = `600 ${scaledFontSize}px "${this.fontFamily}", sans-serif`;
 
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
@@ -1542,7 +1552,7 @@ const CanvasManager = {
         // Draw middle text (rotated 90° counterclockwise + 180° flip) - 100A with reduced letter spacing
         this.ctx.save();
         const scaledMiddleFontSize = 45 * this.scaleFactor;
-        this.ctx.font = `550 ${scaledMiddleFontSize}px "SF Pro Display", sans-serif`;
+        this.ctx.font = `550 ${scaledMiddleFontSize}px "${this.fontFamily}", sans-serif`;
         const scaledMiddleLetterSpacing = -1.975 * this.scaleFactor;
         this.ctx.letterSpacing = `${scaledMiddleLetterSpacing}px`;
         this.ctx.translate(centerX, offsetY + this.canvasHeight / 2.25 + this.middleTextHeight);

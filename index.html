@@ -400,6 +400,13 @@
                                         <button class="preset-color-text" data-color="#FF6B9D" style="background-color: #FF6B9D;" title="#FF6B9D"></button>
                                     </div>
                                 </div>
+                                <label>
+                                    <span>Font:</span>
+                                    <button type="button" id="fontPickerBtn" class="font-picker-btn">
+                                        <span id="fontPickerPreview" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue</span>
+                                        <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </label>
                             </div>
                         </div>
 
@@ -1440,6 +1447,23 @@
             }, { passive: true });
         });
     </script>
+    <!-- Font Picker Modal -->
+    <div id="fontPickerModal" class="font-picker-modal" style="display: none;">
+        <div class="font-picker-modal-backdrop"></div>
+        <div class="font-picker-modal-content">
+            <div class="font-picker-modal-header">
+                <h3><i data-lucide="type" style="width: 18px; height: 18px;"></i> Choose Font</h3>
+                <button class="font-picker-modal-close" id="closeFontPicker">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+            <div class="font-picker-modal-body">
+                <input type="text" id="fontSearchInput" class="text-input" placeholder="Search fonts..." autocomplete="off">
+                <div id="fontList" class="font-list"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/toast.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/ui.js"></script>
