@@ -130,6 +130,8 @@ const UIManager = {
             // Font picker
             fontPickerBtn: document.getElementById('fontPickerBtn'),
             fontPickerPreview: document.getElementById('fontPickerPreview'),
+            fontPickerBtnMobile: document.getElementById('fontPickerBtnMobile'),
+            fontPickerPreviewMobile: document.getElementById('fontPickerPreviewMobile'),
             fontPickerModal: document.getElementById('fontPickerModal'),
             closeFontPicker: document.getElementById('closeFontPicker'),
             fontSearchInput: document.getElementById('fontSearchInput'),
@@ -977,6 +979,9 @@ const UIManager = {
         // Font picker
         if (this.elements.fontPickerBtn) {
             this.elements.fontPickerBtn.addEventListener('click', () => this.openFontPicker());
+        }
+        if (this.elements.fontPickerBtnMobile) {
+            this.elements.fontPickerBtnMobile.addEventListener('click', () => this.openFontPicker());
         }
         if (this.elements.closeFontPicker) {
             this.elements.closeFontPicker.addEventListener('click', () => this.closeFontPicker());
@@ -2458,10 +2463,16 @@ const UIManager = {
         }
 
         // Font family
-        if (data.fontFamily && this.elements.fontPickerPreview) {
+        if (data.fontFamily) {
             this.loadGoogleFont(data.fontFamily);
-            this.elements.fontPickerPreview.textContent = data.fontFamily;
-            this.elements.fontPickerPreview.style.fontFamily = `'${data.fontFamily}', sans-serif`;
+            if (this.elements.fontPickerPreview) {
+                this.elements.fontPickerPreview.textContent = data.fontFamily;
+                this.elements.fontPickerPreview.style.fontFamily = `'${data.fontFamily}', sans-serif`;
+            }
+            if (this.elements.fontPickerPreviewMobile) {
+                this.elements.fontPickerPreviewMobile.textContent = data.fontFamily;
+                this.elements.fontPickerPreviewMobile.style.fontFamily = `'${data.fontFamily}', sans-serif`;
+            }
         }
 
         // Text height sliders (front)
@@ -3492,10 +3503,23 @@ const UIManager = {
                 }
                 CanvasManager.setFontFamily(fontName);
 
-                // Update preview button
+                // Update desktop preview button
                 if (this.elements.fontPickerPreview) {
                     this.elements.fontPickerPreview.textContent = fontName;
                     this.elements.fontPickerPreview.style.fontFamily = `'${fontName}', sans-serif`;
+                }
+
+                // Update mobile preview button
+                if (this.elements.fontPickerPreviewMobile) {
+                    this.elements.fontPickerPreviewMobile.textContent = fontName;
+                    this.elements.fontPickerPreviewMobile.style.fontFamily = `'${fontName}', sans-serif`;
+                }
+
+                // Update canvas-text-editor font button if open
+                const editorFontBtn = document.querySelector('#canvasTextEditor .font-picker-btn span');
+                if (editorFontBtn) {
+                    editorFontBtn.textContent = fontName;
+                    editorFontBtn.style.fontFamily = `'${fontName}', sans-serif`;
                 }
 
                 this.closeFontPicker();
@@ -4746,6 +4770,36 @@ const UIManager = {
             colorContainer.appendChild(colorLabel);
             colorContainer.appendChild(colorInputWrapper);
             editorContent.appendChild(colorContainer);
+        }
+
+        // Add font picker for front and back side text
+        if (isFrontText || isBackText) {
+            const fontContainer = document.createElement('div');
+            fontContainer.className = 'canvas-editor-font-container';
+            fontContainer.style.cssText = 'margin-top: 16px;';
+
+            const fontLabel = document.createElement('label');
+            fontLabel.className = 'canvas-editor-slider-label';
+            fontLabel.textContent = 'Font';
+            fontLabel.style.cssText = 'display: block; margin-bottom: 8px;';
+
+            const fontBtn = document.createElement('button');
+            fontBtn.type = 'button';
+            fontBtn.className = 'font-picker-btn';
+            fontBtn.innerHTML = `<span style="font-family: '${CanvasManager.fontFamily}', sans-serif;">${CanvasManager.fontFamily}</span><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>`;
+
+            fontBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openFontPicker();
+            });
+
+            fontBtn.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            });
+
+            fontContainer.appendChild(fontLabel);
+            fontContainer.appendChild(fontBtn);
+            editorContent.appendChild(fontContainer);
         }
 
         // Add logo upload section for bottom text on both front and back sides

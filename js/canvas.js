@@ -1784,12 +1784,12 @@ const CanvasManager = {
 
         // NAME section
         const scaledLabelFontSize = 29.828 * this.scaleFactor;
-        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
+        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + (10 * this.scaleFactor));
 
         const scaledValueFontSize = 88 * this.scaleFactor;
-        backCtx.font = `500 ${scaledValueFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        backCtx.font = `500 ${scaledValueFontSize}px "${this.fontFamily}", sans-serif`;
         const scaledLetterSpacing = -1 * this.scaleFactor;
         backCtx.letterSpacing = `${scaledLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
@@ -1803,11 +1803,11 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider2Y, whiteBoxRightEdge - leftMargin, 1);
 
         // CLASS section
-        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
+        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + (10 * this.scaleFactor));
 
-        backCtx.font = `500 ${scaledValueFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        backCtx.font = `500 ${scaledValueFontSize}px "${this.fontFamily}", sans-serif`;
         const scaledClassLetterSpacing = -1.67 * this.scaleFactor;
         backCtx.letterSpacing = `${scaledClassLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
@@ -1821,7 +1821,7 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider3Y, whiteBoxRightEdge - leftMargin, 1);
 
         // SEASON section
-        backCtx.font = `400 ${scaledLabelFontSize}px "Helvetica Neue", sans-serif`;
+        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + (10 * this.scaleFactor));
 
@@ -1897,7 +1897,7 @@ const CanvasManager = {
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = `600 ${scaledRotatedFontSize}px "Helvetica Neue", sans-serif`;
+        backCtx.font = `600 ${scaledRotatedFontSize}px "${this.fontFamily}", sans-serif`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
         const scaledRotatedLetterSpacing = -1.5 * this.scaleFactor;
@@ -1911,7 +1911,7 @@ const CanvasManager = {
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = `600 ${scaledRotatedFontSize}px "Helvetica Neue", sans-serif`;
+        backCtx.font = `600 ${scaledRotatedFontSize}px "${this.fontFamily}", sans-serif`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
 
@@ -2145,7 +2145,7 @@ const CanvasManager = {
     drawSeasonTextWithOutline(ctx, text, x, y) {
         ctx.save();
         const scaledFontSize = 88 * this.scaleFactor;
-        ctx.font = `500 ${scaledFontSize}px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif`;
+        ctx.font = `500 ${scaledFontSize}px "${this.fontFamily}", sans-serif`;
         const scaledLetterSpacing = -1.67 * this.scaleFactor;
         ctx.letterSpacing = `${scaledLetterSpacing}px`;
         ctx.textAlign = 'left';
@@ -2473,7 +2473,7 @@ const CanvasManager = {
 
         // Top text bounds (text is rotated 90° CW, so width/height are swapped)
         const topFontSize = 40.90875;
-        this.ctx.font = `600 ${topFontSize}px "Helvetica Neue", sans-serif`;
+        this.ctx.font = `600 ${topFontSize}px "${this.fontFamily}", sans-serif`;
         this.ctx.letterSpacing = '-2.045px';
         const topTextWidth = this.ctx.measureText(this.topText).width;
         this.ctx.letterSpacing = '0px';
@@ -2488,7 +2488,7 @@ const CanvasManager = {
 
         // Middle text bounds (text is rotated 90° CW, so width/height are swapped)
         const middleFontSize = 45;
-        this.ctx.font = `550 ${middleFontSize}px "SF Pro Display", sans-serif`;
+        this.ctx.font = `550 ${middleFontSize}px "${this.fontFamily}", sans-serif`;
         this.ctx.letterSpacing = '-1.975px';
         const middleTextWidth = this.ctx.measureText(this.middleText).width;
         this.ctx.letterSpacing = '0px';
@@ -2639,7 +2639,7 @@ const CanvasManager = {
         const divider4Y = rectY + (rectHeight * 0.625);
 
         // NAME Label
-        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
         const nameLabelWidth = ctx.measureText(this.backNameLabel).width;
         bounds.push({
             type: 'nameLabel',
@@ -2650,7 +2650,7 @@ const CanvasManager = {
         });
 
         // NAME Value
-        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
         const nameValueWidth = ctx.measureText(this.backNameValue).width;
         bounds.push({
             type: 'nameValue',
@@ -2661,7 +2661,7 @@ const CanvasManager = {
         });
 
         // CLASS Label
-        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
         const classLabelWidth = ctx.measureText(this.backClassLabel).width;
         bounds.push({
             type: 'classLabel',
@@ -2672,7 +2672,7 @@ const CanvasManager = {
         });
 
         // CLASS Value
-        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
         const classValueWidth = ctx.measureText(this.backClassValue).width;
         bounds.push({
             type: 'classValue',
@@ -2683,7 +2683,7 @@ const CanvasManager = {
         });
 
         // SEASON Label
-        ctx.font = '400 29.828px "Helvetica Neue", sans-serif';
+        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
         const seasonLabelWidth = ctx.measureText(this.backSeasonLabel).width;
         bounds.push({
             type: 'seasonLabel',
@@ -2694,7 +2694,7 @@ const CanvasManager = {
         });
 
         // SEASON Value
-        ctx.font = '500 88px "Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
         const seasonValueWidth = ctx.measureText(this.backSeasonValue).width;
         bounds.push({
             type: 'seasonValue',
@@ -2710,7 +2710,7 @@ const CanvasManager = {
         const topGap = rectHeight * 0.04;
 
         // Top rotated text (name value) - rotated 90 degrees
-        ctx.font = '600 41.18px "Helvetica Neue", sans-serif';
+        ctx.font = `600 41.18px "${this.fontFamily}", sans-serif`;
         const topRotatedWidth = ctx.measureText(this.backNameValue).width;
         // Since it's rotated 90 degrees, x and y are swapped for hit detection
         bounds.push({
