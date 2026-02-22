@@ -132,7 +132,7 @@ const BulkManager = {
         document.body.style.overflow = 'hidden';
         this.updateUI();
         this.elements.exportAllBtn.innerHTML = this.isMobile()
-            ? '<i data-lucide="share-2"></i> Share All'
+            ? '<i data-lucide="share-2"></i> Save All'
             : '<i data-lucide="download"></i> Download All as ZIP';
         lucide.createIcons();
     },
@@ -640,7 +640,7 @@ const BulkManager = {
 
             // Reset UI after short delay
             const btnLabel = mobile
-                ? '<i data-lucide="share-2"></i> Share All'
+                ? '<i data-lucide="share-2"></i> Save All'
                 : '<i data-lucide="download"></i> Download All as ZIP';
             setTimeout(() => {
                 this.elements.progress.style.display = 'none';
