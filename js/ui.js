@@ -169,6 +169,30 @@ const UIManager = {
             resetBtnMobile: document.getElementById('resetBtnMobile'),
             resetBtnCanvas: document.getElementById('resetBtnCanvas'),
 
+            // Back image upload controls (Desktop)
+            backUploadArea: document.getElementById('backUploadArea'),
+            backImageUpload: document.getElementById('backImageUpload'),
+            backImageAdjustments: document.getElementById('backImageAdjustments'),
+            backZoomSlider: document.getElementById('backZoomSlider'),
+            backZoomValue: document.getElementById('backZoomValue'),
+            backPanXSlider: document.getElementById('backPanXSlider'),
+            backPanXValue: document.getElementById('backPanXValue'),
+            backPanYSlider: document.getElementById('backPanYSlider'),
+            backPanYValue: document.getElementById('backPanYValue'),
+            clearBackImageBtn: document.getElementById('clearBackImageBtn'),
+
+            // Back image upload controls (Mobile)
+            backUploadAreaMobile: document.getElementById('backUploadAreaMobile'),
+            backImageUploadMobile: document.getElementById('backImageUploadMobile'),
+            backImageAdjustmentsMobile: document.getElementById('backImageAdjustmentsMobile'),
+            backZoomSliderMobile: document.getElementById('backZoomSliderMobile'),
+            backZoomValueMobile: document.getElementById('backZoomValueMobile'),
+            backPanXSliderMobile: document.getElementById('backPanXSliderMobile'),
+            backPanXValueMobile: document.getElementById('backPanXValueMobile'),
+            backPanYSliderMobile: document.getElementById('backPanYSliderMobile'),
+            backPanYValueMobile: document.getElementById('backPanYValueMobile'),
+            clearBackImageBtnMobile: document.getElementById('clearBackImageBtnMobile'),
+
             // Back side controls (Desktop)
             notchColorGroupSelectBack: document.getElementById('notchColorGroupSelectBack'),
             notchColorSelectBack: document.getElementById('notchColorSelectBack'),
@@ -354,6 +378,94 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // Back image upload events
+        if (this.elements.backImageUpload) {
+            this.elements.backImageUpload.addEventListener('change', (e) => this.handleBackImageUpload(e));
+        }
+        if (this.elements.backUploadArea) {
+            this.elements.backUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                this.elements.backUploadArea.classList.add('drag-over');
+            });
+            this.elements.backUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                this.elements.backUploadArea.classList.remove('drag-over');
+            });
+            this.elements.backUploadArea.addEventListener('drop', (e) => this.handleBackImageDrop(e));
+        }
+        if (this.elements.backImageUploadMobile) {
+            this.elements.backImageUploadMobile.addEventListener('change', (e) => this.handleBackImageUpload(e));
+        }
+        if (this.elements.backUploadAreaMobile) {
+            this.elements.backUploadAreaMobile.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                this.elements.backUploadAreaMobile.classList.add('drag-over');
+            });
+            this.elements.backUploadAreaMobile.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                this.elements.backUploadAreaMobile.classList.remove('drag-over');
+            });
+            this.elements.backUploadAreaMobile.addEventListener('drop', (e) => this.handleBackImageDrop(e));
+        }
+
+        // Back image adjustment controls (desktop)
+        if (this.elements.backZoomSlider) {
+            this.elements.backZoomSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backZoomValue.textContent = `${value}%`;
+                this.syncBackSliderValue('backZoom', value);
+                CanvasManager.setBackZoom(value / 100);
+            });
+        }
+        if (this.elements.backPanXSlider) {
+            this.elements.backPanXSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backPanXValue.textContent = `${value}px`;
+                this.syncBackSliderValue('backPanX', value);
+                CanvasManager.setBackPan(parseInt(value), CanvasManager.backImagePosY);
+            });
+        }
+        if (this.elements.backPanYSlider) {
+            this.elements.backPanYSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backPanYValue.textContent = `${value}px`;
+                this.syncBackSliderValue('backPanY', value);
+                CanvasManager.setBackPan(CanvasManager.backImagePosX, parseInt(value));
+            });
+        }
+        if (this.elements.clearBackImageBtn) {
+            this.elements.clearBackImageBtn.addEventListener('click', () => this.clearBackImage());
+        }
+
+        // Back image adjustment controls (mobile)
+        if (this.elements.backZoomSliderMobile) {
+            this.elements.backZoomSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backZoomValueMobile.textContent = `${value}%`;
+                this.syncBackSliderValue('backZoom', value);
+                CanvasManager.setBackZoom(value / 100);
+            });
+        }
+        if (this.elements.backPanXSliderMobile) {
+            this.elements.backPanXSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backPanXValueMobile.textContent = `${value}px`;
+                this.syncBackSliderValue('backPanX', value);
+                CanvasManager.setBackPan(parseInt(value), CanvasManager.backImagePosY);
+            });
+        }
+        if (this.elements.backPanYSliderMobile) {
+            this.elements.backPanYSliderMobile.addEventListener('input', (e) => {
+                const value = e.target.value;
+                this.elements.backPanYValueMobile.textContent = `${value}px`;
+                this.syncBackSliderValue('backPanY', value);
+                CanvasManager.setBackPan(CanvasManager.backImagePosX, parseInt(value));
+            });
+        }
+        if (this.elements.clearBackImageBtnMobile) {
+            this.elements.clearBackImageBtnMobile.addEventListener('click', () => this.clearBackImage());
+        }
 
         // Adjustment controls (desktop)
         this.elements.zoomSlider.addEventListener('input', (e) => {
@@ -1472,6 +1584,11 @@ const UIManager = {
         // Touch drag-to-pan removed for mobile - using sliders instead
         // this.initCanvasTouchPan();
         this.initCanvasPinchZoom();
+        // Back canvas interactions
+        this.initBackCanvasDragPan();
+        this.initBackCanvasWheelZoom();
+        this.initBackCanvasDoubleClickReset();
+        this.initBackCanvasPinchZoom();
         this.initFloatingAdjustOverlay();
         this.initMobilePanSliders();
         this.initSliderDragListeners();
@@ -2640,6 +2757,16 @@ const UIManager = {
             this.elements.templateToggleBack.checked = data.showTemplateBack;
         }
 
+        // Back image sliders
+        if (data.backImageScale !== undefined) {
+            const zoom = Math.round(data.backImageScale * 100);
+            this.syncBackSliderValue('backZoom', zoom);
+        }
+        if (data.backImagePosX !== undefined) this.syncBackSliderValue('backPanX', data.backImagePosX);
+        if (data.backImagePosY !== undefined) this.syncBackSliderValue('backPanY', data.backImagePosY);
+        // Show/hide back image controls based on whether back image exists
+        this.showBackImageControls(CanvasManager.hasBackImage());
+
         // Sync back side colors
         this.syncBackColors();
     },
@@ -2817,6 +2944,131 @@ const UIManager = {
             this.updateMobilePanControlsVisibility();
         } catch (error) {
             this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Handle back side image upload
+     */
+    async handleBackImageUpload(event) {
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
+
+        const file = files[0];
+        try {
+            await CanvasManager.loadBackImage(file);
+            this.showBackImageControls(true);
+            this.showSuccessMessage('Back image loaded successfully!');
+            HistoryManager.pushState('Uploaded back image');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+        event.target.value = '';
+    },
+
+    /**
+     * Handle drop on back image upload area
+     */
+    async handleBackImageDrop(event) {
+        event.preventDefault();
+        const target = event.currentTarget;
+        target.classList.remove('drag-over');
+
+        const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (!files.length) return;
+
+        const file = files[0];
+        try {
+            await CanvasManager.loadBackImage(file);
+            this.showBackImageControls(true);
+            this.showSuccessMessage('Back image loaded successfully!');
+            HistoryManager.pushState('Uploaded back image');
+        } catch (error) {
+            this.showErrorMessage(error.message);
+        }
+    },
+
+    /**
+     * Show/hide back image adjustment controls
+     */
+    showBackImageControls(show) {
+        if (this.elements.backImageAdjustments) {
+            this.elements.backImageAdjustments.style.display = show ? '' : 'none';
+        }
+        if (this.elements.backImageAdjustmentsMobile) {
+            this.elements.backImageAdjustmentsMobile.style.display = show ? '' : 'none';
+        }
+        // Update back canvas cursor
+        if (this._updateBackCanvasCursor) {
+            this._updateBackCanvasCursor();
+        }
+    },
+
+    /**
+     * Clear the uploaded back image
+     */
+    clearBackImage() {
+        CanvasManager.backUploadedImage = null;
+        CanvasManager.backImageScale = 1;
+        CanvasManager.backImagePosX = 0;
+        CanvasManager.backImagePosY = 0;
+        CanvasManager.updateBackSidePreview();
+        this.showBackImageControls(false);
+
+        // Reset sliders
+        if (this.elements.backZoomSlider) {
+            this.elements.backZoomSlider.value = 100;
+            this.elements.backZoomValue.textContent = '100%';
+        }
+        if (this.elements.backPanXSlider) {
+            this.elements.backPanXSlider.value = 0;
+            this.elements.backPanXValue.textContent = '0px';
+        }
+        if (this.elements.backPanYSlider) {
+            this.elements.backPanYSlider.value = 0;
+            this.elements.backPanYValue.textContent = '0px';
+        }
+        if (this.elements.backZoomSliderMobile) {
+            this.elements.backZoomSliderMobile.value = 100;
+            this.elements.backZoomValueMobile.textContent = '100%';
+        }
+        if (this.elements.backPanXSliderMobile) {
+            this.elements.backPanXSliderMobile.value = 0;
+            this.elements.backPanXValueMobile.textContent = '0px';
+        }
+        if (this.elements.backPanYSliderMobile) {
+            this.elements.backPanYSliderMobile.value = 0;
+            this.elements.backPanYValueMobile.textContent = '0px';
+        }
+
+        this.showSuccessMessage('Back image cleared');
+        HistoryManager.pushState('Cleared back image');
+    },
+
+    /**
+     * Sync back image slider values between desktop and mobile
+     */
+    syncBackSliderValue(type, value) {
+        const val = parseInt(value);
+        switch (type) {
+            case 'backZoom':
+                if (this.elements.backZoomSlider) this.elements.backZoomSlider.value = val;
+                if (this.elements.backZoomValue) this.elements.backZoomValue.textContent = `${val}%`;
+                if (this.elements.backZoomSliderMobile) this.elements.backZoomSliderMobile.value = val;
+                if (this.elements.backZoomValueMobile) this.elements.backZoomValueMobile.textContent = `${val}%`;
+                break;
+            case 'backPanX':
+                if (this.elements.backPanXSlider) this.elements.backPanXSlider.value = val;
+                if (this.elements.backPanXValue) this.elements.backPanXValue.textContent = `${val}px`;
+                if (this.elements.backPanXSliderMobile) this.elements.backPanXSliderMobile.value = val;
+                if (this.elements.backPanXValueMobile) this.elements.backPanXValueMobile.textContent = `${val}px`;
+                break;
+            case 'backPanY':
+                if (this.elements.backPanYSlider) this.elements.backPanYSlider.value = val;
+                if (this.elements.backPanYValue) this.elements.backPanYValue.textContent = `${val}px`;
+                if (this.elements.backPanYSliderMobile) this.elements.backPanYSliderMobile.value = val;
+                if (this.elements.backPanYValueMobile) this.elements.backPanYValueMobile.textContent = `${val}px`;
+                break;
         }
     },
 
@@ -5836,6 +6088,186 @@ const UIManager = {
                     const x = Math.round(CanvasManager.imagePosX);
                     const y = Math.round(CanvasManager.imagePosY);
                     HistoryManager.captureSliderEnd(`Zoom: ${zoom}%, Pan: ${x}, ${y}`);
+                }
+                isTwoFingerGesture = false;
+                initialDistance = null;
+                initialZoom = null;
+                initialPanX = null;
+                initialPanY = null;
+                initialMidpointX = null;
+                initialMidpointY = null;
+            }
+        });
+    },
+
+    /**
+     * Initialize drag-to-pan on back canvas
+     */
+    initBackCanvasDragPan() {
+        const canvas = document.getElementById('backCanvas');
+        if (!canvas) return;
+
+        let isDragging = false;
+        let startX, startY, initialPanX, initialPanY;
+
+        canvas.style.cursor = CanvasManager.hasBackImage() ? 'grab' : 'default';
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!CanvasManager.hasBackImage()) return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialPanX = CanvasManager.backImagePosX;
+            initialPanY = CanvasManager.backImagePosY;
+            canvas.style.cursor = 'grabbing';
+            HistoryManager.captureSliderStart();
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const deltaX = (e.clientX - startX) * scaleX;
+            const deltaY = (e.clientY - startY) * scaleX;
+            const newPanX = Math.max(-300, Math.min(300, initialPanX + deltaX));
+            const newPanY = Math.max(-300, Math.min(300, initialPanY + deltaY));
+            CanvasManager.setBackPan(Math.round(newPanX), Math.round(newPanY));
+            this.syncBackSliderValue('backPanX', Math.round(newPanX));
+            this.syncBackSliderValue('backPanY', Math.round(newPanY));
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                canvas.style.cursor = CanvasManager.hasBackImage() ? 'grab' : 'default';
+                const x = Math.round(CanvasManager.backImagePosX);
+                const y = Math.round(CanvasManager.backImagePosY);
+                HistoryManager.captureSliderEnd(`Back Pan: ${x}, ${y}`);
+            }
+        });
+
+        this._updateBackCanvasCursor = () => {
+            if (!isDragging) {
+                canvas.style.cursor = CanvasManager.hasBackImage() ? 'grab' : 'default';
+            }
+        };
+    },
+
+    /**
+     * Initialize wheel zoom on back canvas
+     */
+    initBackCanvasWheelZoom() {
+        const canvas = document.getElementById('backCanvas');
+        if (!canvas) return;
+
+        let wheelTimeout = null;
+
+        canvas.addEventListener('wheel', (e) => {
+            if (!CanvasManager.hasBackImage()) return;
+            e.preventDefault();
+
+            if (!wheelTimeout) {
+                HistoryManager.captureSliderStart();
+            }
+
+            const currentZoom = CanvasManager.backImageScale * 100;
+            const zoomDelta = e.deltaY > 0 ? -10 : 10;
+            const newZoom = Math.max(50, Math.min(200, currentZoom + zoomDelta));
+
+            CanvasManager.setBackZoom(newZoom / 100);
+            this.syncBackSliderValue('backZoom', newZoom);
+
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                const zoom = Math.round(CanvasManager.backImageScale * 100);
+                HistoryManager.captureSliderEnd(`Back Zoom: ${zoom}%`);
+                wheelTimeout = null;
+            }, 500);
+        }, { passive: false });
+    },
+
+    /**
+     * Initialize double-click reset on back canvas
+     */
+    initBackCanvasDoubleClickReset() {
+        const canvas = document.getElementById('backCanvas');
+        if (!canvas) return;
+
+        canvas.addEventListener('dblclick', (e) => {
+            if (!CanvasManager.hasBackImage()) return;
+            e.preventDefault();
+            CanvasManager.setBackPan(0, 0);
+            this.syncBackSliderValue('backPanX', 0);
+            this.syncBackSliderValue('backPanY', 0);
+            HistoryManager.pushState('Reset back pan position');
+        });
+    },
+
+    /**
+     * Initialize pinch-to-zoom on back canvas (mobile)
+     */
+    initBackCanvasPinchZoom() {
+        const canvas = document.getElementById('backCanvas');
+        if (!canvas) return;
+
+        let initialDistance = null;
+        let initialZoom = null;
+        let initialPanX = null;
+        let initialPanY = null;
+        let initialMidpointX = null;
+        let initialMidpointY = null;
+        let isTwoFingerGesture = false;
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2 && CanvasManager.hasBackImage()) {
+                isTwoFingerGesture = true;
+                HistoryManager.captureSliderStart();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                initialDistance = Math.hypot(dx, dy);
+                initialZoom = CanvasManager.backImageScale;
+                initialMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                initialMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                initialPanX = CanvasManager.backImagePosX;
+                initialPanY = CanvasManager.backImagePosY;
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isTwoFingerGesture || e.touches.length !== 2 || !initialDistance) return;
+            e.preventDefault();
+
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const currentDistance = Math.hypot(dx, dy);
+            const currentMidpointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const currentMidpointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+            const zoomRatio = currentDistance / initialDistance;
+            const newZoom = Math.max(0.5, Math.min(2, initialZoom * zoomRatio));
+            CanvasManager.setBackZoom(newZoom);
+            this.syncBackSliderValue('backZoom', Math.round(newZoom * 100));
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const deltaX = (currentMidpointX - initialMidpointX) * scaleX;
+            const deltaY = (currentMidpointY - initialMidpointY) * scaleX;
+            const newPanX = Math.max(-300, Math.min(300, initialPanX + deltaX));
+            const newPanY = Math.max(-300, Math.min(300, initialPanY + deltaY));
+
+            CanvasManager.setBackPan(Math.round(newPanX), Math.round(newPanY));
+            this.syncBackSliderValue('backPanX', Math.round(newPanX));
+            this.syncBackSliderValue('backPanY', Math.round(newPanY));
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                if (isTwoFingerGesture) {
+                    const zoom = Math.round(CanvasManager.backImageScale * 100);
+                    const x = Math.round(CanvasManager.backImagePosX);
+                    const y = Math.round(CanvasManager.backImagePosY);
+                    HistoryManager.captureSliderEnd(`Back Zoom: ${zoom}%, Pan: ${x}, ${y}`);
                 }
                 isTwoFingerGesture = false;
                 initialDistance = null;

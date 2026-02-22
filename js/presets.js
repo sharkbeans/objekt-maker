@@ -97,6 +97,11 @@ const PresetManager = {
             imagePosY: CanvasManager.imagePosY,
             imageRotation: CanvasManager.imageRotation,
 
+            // Back image transform
+            backImageScale: CanvasManager.backImageScale,
+            backImagePosX: CanvasManager.backImagePosX,
+            backImagePosY: CanvasManager.backImagePosY,
+
             // Frame properties
             frameOpacity: CanvasManager.frameOpacity,
             frameScale: CanvasManager.frameScale,
@@ -207,6 +212,11 @@ const PresetManager = {
         if (data.imagePosX !== undefined) CanvasManager.imagePosX = data.imagePosX;
         if (data.imagePosY !== undefined) CanvasManager.imagePosY = data.imagePosY;
         if (data.imageRotation !== undefined) CanvasManager.imageRotation = data.imageRotation;
+
+        // Back image transform
+        if (data.backImageScale !== undefined) CanvasManager.backImageScale = data.backImageScale;
+        if (data.backImagePosX !== undefined) CanvasManager.backImagePosX = data.backImagePosX;
+        if (data.backImagePosY !== undefined) CanvasManager.backImagePosY = data.backImagePosY;
 
         // Frame properties
         if (data.frameOpacity !== undefined) CanvasManager.frameOpacity = data.frameOpacity;

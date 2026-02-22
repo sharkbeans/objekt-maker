@@ -109,6 +109,11 @@ const SavedCardsManager = {
             images.frameImage = CanvasManager.frameImage.src;
         }
 
+        // Back uploaded image
+        if (CanvasManager.backUploadedImage && CanvasManager.backUploadedImage.src) {
+            images.backUploadedImage = CanvasManager.backUploadedImage.src;
+        }
+
         // Template images (front and back)
         if (CanvasManager.templateImage && CanvasManager.templateImage.src) {
             images.templateImage = CanvasManager.templateImage.src;
@@ -330,6 +335,11 @@ const SavedCardsManager = {
         if (imageData.frameImage) {
             CanvasManager.frameImage = await loadImage(imageData.frameImage);
             CanvasManager.showFrame = true;
+        }
+
+        // Restore back uploaded image
+        if (imageData.backUploadedImage) {
+            CanvasManager.backUploadedImage = await loadImage(imageData.backUploadedImage);
         }
 
         // Restore templates

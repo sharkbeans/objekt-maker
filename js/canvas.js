@@ -104,6 +104,12 @@ const CanvasManager = {
     templateImageBack: null, // Back side template image for alignment reference
     templateOpacityBack: 0.5, // Back side template opacity (0-1)
     showTemplateBack: false, // Whether to show the back side template overlay
+    // Back side uploaded image (custom back)
+    backUploadedImage: null, // User uploaded back side image
+    backImageScale: 1, // Back image zoom (0.5-2.0)
+    backImagePosX: 0, // Back image pan X (-300 to 300)
+    backImagePosY: 0, // Back image pan Y (-300 to 300)
+
     // Custom Frame Overlay (user-uploaded, included in export)
     frameImage: null, // User uploaded frame (transparent background)
     frameOpacity: 1, // Frame opacity (0-1)
@@ -247,6 +253,61 @@ const CanvasManager = {
     setZoom(scale) {
         this.imageScale = scale;
         this.render();
+    },
+
+    /**
+     * Load back side image from file
+     */
+    async loadBackImage(file) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.match('image/(png|jpeg|jpg)')) {
+                reject(new Error('Please upload a PNG or JPG image'));
+                return;
+            }
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                reject(new Error('Image size must be less than 5MB'));
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    this.backUploadedImage = img;
+                    console.log('Back image loaded:', img.width, 'x', img.height);
+                    this.updateBackSidePreview();
+                    resolve(true);
+                };
+                img.onerror = () => reject(new Error('Failed to load image'));
+                img.src = e.target.result;
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Set back image zoom level
+     */
+    setBackZoom(scale) {
+        this.backImageScale = scale;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Set back image pan position
+     */
+    setBackPan(x, y) {
+        this.backImagePosX = x;
+        this.backImagePosY = y;
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Check if back side has an uploaded image
+     */
+    hasBackImage() {
+        return this.backUploadedImage !== null;
     },
 
     /**
@@ -1750,6 +1811,89 @@ const CanvasManager = {
 
         // Draw rounded rectangle background (white)
         const scaledCornerRadius = this.cornerRadius * this.scaleFactor;
+
+        // If user uploaded a custom back image, render it like the front side
+        if (this.backUploadedImage) {
+            // Create a temporary canvas for the image
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.canvasWidth;
+            tempCanvas.height = this.canvasHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Calculate image dimensions (cover mode)
+            const imgAspect = this.backUploadedImage.width / this.backUploadedImage.height;
+            const fullAspect = this.canvasWidth / this.canvasHeight;
+            let drawWidth, drawHeight;
+
+            if (imgAspect > fullAspect) {
+                drawHeight = this.canvasHeight * this.backImageScale;
+                drawWidth = drawHeight * imgAspect;
+            } else {
+                drawWidth = this.canvasWidth * this.backImageScale;
+                drawHeight = drawWidth / imgAspect;
+            }
+
+            const xPos = (this.canvasWidth - drawWidth) / 2 + this.backImagePosX;
+            const yPos = (this.canvasHeight - drawHeight) / 2 + this.backImagePosY;
+
+            tempCtx.drawImage(this.backUploadedImage, xPos, yPos, drawWidth, drawHeight);
+
+            // Clip to rounded rectangle and draw
+            backCtx.save();
+            this.createRoundedRectOnContext(backCtx, 0, 0, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
+            backCtx.clip();
+            backCtx.drawImage(tempCanvas, 0, 0);
+            backCtx.restore();
+
+            // Draw accent bar (notch) on right side if objekt border is enabled
+            if (this.showObjektBorder) {
+                const scaledAccentWidth = this.accentWidth * this.scaleFactor;
+                const scaledNotchHeight = this.notchHeight * this.scaleFactor;
+                const accentX = this.canvasWidth - scaledAccentWidth;
+                const notchY = (this.canvasHeight - scaledNotchHeight) / 2;
+                const notchRadius = 20 * this.scaleFactor;
+
+                backCtx.save();
+                backCtx.beginPath();
+                backCtx.moveTo(accentX, notchY + notchRadius);
+                backCtx.arcTo(accentX, notchY, accentX + notchRadius, notchY, notchRadius);
+                backCtx.lineTo(this.canvasWidth, notchY);
+                backCtx.lineTo(this.canvasWidth, notchY + scaledNotchHeight);
+                backCtx.lineTo(accentX + notchRadius, notchY + scaledNotchHeight);
+                backCtx.arcTo(accentX, notchY + scaledNotchHeight, accentX, notchY + scaledNotchHeight - notchRadius, notchRadius);
+                backCtx.closePath();
+
+                if (this.borderImage) {
+                    backCtx.clip();
+                    const notchAspect = scaledAccentWidth / scaledNotchHeight;
+                    const bImgAspect = this.borderImage.width / this.borderImage.height;
+                    let bDrawW, bDrawH, bOffX = 0, bOffY = 0;
+                    if (bImgAspect > notchAspect) {
+                        bDrawH = scaledNotchHeight;
+                        bDrawW = bDrawH * bImgAspect;
+                        bOffX = (scaledAccentWidth - bDrawW) / 2;
+                    } else {
+                        bDrawW = scaledAccentWidth;
+                        bDrawH = bDrawW / bImgAspect;
+                        bOffY = (scaledNotchHeight - bDrawH) / 2;
+                    }
+                    backCtx.drawImage(this.borderImage, accentX + bOffX, notchY + bOffY, bDrawW, bDrawH);
+                } else {
+                    backCtx.fillStyle = this.accentColor;
+                    backCtx.fill();
+                }
+                backCtx.restore();
+            }
+
+            // Render back side template overlay if enabled
+            this.renderTemplateOverlayBack(backCtx, renderWidth, renderHeight);
+
+            // Restore the overflow border translation
+            backCtx.restore();
+
+            return backCanvas;
+        }
+
         backCtx.save();
         this.createRoundedRectOnContext(backCtx, 0, 0, this.canvasWidth, this.canvasHeight, scaledCornerRadius);
         backCtx.fillStyle = '#FFFFFF'; // White background
@@ -2499,6 +2643,11 @@ const CanvasManager = {
         this.signaturePosY = 0;
         this.textColor = '#000000';
         this.showObjektBorder = true; // Reset to objekt mode by default
+        // Reset back uploaded image
+        this.backUploadedImage = null;
+        this.backImageScale = 1;
+        this.backImagePosX = 0;
+        this.backImagePosY = 0;
         // Reset template overlay (Phase 3)
         this.templateImage = null;
         this.templateOpacity = 0.5;
