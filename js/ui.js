@@ -139,6 +139,9 @@ const UIManager = {
             fontWeightLabel: document.getElementById('fontWeightLabel'),
             fontWeightSlider: document.getElementById('fontWeightSlider'),
             fontWeightValue: document.getElementById('fontWeightValue'),
+            fontWeightLabelBack: document.getElementById('fontWeightLabelBack'),
+            fontWeightSliderBack: document.getElementById('fontWeightSliderBack'),
+            fontWeightValueBack: document.getElementById('fontWeightValueBack'),
             fontWeightLabelMobile: document.getElementById('fontWeightLabelMobile'),
             fontWeightSliderMobile: document.getElementById('fontWeightSliderMobile'),
             fontWeightValueMobile: document.getElementById('fontWeightValueMobile'),
@@ -336,8 +339,9 @@ const UIManager = {
 
         console.log('UI Manager initialized');
 
-        // Set initial view after initialization
-        this.currentView = 'front';
+        // Ensure front view is shown on init (resets any stale inline styles)
+        this.currentView = null;
+        this.switchCanvasView('front');
 
     },
 
@@ -1000,20 +1004,27 @@ const UIManager = {
             });
         }
 
-        // Font weight slider
-        const fontWeightHandler = (e) => {
-            const weight = parseInt(e.target.value);
-            CanvasManager.setFontWeight(weight);
-            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = weight;
-            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = weight;
-            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = weight;
-            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = weight;
-        };
+        // Font weight sliders (front and back are independent)
         if (this.elements.fontWeightSlider) {
-            this.elements.fontWeightSlider.addEventListener('input', fontWeightHandler);
+            this.elements.fontWeightSlider.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightFront(weight);
+                this._syncFontWeightFrontSliders(weight);
+            });
+        }
+        if (this.elements.fontWeightSliderBack) {
+            this.elements.fontWeightSliderBack.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightBack(weight);
+                this._syncFontWeightBackSliders(weight);
+            });
         }
         if (this.elements.fontWeightSliderMobile) {
-            this.elements.fontWeightSliderMobile.addEventListener('input', fontWeightHandler);
+            this.elements.fontWeightSliderMobile.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightBack(weight);
+                this._syncFontWeightBackSliders(weight);
+            });
         }
 
         // Text height sliders (Front - Desktop)
@@ -2490,12 +2501,9 @@ const UIManager = {
             this.updateFontWeightVisibility(data.fontFamily);
         }
 
-        // Font weight
-        if (data.fontWeight !== undefined && data.fontWeight !== null) {
-            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = data.fontWeight;
-            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = data.fontWeight;
-            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = data.fontWeight;
-            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = data.fontWeight;
+        // Font weight (also handles legacy presets that used a single fontWeight)
+        if (data.fontWeightFront !== undefined || data.fontWeightBack !== undefined || data.fontWeight !== undefined) {
+            this.updateFontWeightVisibility();
         }
 
         // Text height sliders (front)
@@ -3474,7 +3482,8 @@ const UIManager = {
         this.loadedFonts.add(fontName);
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}&display=swap`;
+        const familyName = fontName.replace(/ /g, '+');
+        link.href = `https://fonts.googleapis.com/css2?family=${familyName}:wght@100;200;300;400;500;600;700;800;900&display=swap`;
         document.head.appendChild(link);
     },
 
@@ -3586,31 +3595,45 @@ const UIManager = {
         });
     },
 
-    /**
-     * Show or hide font weight controls based on the selected font.
-     * For Helvetica Neue, hide the slider and reset to default weights.
-     * For other fonts, show the slider.
-     */
-    updateFontWeightVisibility(fontName) {
-        const isDefault = fontName === 'Helvetica Neue';
-        if (this.elements.fontWeightLabel) {
-            this.elements.fontWeightLabel.style.display = isDefault ? 'none' : '';
+    updateFontWeightVisibility() {
+        if (this.elements.fontWeightLabel) this.elements.fontWeightLabel.style.display = '';
+        if (this.elements.fontWeightLabelBack) this.elements.fontWeightLabelBack.style.display = '';
+        if (this.elements.fontWeightLabelMobile) this.elements.fontWeightLabelMobile.style.display = '';
+        const isHelvetica = CanvasManager.fontFamily === 'Helvetica Neue';
+        // Front weight
+        if (CanvasManager.fontWeightFront === null) {
+            if (!isHelvetica) {
+                CanvasManager.setFontWeightFront(500);
+                this._syncFontWeightFrontSliders(500);
+            } else {
+                this._syncFontWeightFrontSliders(600); // representative for Helvetica per-role
+            }
+        } else {
+            this._syncFontWeightFrontSliders(CanvasManager.fontWeightFront);
         }
-        if (this.elements.fontWeightLabelMobile) {
-            this.elements.fontWeightLabelMobile.style.display = isDefault ? 'none' : '';
+        // Back weight
+        if (CanvasManager.fontWeightBack === null) {
+            if (!isHelvetica) {
+                CanvasManager.setFontWeightBack(500);
+                this._syncFontWeightBackSliders(500);
+            } else {
+                this._syncFontWeightBackSliders(600); // representative for Helvetica per-role
+            }
+        } else {
+            this._syncFontWeightBackSliders(CanvasManager.fontWeightBack);
         }
-        if (isDefault) {
-            // Reset to default weights for Helvetica Neue
-            CanvasManager.setFontWeight(null);
-        } else if (CanvasManager.fontWeight === null) {
-            // Set a sensible default weight for non-default fonts
-            const defaultWeight = 500;
-            CanvasManager.setFontWeight(defaultWeight);
-            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = defaultWeight;
-            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = defaultWeight;
-            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = defaultWeight;
-            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = defaultWeight;
-        }
+    },
+
+    _syncFontWeightFrontSliders(weight) {
+        if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = weight;
+        if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = weight;
+    },
+
+    _syncFontWeightBackSliders(weight) {
+        if (this.elements.fontWeightSliderBack) this.elements.fontWeightSliderBack.value = weight;
+        if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = weight;
+        if (this.elements.fontWeightValueBack) this.elements.fontWeightValueBack.textContent = weight;
+        if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = weight;
     },
 
     /**
@@ -4888,6 +4911,55 @@ const UIManager = {
             fontContainer.appendChild(fontLabel);
             fontContainer.appendChild(fontBtn);
             editorContent.appendChild(fontContainer);
+
+            // Font weight slider
+            const weightContainer = document.createElement('div');
+            weightContainer.style.cssText = 'margin-top: 16px;';
+
+            const weightLabel = document.createElement('label');
+            weightLabel.className = 'canvas-editor-slider-label';
+            weightLabel.textContent = 'Font Weight';
+            weightLabel.style.cssText = 'display: block; margin-bottom: 8px;';
+
+            const weightWrapper = document.createElement('div');
+            weightWrapper.className = 'canvas-editor-slider-wrapper';
+
+            const weightSlider = document.createElement('input');
+            weightSlider.type = 'range';
+            weightSlider.className = 'canvas-editor-slider';
+            weightSlider.min = '100';
+            weightSlider.max = '900';
+            weightSlider.step = '50';
+            const isFront = side === 'front';
+            const popupWeightCurrent = isFront ? CanvasManager.fontWeightFront : CanvasManager.fontWeightBack;
+            const popupWeight = popupWeightCurrent ?? (CanvasManager.fontFamily === 'Helvetica Neue' ? 600 : 500);
+            weightSlider.value = popupWeight;
+
+            const weightValueDisplay = document.createElement('span');
+            weightValueDisplay.className = 'canvas-editor-slider-value';
+            weightValueDisplay.textContent = popupWeight;
+
+            weightSlider.addEventListener('mousedown', (e) => e.stopPropagation());
+            weightSlider.addEventListener('mouseup', (e) => e.stopPropagation());
+            weightSlider.addEventListener('click', (e) => e.stopPropagation());
+            weightSlider.addEventListener('touchstart', (e) => e.stopPropagation());
+            weightSlider.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                weightValueDisplay.textContent = weight;
+                if (isFront) {
+                    CanvasManager.setFontWeightFront(weight);
+                    this._syncFontWeightFrontSliders(weight);
+                } else {
+                    CanvasManager.setFontWeightBack(weight);
+                    this._syncFontWeightBackSliders(weight);
+                }
+            });
+
+            weightWrapper.appendChild(weightSlider);
+            weightWrapper.appendChild(weightValueDisplay);
+            weightContainer.appendChild(weightLabel);
+            weightContainer.appendChild(weightWrapper);
+            editorContent.appendChild(weightContainer);
         }
 
         // Add logo upload section for bottom text on both front and back sides

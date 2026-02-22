@@ -34,7 +34,8 @@ const PresetManager = {
             bottomText: CanvasManager.bottomText,
             textColor: CanvasManager.textColor,
             fontFamily: CanvasManager.fontFamily,
-            fontWeight: CanvasManager.fontWeight,
+            fontWeightFront: CanvasManager.fontWeightFront,
+            fontWeightBack: CanvasManager.fontWeightBack,
             topTextHeight: CanvasManager.topTextHeight,
             middleTextHeight: CanvasManager.middleTextHeight,
             bottomTextHeight: CanvasManager.bottomTextHeight,
@@ -142,7 +143,10 @@ const PresetManager = {
         if (data.bottomText !== undefined) CanvasManager.bottomText = data.bottomText;
         if (data.textColor) CanvasManager.textColor = data.textColor;
         if (data.fontFamily) CanvasManager.fontFamily = data.fontFamily;
-        if (data.fontWeight !== undefined) CanvasManager.fontWeight = data.fontWeight;
+        if (data.fontWeightFront !== undefined) CanvasManager.fontWeightFront = data.fontWeightFront;
+        else if (data.fontWeight !== undefined) CanvasManager.fontWeightFront = data.fontWeight; // legacy
+        if (data.fontWeightBack !== undefined) CanvasManager.fontWeightBack = data.fontWeightBack;
+        else if (data.fontWeight !== undefined) CanvasManager.fontWeightBack = data.fontWeight; // legacy
         if (data.topTextHeight !== undefined) CanvasManager.topTextHeight = data.topTextHeight;
         if (data.middleTextHeight !== undefined) CanvasManager.middleTextHeight = data.middleTextHeight;
         if (data.bottomTextHeight !== undefined) CanvasManager.bottomTextHeight = data.bottomTextHeight;

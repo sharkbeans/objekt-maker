@@ -54,6 +54,7 @@ const CanvasManager = {
     frontLogoBaseX: 385, // Base X position to maintain original logo spot (+65)
     frontLogoBaseY: 430, // Base Y position to maintain original logo spot (-20)
     frontLogoRotation: 90, // Front logo rotation in degrees (default 90 clockwise)
+    _renderScheduled: false, // Internal flag for scheduleRender
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
@@ -61,7 +62,8 @@ const CanvasManager = {
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
     fontFamily: 'Helvetica Neue', // Font family for front text
-    fontWeight: null, // Custom font weight override (null = use defaults per role)
+    fontWeightFront: null, // Font weight for front text (null = per-role defaults for Helvetica Neue)
+    fontWeightBack: null,  // Font weight for back text (null = per-role defaults for Helvetica Neue)
 
     // Text height offsets (Front side)
     topTextHeight: 0,
@@ -331,18 +333,19 @@ const CanvasManager = {
      * @returns {number} The font weight to use
      */
     getFontWeightForRole(role, defaultWeight) {
-        if (this.fontWeight !== null) {
-            return this.fontWeight;
+        if (role.startsWith('front')) {
+            return this.fontWeightFront ?? defaultWeight;
         }
-        return defaultWeight;
+        return this.fontWeightBack ?? defaultWeight;
     },
 
-    /**
-     * Set custom font weight override
-     * @param {number|null} weight - Font weight (100-900) or null for defaults
-     */
-    setFontWeight(weight) {
-        this.fontWeight = weight;
+    setFontWeightFront(weight) {
+        this.fontWeightFront = weight;
+        this.render();
+    },
+
+    setFontWeightBack(weight) {
+        this.fontWeightBack = weight;
         this.render();
         this.updateBackSidePreview();
     },
@@ -1281,6 +1284,21 @@ const CanvasManager = {
             // Hide the back canvas wrapper
             backCanvasWrapper.classList.remove('active');
         }
+    },
+
+    /**
+     * Schedule a render on the next animation frame.
+     * Coalesces multiple calls so the canvas is only redrawn once per frame.
+     * Always renders both front and back sides to keep them in sync.
+     */
+    scheduleRender() {
+        if (this._renderScheduled) return;
+        this._renderScheduled = true;
+        requestAnimationFrame(() => {
+            this._renderScheduled = false;
+            this.render();
+            this.updateBackSidePreview();
+        });
     },
 
     /**
