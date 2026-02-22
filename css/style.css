@@ -609,6 +609,17 @@ input[type="range"]::-moz-range-thumb:hover {
     background: var(--bg-color);
 }
 
+.btn-danger {
+    background: #ff4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dd0000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
 .btn svg {
     vertical-align: middle;
     display: inline-block;
@@ -772,9 +783,8 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .canvas-wrapper-container {
-    position: relative;
+    display: grid;
     width: 100%;
-    min-height: 400px;
     pointer-events: none;
 }
 
@@ -783,10 +793,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .canvas-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    grid-area: 1 / 1;
     display: none;
     border-radius: var(--radius-sm);
     flex-direction: column;
@@ -801,10 +808,6 @@ input[type="range"]::-moz-range-thumb:hover {
 .canvas-wrapper.active {
     display: flex;
     opacity: 1;
-}
-
-.canvas-wrapper.active.clickable {
-    cursor: pointer;
 }
 
 .canvas-wrapper.rotating-out {
@@ -1132,18 +1135,8 @@ input[type="range"]::-moz-range-thumb:hover {
         font-size: 0.95rem;
     }
 
-    /* Make canvas wrapper container take appropriate space */
-    .canvas-wrapper-container {
-        position: relative;
-        width: 100%;
-        min-height: 0;
-        /* Let the container expand based on content */
-        height: auto;
-    }
-
     /* Make canvas wrapper take appropriate space */
     .canvas-wrapper {
-        position: relative;
         max-width: 100%;
     }
 
@@ -2127,6 +2120,18 @@ body {
     justify-content: center;
     gap: var(--space-md);
     width: 100%;
+    position: relative;
+}
+
+.canvas-reset-btn {
+    position: absolute;
+    right: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.canvas-reset-btn:hover {
+    transform: translateY(calc(-50% - 1px));
 }
 
 .undo-redo-controls {
@@ -2469,10 +2474,16 @@ body {
     letter-spacing: 0.03em;
 }
 
-.bulk-row-template-clickable:hover {
+.bulk-row-template.bulk-row-template-clickable:hover {
     background: rgba(250, 204, 21, 0.18) !important;
     border-left-color: #fde047;
     outline: 1px solid rgba(250, 204, 21, 0.35);
+    outline-offset: -1px;
+}
+
+.bulk-row-template-clickable:not(.bulk-row-template):hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    outline: 1px solid rgba(255, 255, 255, 0.12);
     outline-offset: -1px;
 }
 

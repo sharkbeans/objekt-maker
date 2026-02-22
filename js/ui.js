@@ -136,6 +136,12 @@ const UIManager = {
             closeFontPicker: document.getElementById('closeFontPicker'),
             fontSearchInput: document.getElementById('fontSearchInput'),
             fontList: document.getElementById('fontList'),
+            fontWeightLabel: document.getElementById('fontWeightLabel'),
+            fontWeightSlider: document.getElementById('fontWeightSlider'),
+            fontWeightValue: document.getElementById('fontWeightValue'),
+            fontWeightLabelMobile: document.getElementById('fontWeightLabelMobile'),
+            fontWeightSliderMobile: document.getElementById('fontWeightSliderMobile'),
+            fontWeightValueMobile: document.getElementById('fontWeightValueMobile'),
 
             // Text height sliders (Front - Desktop)
             topTextHeight: document.getElementById('topTextHeight'),
@@ -158,6 +164,7 @@ const UIManager = {
             resetBtn: document.getElementById('resetBtn'),
             exportBtnMobile: document.getElementById('exportBtnMobile'),
             resetBtnMobile: document.getElementById('resetBtnMobile'),
+            resetBtnCanvas: document.getElementById('resetBtnCanvas'),
 
             // Back side controls (Desktop)
             notchColorGroupSelectBack: document.getElementById('notchColorGroupSelectBack'),
@@ -332,8 +339,6 @@ const UIManager = {
         // Set initial view after initialization
         this.currentView = 'front';
 
-        // Make canvas wrapper clickable initially (no image loaded)
-        this.elements.canvasWrapper.classList.add('clickable');
     },
 
     /**
@@ -345,14 +350,6 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
-
-        // Make front canvas wrapper clickable to trigger image upload when no image is loaded
-        this.elements.canvasWrapper.addEventListener('click', (e) => {
-            // Only trigger if no image is loaded and click is not on an interactive element
-            if (!CanvasManager.hasImage() && !e.target.closest('button, input, .tooltip-close')) {
-                this.elements.imageUpload.click();
-            }
-        });
 
         // Adjustment controls (desktop)
         this.elements.zoomSlider.addEventListener('input', (e) => {
@@ -1003,6 +1000,22 @@ const UIManager = {
             });
         }
 
+        // Font weight slider
+        const fontWeightHandler = (e) => {
+            const weight = parseInt(e.target.value);
+            CanvasManager.setFontWeight(weight);
+            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = weight;
+            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = weight;
+            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = weight;
+            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = weight;
+        };
+        if (this.elements.fontWeightSlider) {
+            this.elements.fontWeightSlider.addEventListener('input', fontWeightHandler);
+        }
+        if (this.elements.fontWeightSliderMobile) {
+            this.elements.fontWeightSliderMobile.addEventListener('input', fontWeightHandler);
+        }
+
         // Text height sliders (Front - Desktop)
         if (this.elements.topTextHeight) {
             this.elements.topTextHeight.addEventListener('input', (e) => {
@@ -1088,6 +1101,7 @@ const UIManager = {
         this.elements.resetBtn.addEventListener('click', () => this.resetAll());
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
         this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
+        this.elements.resetBtnCanvas.addEventListener('click', () => this.resetAll());
 
         // Canvas view toggle buttons
         this.elements.toggleBtns.forEach(btn => {
@@ -2473,6 +2487,15 @@ const UIManager = {
                 this.elements.fontPickerPreviewMobile.textContent = data.fontFamily;
                 this.elements.fontPickerPreviewMobile.style.fontFamily = `'${data.fontFamily}', sans-serif`;
             }
+            this.updateFontWeightVisibility(data.fontFamily);
+        }
+
+        // Font weight
+        if (data.fontWeight !== undefined && data.fontWeight !== null) {
+            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = data.fontWeight;
+            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = data.fontWeight;
+            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = data.fontWeight;
+            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = data.fontWeight;
         }
 
         // Text height sliders (front)
@@ -2800,7 +2823,7 @@ const UIManager = {
         document.body.style.overflow = 'hidden';
         BulkManager.updateUI();
         BulkManager.elements.exportAllBtn.innerHTML = BulkManager.isMobile()
-            ? '<i data-lucide="share-2"></i> Save All'
+            ? '<i data-lucide="download"></i> Save All'
             : '<i data-lucide="download"></i> Download All as ZIP';
         lucide.createIcons();
 
@@ -3551,6 +3574,9 @@ const UIManager = {
                     editorFontBtn.style.fontFamily = `'${fontName}', sans-serif`;
                 }
 
+                // Show/hide font weight slider based on font
+                this.updateFontWeightVisibility(fontName);
+
                 this.closeFontPicker();
                 HistoryManager.pushState(`Font: ${fontName}`);
             });
@@ -3558,6 +3584,33 @@ const UIManager = {
             container.appendChild(item);
             this.fontObserver.observe(item);
         });
+    },
+
+    /**
+     * Show or hide font weight controls based on the selected font.
+     * For Helvetica Neue, hide the slider and reset to default weights.
+     * For other fonts, show the slider.
+     */
+    updateFontWeightVisibility(fontName) {
+        const isDefault = fontName === 'Helvetica Neue';
+        if (this.elements.fontWeightLabel) {
+            this.elements.fontWeightLabel.style.display = isDefault ? 'none' : '';
+        }
+        if (this.elements.fontWeightLabelMobile) {
+            this.elements.fontWeightLabelMobile.style.display = isDefault ? 'none' : '';
+        }
+        if (isDefault) {
+            // Reset to default weights for Helvetica Neue
+            CanvasManager.setFontWeight(null);
+        } else if (CanvasManager.fontWeight === null) {
+            // Set a sensible default weight for non-default fonts
+            const defaultWeight = 500;
+            CanvasManager.setFontWeight(defaultWeight);
+            if (this.elements.fontWeightSlider) this.elements.fontWeightSlider.value = defaultWeight;
+            if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = defaultWeight;
+            if (this.elements.fontWeightValue) this.elements.fontWeightValue.textContent = defaultWeight;
+            if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = defaultWeight;
+        }
     },
 
     /**
@@ -3690,7 +3743,6 @@ const UIManager = {
      */
     showCanvas() {
         this.elements.canvasWrapper.classList.add('active');
-        this.elements.canvasWrapper.classList.remove('clickable');
     },
 
     /**
@@ -3698,7 +3750,6 @@ const UIManager = {
      */
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
-        this.elements.canvasWrapper.classList.add('clickable');
     },
 
     /**

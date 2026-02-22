@@ -61,6 +61,7 @@ const CanvasManager = {
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
     fontFamily: 'Helvetica Neue', // Font family for front text
+    fontWeight: null, // Custom font weight override (null = use defaults per role)
 
     // Text height offsets (Front side)
     topTextHeight: 0,
@@ -296,6 +297,52 @@ const CanvasManager = {
      */
     setFontFamily(family) {
         this.fontFamily = family;
+        this.render();
+        this.updateBackSidePreview();
+    },
+
+    /**
+     * Get the resolved font string for a given text role.
+     * For Helvetica Neue, returns the original objekt-specific font families.
+     * For other fonts, returns the generic fontFamily.
+     * @param {string} role - 'frontTop', 'frontMiddle', 'backLabel', 'backValue', 'backRotated'
+     * @returns {string} The font-family CSS string (without weight/size)
+     */
+    getFontFamilyForRole(role) {
+        if (this.fontFamily === 'Helvetica Neue') {
+            switch (role) {
+                case 'frontMiddle':
+                    return '"SF Pro Display", sans-serif';
+                case 'backValue':
+                    return '"Neue Helvetica Georgian 65 Medium", "Helvetica Neue", sans-serif';
+                default:
+                    return '"Helvetica Neue", sans-serif';
+            }
+        }
+        return `"${this.fontFamily}", sans-serif`;
+    },
+
+    /**
+     * Get the font weight for a given text role.
+     * If a custom fontWeight is set, it overrides the default.
+     * For Helvetica Neue with no override, returns the original objekt-tuned weights.
+     * @param {string} role - 'frontTop', 'frontMiddle', 'backLabel', 'backValue', 'backRotated'
+     * @param {number} defaultWeight - The default weight for this context
+     * @returns {number} The font weight to use
+     */
+    getFontWeightForRole(role, defaultWeight) {
+        if (this.fontWeight !== null) {
+            return this.fontWeight;
+        }
+        return defaultWeight;
+    },
+
+    /**
+     * Set custom font weight override
+     * @param {number|null} weight - Font weight (100-900) or null for defaults
+     */
+    setFontWeight(weight) {
+        this.fontWeight = weight;
         this.render();
         this.updateBackSidePreview();
     },
@@ -1535,7 +1582,7 @@ const CanvasManager = {
         // Set text properties
         this.ctx.fillStyle = this.textColor;
         const scaledFontSize = 40.90875 * this.scaleFactor;
-        this.ctx.font = `600 ${scaledFontSize}px "${this.fontFamily}", sans-serif`;
+        this.ctx.font = `${this.getFontWeightForRole('frontTop', 600)} ${scaledFontSize}px ${this.getFontFamilyForRole('frontTop')}`;
 
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
@@ -1553,7 +1600,7 @@ const CanvasManager = {
         // Draw middle text (rotated 90° counterclockwise + 180° flip) - 100A with reduced letter spacing
         this.ctx.save();
         const scaledMiddleFontSize = 45 * this.scaleFactor;
-        this.ctx.font = `550 ${scaledMiddleFontSize}px "${this.fontFamily}", sans-serif`;
+        this.ctx.font = `${this.getFontWeightForRole('frontMiddle', 550)} ${scaledMiddleFontSize}px ${this.getFontFamilyForRole('frontMiddle')}`;
         const scaledMiddleLetterSpacing = -1.975 * this.scaleFactor;
         this.ctx.letterSpacing = `${scaledMiddleLetterSpacing}px`;
         this.ctx.translate(centerX, offsetY + this.canvasHeight / 2.25 + this.middleTextHeight);
@@ -1785,12 +1832,12 @@ const CanvasManager = {
 
         // NAME section
         const scaledLabelFontSize = 29.828 * this.scaleFactor;
-        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backLabel', 400)} ${scaledLabelFontSize}px ${this.getFontFamilyForRole('backLabel')}`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backNameLabel, leftMargin, divider1Y + (10 * this.scaleFactor));
 
         const scaledValueFontSize = 88 * this.scaleFactor;
-        backCtx.font = `500 ${scaledValueFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backValue', 500)} ${scaledValueFontSize}px ${this.getFontFamilyForRole('backValue')}`;
         const scaledLetterSpacing = -1 * this.scaleFactor;
         backCtx.letterSpacing = `${scaledLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
@@ -1804,11 +1851,11 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider2Y, whiteBoxRightEdge - leftMargin, 1);
 
         // CLASS section
-        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backLabel', 400)} ${scaledLabelFontSize}px ${this.getFontFamilyForRole('backLabel')}`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backClassLabel, leftMargin, divider2Y + (10 * this.scaleFactor));
 
-        backCtx.font = `500 ${scaledValueFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backValue', 500)} ${scaledValueFontSize}px ${this.getFontFamilyForRole('backValue')}`;
         const scaledClassLetterSpacing = -1.67 * this.scaleFactor;
         backCtx.letterSpacing = `${scaledClassLetterSpacing}px`;
         // Use stroke to make it slightly thicker than 500 but thinner than 600
@@ -1822,7 +1869,7 @@ const CanvasManager = {
         backCtx.fillRect(leftMargin, divider3Y, whiteBoxRightEdge - leftMargin, 1);
 
         // SEASON section
-        backCtx.font = `400 ${scaledLabelFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backLabel', 400)} ${scaledLabelFontSize}px ${this.getFontFamilyForRole('backLabel')}`;
         backCtx.letterSpacing = '0px';
         backCtx.fillText(this.backSeasonLabel, leftMargin, divider3Y + (10 * this.scaleFactor));
 
@@ -1898,7 +1945,7 @@ const CanvasManager = {
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = `600 ${scaledRotatedFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backRotated', 600)} ${scaledRotatedFontSize}px ${this.getFontFamilyForRole('backRotated')}`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
         const scaledRotatedLetterSpacing = -1.5 * this.scaleFactor;
@@ -1912,7 +1959,7 @@ const CanvasManager = {
         backCtx.rotate(Math.PI / 2); // Rotate 90 degrees clockwise
 
         backCtx.fillStyle = this.textColor;
-        backCtx.font = `600 ${scaledRotatedFontSize}px "${this.fontFamily}", sans-serif`;
+        backCtx.font = `${this.getFontWeightForRole('backRotated', 600)} ${scaledRotatedFontSize}px ${this.getFontFamilyForRole('backRotated')}`;
         backCtx.textAlign = 'left';
         backCtx.textBaseline = 'middle';
 
@@ -2146,7 +2193,7 @@ const CanvasManager = {
     drawSeasonTextWithOutline(ctx, text, x, y) {
         ctx.save();
         const scaledFontSize = 88 * this.scaleFactor;
-        ctx.font = `500 ${scaledFontSize}px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backValue', 500)} ${scaledFontSize}px ${this.getFontFamilyForRole('backValue')}`;
         const scaledLetterSpacing = -1.67 * this.scaleFactor;
         ctx.letterSpacing = `${scaledLetterSpacing}px`;
         ctx.textAlign = 'left';
@@ -2474,7 +2521,7 @@ const CanvasManager = {
 
         // Top text bounds (text is rotated 90° CW, so width/height are swapped)
         const topFontSize = 40.90875;
-        this.ctx.font = `600 ${topFontSize}px "${this.fontFamily}", sans-serif`;
+        this.ctx.font = `${this.getFontWeightForRole('frontTop', 600)} ${topFontSize}px ${this.getFontFamilyForRole('frontTop')}`;
         this.ctx.letterSpacing = '-2.045px';
         const topTextWidth = this.ctx.measureText(this.topText).width;
         this.ctx.letterSpacing = '0px';
@@ -2489,7 +2536,7 @@ const CanvasManager = {
 
         // Middle text bounds (text is rotated 90° CW, so width/height are swapped)
         const middleFontSize = 45;
-        this.ctx.font = `550 ${middleFontSize}px "${this.fontFamily}", sans-serif`;
+        this.ctx.font = `${this.getFontWeightForRole('frontMiddle', 550)} ${middleFontSize}px ${this.getFontFamilyForRole('frontMiddle')}`;
         this.ctx.letterSpacing = '-1.975px';
         const middleTextWidth = this.ctx.measureText(this.middleText).width;
         this.ctx.letterSpacing = '0px';
@@ -2640,7 +2687,7 @@ const CanvasManager = {
         const divider4Y = rectY + (rectHeight * 0.625);
 
         // NAME Label
-        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backLabel', 400)} 29.828px ${this.getFontFamilyForRole('backLabel')}`;
         const nameLabelWidth = ctx.measureText(this.backNameLabel).width;
         bounds.push({
             type: 'nameLabel',
@@ -2651,7 +2698,7 @@ const CanvasManager = {
         });
 
         // NAME Value
-        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backValue', 500)} 88px ${this.getFontFamilyForRole('backValue')}`;
         const nameValueWidth = ctx.measureText(this.backNameValue).width;
         bounds.push({
             type: 'nameValue',
@@ -2662,7 +2709,7 @@ const CanvasManager = {
         });
 
         // CLASS Label
-        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backLabel', 400)} 29.828px ${this.getFontFamilyForRole('backLabel')}`;
         const classLabelWidth = ctx.measureText(this.backClassLabel).width;
         bounds.push({
             type: 'classLabel',
@@ -2673,7 +2720,7 @@ const CanvasManager = {
         });
 
         // CLASS Value
-        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backValue', 500)} 88px ${this.getFontFamilyForRole('backValue')}`;
         const classValueWidth = ctx.measureText(this.backClassValue).width;
         bounds.push({
             type: 'classValue',
@@ -2684,7 +2731,7 @@ const CanvasManager = {
         });
 
         // SEASON Label
-        ctx.font = `400 29.828px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backLabel', 400)} 29.828px ${this.getFontFamilyForRole('backLabel')}`;
         const seasonLabelWidth = ctx.measureText(this.backSeasonLabel).width;
         bounds.push({
             type: 'seasonLabel',
@@ -2695,7 +2742,7 @@ const CanvasManager = {
         });
 
         // SEASON Value
-        ctx.font = `500 88px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backValue', 500)} 88px ${this.getFontFamilyForRole('backValue')}`;
         const seasonValueWidth = ctx.measureText(this.backSeasonValue).width;
         bounds.push({
             type: 'seasonValue',
@@ -2711,7 +2758,7 @@ const CanvasManager = {
         const topGap = rectHeight * 0.04;
 
         // Top rotated text (name value) - rotated 90 degrees
-        ctx.font = `600 41.18px "${this.fontFamily}", sans-serif`;
+        ctx.font = `${this.getFontWeightForRole('backRotated', 600)} 41.18px ${this.getFontFamilyForRole('backRotated')}`;
         const topRotatedWidth = ctx.measureText(this.backNameValue).width;
         // Since it's rotated 90 degrees, x and y are swapped for hit detection
         bounds.push({

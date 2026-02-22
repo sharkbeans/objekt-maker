@@ -148,7 +148,7 @@ const BulkManager = {
         document.body.style.overflow = 'hidden';
         this.updateUI();
         this.elements.exportAllBtn.innerHTML = this.isMobile()
-            ? '<i data-lucide="share-2"></i> Save All'
+            ? '<i data-lucide="download"></i> Save All'
             : '<i data-lucide="download"></i> Download All as ZIP';
         lucide.createIcons();
     },
@@ -170,6 +170,12 @@ const BulkManager = {
             this.elements.backToBulkBanner.style.display = 'flex';
             this.elements.backToBulkBannerBottom.style.display = 'flex';
             lucide.createIcons();
+            // Always show row 1 on canvas when closing without choosing
+            this.applyRowToCanvas(this.rows[0]);
+            CanvasManager.showTemplate = false;
+            CanvasManager.showTemplateBack = false;
+            CanvasManager.render();
+            CanvasManager.updateBackSidePreview();
         } else {
             this.restoreTemplate();
         }
@@ -311,7 +317,8 @@ const BulkManager = {
 
         this.rows.forEach((row, index) => {
             const tr = document.createElement('tr');
-            if (index === 0) tr.classList.add('bulk-row-template', 'bulk-row-template-clickable');
+            if (index === 0) tr.classList.add('bulk-row-template');
+            tr.classList.add('bulk-row-template-clickable');
             tr.innerHTML = `
                 <td class="bulk-col-num">${index + 1}</td>
                 <td class="bulk-col-thumb">
@@ -353,23 +360,21 @@ const BulkManager = {
             `;
             tbody.appendChild(tr);
 
-            // Make row 1 clickable (anywhere except inputs/buttons) to open canvas editor
+            // Make every row clickable (anywhere except inputs/buttons) to open canvas editor
             // Use mousedown/mouseup tracking to avoid triggering on text selection drags
-            if (index === 0) {
-                let mouseDownTarget = null;
-                tr.addEventListener('mousedown', (e) => {
-                    mouseDownTarget = e.target;
-                });
-                tr.addEventListener('click', (e) => {
-                    if (e.target.closest('input, button')) return;
-                    // If mousedown started inside an input, this is a text selection drag — ignore
-                    if (mouseDownTarget && mouseDownTarget.closest('input')) return;
-                    // If user selected text (drag-highlight), don't treat as a click
-                    const selection = window.getSelection();
-                    if (selection && selection.toString().length > 0) return;
-                    this.enterEditMode(0);
-                });
-            }
+            let mouseDownTarget = null;
+            tr.addEventListener('mousedown', (e) => {
+                mouseDownTarget = e.target;
+            });
+            tr.addEventListener('click', (e) => {
+                if (e.target.closest('input, button')) return;
+                // If mousedown started inside an input, this is a text selection drag — ignore
+                if (mouseDownTarget && mouseDownTarget.closest('input')) return;
+                // If user selected text (drag-highlight), don't treat as a click
+                const selection = window.getSelection();
+                if (selection && selection.toString().length > 0) return;
+                this.enterEditMode(index);
+            });
 
             // Add separator after row 1
             if (index === 0 && this.rows.length > 1) {
@@ -476,7 +481,7 @@ const BulkManager = {
 
         // Show bulk-edit banner on canvas
         const isTemplate = index === 0;
-        const editLabel = isTemplate ? `Editing Card 1 (Template)` : `Editing Card ${index + 1}`;
+        const editLabel = isTemplate ? `Editing # 1 (Template)` : `Editing # ${index + 1}`;
         this.elements.backToBulkLabel.textContent = editLabel;
         this.elements.backToBulkLabelBottom.textContent = editLabel;
         this.elements.backToBulkBanner.style.display = 'flex';
@@ -709,7 +714,7 @@ const BulkManager = {
 
             // Reset UI after short delay
             const btnLabel = mobile
-                ? '<i data-lucide="share-2"></i> Save All'
+                ? '<i data-lucide="download"></i> Save All'
                 : '<i data-lucide="download"></i> Download All as ZIP';
             setTimeout(() => {
                 this.elements.progress.style.display = 'none';

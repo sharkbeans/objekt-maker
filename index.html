@@ -407,6 +407,11 @@
                                         <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
                                     </button>
                                 </label>
+                                <label id="fontWeightLabel" style="display: none;">
+                                    <span>Font Weight:</span>
+                                    <input type="range" id="fontWeightSlider" min="100" max="900" value="500" step="50">
+                                    <span id="fontWeightValue">500</span>
+                                </label>
                             </div>
                         </div>
 
@@ -793,7 +798,7 @@
 
                 <section class="control-section">
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
-                    <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
+                    <button id="resetBtn" class="btn btn-danger"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </section>
             </aside>
 
@@ -803,7 +808,7 @@
                 <div id="bulkEditBanner" class="bulk-edit-banner" style="display:none;">
                     <div class="bulk-edit-banner-info">
                         <i data-lucide="layers"></i>
-                        <span id="bulkEditLabel">Editing Card 1</span>
+                        <span id="bulkEditLabel">Editing # 1</span>
                         <span class="bulk-edit-autosave-hint">Changes save when you return</span>
                     </div>
                     <button id="backToBulkBtn" class="btn btn-primary btn-small">
@@ -829,6 +834,7 @@
                     <button id="redoBtn" class="btn btn-icon" disabled title="Redo (Ctrl+Y)">
                         <i data-lucide="redo-2"></i>
                     </button>
+                    <button id="resetBtnCanvas" class="btn btn-danger canvas-reset-btn"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </div>
 
                 <!-- Mobile Pan Controls Layout (sliders outside canvas) - COMMENTED OUT
@@ -857,7 +863,7 @@
                 <div id="bulkEditBannerBottom" class="bulk-edit-banner" style="display:none; margin-top: var(--space-sm); margin-bottom: 0;">
                     <div class="bulk-edit-banner-info">
                         <i data-lucide="layers"></i>
-                        <span id="bulkEditLabelBottom">Editing Card 1</span>
+                        <span id="bulkEditLabelBottom">Editing # 1</span>
                         <span class="bulk-edit-autosave-hint">Changes save when you return</span>
                     </div>
                     <button id="backToBulkBtnBottom" class="btn btn-primary btn-small">
@@ -1070,6 +1076,11 @@
                                         <span id="fontPickerPreviewMobile" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue (Default)</span>
                                         <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
                                     </button>
+                                </label>
+                                <label id="fontWeightLabelMobile" style="display: none;">
+                                    <span>Font Weight:</span>
+                                    <input type="range" id="fontWeightSliderMobile" min="100" max="900" value="500" step="50">
+                                    <span id="fontWeightValueMobile">500</span>
                                 </label>
                             </div>
                         </div>
