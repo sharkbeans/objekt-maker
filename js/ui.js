@@ -2759,9 +2759,19 @@ const UIManager = {
      * Handle image file upload
      */
     async handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
 
+        // Multiple images → bulk create mode
+        if (files.length > 1) {
+            this.startBulkFromFiles(files);
+            // Reset input so same files can be re-selected
+            event.target.value = '';
+            return;
+        }
+
+        // Single image → default single canvas
+        const file = files[0];
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
@@ -2777,6 +2787,25 @@ const UIManager = {
         } catch (error) {
             this.showErrorMessage(error.message);
         }
+    },
+
+    /**
+     * Start bulk create mode from multiple files selected via main upload
+     */
+    startBulkFromFiles(files) {
+        // Capture template and open bulk modal
+        BulkManager.captureTemplate();
+        BulkManager.isOpen = true;
+        BulkManager.elements.modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        BulkManager.updateUI();
+        BulkManager.elements.exportAllBtn.innerHTML = BulkManager.isMobile()
+            ? '<i data-lucide="share-2"></i> Save All'
+            : '<i data-lucide="download"></i> Download All as ZIP';
+        lucide.createIcons();
+
+        // Feed files into BulkManager
+        BulkManager.handleFiles(files);
     },
 
     /**
@@ -3635,9 +3664,17 @@ const UIManager = {
         event.preventDefault();
         this.elements.uploadArea.classList.remove('drag-over');
 
-        const file = event.dataTransfer.files[0];
-        if (!file) return;
+        const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (!files.length) return;
 
+        // Multiple images → bulk create mode
+        if (files.length > 1) {
+            this.startBulkFromFiles(files);
+            return;
+        }
+
+        // Single image → default single canvas
+        const file = files[0];
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();

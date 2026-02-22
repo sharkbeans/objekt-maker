@@ -57,11 +57,11 @@
                 <section class="control-section">
                     <h2 class="section-title"><i data-lucide="camera"></i> Upload Image</h2>
                     <div class="upload-area" id="uploadArea">
-                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg" multiple hidden>
                         <label for="imageUpload" class="upload-label">
                             <span class="upload-icon"><i data-lucide="upload"></i></span>
-                            <span class="upload-text">Click to upload or drag image here</span>
-                            <span class="upload-hint">JPG or PNG, max 5MB</span>
+                            <span class="upload-text">Click to upload or drag images here</span>
+                            <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
                         </label>
                     </div>
                 </section>
@@ -403,7 +403,7 @@
                                 <label>
                                     <span>Font:</span>
                                     <button type="button" id="fontPickerBtn" class="font-picker-btn">
-                                        <span id="fontPickerPreview" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue</span>
+                                        <span id="fontPickerPreview" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue (Default)</span>
                                         <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
                                     </button>
                                 </label>
@@ -793,7 +793,6 @@
 
                 <section class="control-section">
                     <button id="exportBtn" class="btn btn-primary btn-large"><i data-lucide="download"></i> Download Image</button>
-                    <button id="bulkCreateBtn" class="btn btn-secondary btn-large"><i data-lucide="layers"></i> Bulk Create</button>
                     <button id="resetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </section>
             </aside>
@@ -805,9 +804,10 @@
                     <div class="bulk-edit-banner-info">
                         <i data-lucide="layers"></i>
                         <span id="bulkEditLabel">Editing Card 1</span>
+                        <span class="bulk-edit-autosave-hint">Changes save when you return</span>
                     </div>
-                    <button id="backToBulkBtn" class="btn btn-secondary btn-small">
-                        <i data-lucide="arrow-left"></i> Back to Bulk
+                    <button id="backToBulkBtn" class="btn btn-primary btn-small">
+                        <i data-lucide="check"></i> Save & Return to Bulk
                     </button>
                 </div>
 
@@ -851,6 +851,18 @@
                     <div class="canvas-wrapper" id="backCanvasWrapper">
                         <canvas id="backCanvas" width="768" height="1186"></canvas>
                     </div>
+                </div>
+
+                <!-- Bulk Edit Banner (bottom clone) -->
+                <div id="bulkEditBannerBottom" class="bulk-edit-banner" style="display:none; margin-top: var(--space-sm); margin-bottom: 0;">
+                    <div class="bulk-edit-banner-info">
+                        <i data-lucide="layers"></i>
+                        <span id="bulkEditLabelBottom">Editing Card 1</span>
+                        <span class="bulk-edit-autosave-hint">Changes save when you return</span>
+                    </div>
+                    <button id="backToBulkBtnBottom" class="btn btn-primary btn-small">
+                        <i data-lucide="check"></i> Save & Return to Bulk
+                    </button>
                 </div>
 
                 <!-- Mobile Pan X Slider (below canvas) - COMMENTED OUT
@@ -1055,7 +1067,7 @@
                                 <label>
                                     <span>Font:</span>
                                     <button type="button" id="fontPickerBtnMobile" class="font-picker-btn">
-                                        <span id="fontPickerPreviewMobile" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue</span>
+                                        <span id="fontPickerPreviewMobile" style="font-family: 'Helvetica Neue', sans-serif;">Helvetica Neue (Default)</span>
                                         <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
                                     </button>
                                 </label>
@@ -1178,7 +1190,6 @@
                 <!-- Mobile Action Buttons (hidden on desktop) -->
                 <div class="mobile-actions">
                     <button id="exportBtnMobile" class="btn btn-primary"><i data-lucide="download"></i> Download Image</button>
-                    <button id="bulkCreateBtnMobile" class="btn btn-secondary"><i data-lucide="layers"></i> Bulk Create</button>
                     <button id="resetBtnMobile" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Reset</button>
                 </div>
             </div>
@@ -1217,7 +1228,7 @@
                 <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
                     <span class="bulk-count" id="bulkCount">0 cards</span>
                     <div class="bulk-actions-right">
-                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small"><i data-lucide="copy"></i> Apply Row 1 to All</button>
+                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small" title="Copies text fields from Row 1 (template) to all other rows"><i data-lucide="copy"></i> Copy Template Design to All</button>
                         <button id="bulkAddMore" class="btn btn-secondary btn-small"><i data-lucide="plus"></i> Add More</button>
                         <button id="bulkClearAll" class="btn btn-secondary btn-small"><i data-lucide="trash-2"></i> Clear All</button>
                     </div>

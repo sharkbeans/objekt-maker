@@ -297,6 +297,7 @@ const CanvasManager = {
     setFontFamily(family) {
         this.fontFamily = family;
         this.render();
+        this.updateBackSidePreview();
     },
 
     /**

@@ -31,12 +31,16 @@ const BulkManager = {
             progressFill: document.getElementById('bulkProgressFill'),
             progressText: document.getElementById('bulkProgressText'),
             exportAllBtn: document.getElementById('bulkExportAll'),
-            bulkCreateBtn: document.getElementById('bulkCreateBtn'),
-            bulkCreateBtnMobile: document.getElementById('bulkCreateBtnMobile'),
+            bulkCreateBtn: document.getElementById('bulkCreateBtn'),       // May be null (removed from UI)
+            bulkCreateBtnMobile: document.getElementById('bulkCreateBtnMobile'), // May be null (removed from UI)
             // Bulk edit banner (on main canvas)
             backToBulkBanner: document.getElementById('bulkEditBanner'),
             backToBulkLabel: document.getElementById('bulkEditLabel'),
             backToBulkBtn: document.getElementById('backToBulkBtn'),
+            // Bottom clone banner
+            backToBulkBannerBottom: document.getElementById('bulkEditBannerBottom'),
+            backToBulkLabelBottom: document.getElementById('bulkEditLabelBottom'),
+            backToBulkBtnBottom: document.getElementById('backToBulkBtnBottom'),
         };
 
         this.bindEvents();
@@ -44,15 +48,16 @@ const BulkManager = {
     },
 
     bindEvents() {
-        // Open modal
-        this.elements.bulkCreateBtn.addEventListener('click', () => this.openModal());
+        // Open modal (buttons may not exist if removed from UI)
+        if (this.elements.bulkCreateBtn) {
+            this.elements.bulkCreateBtn.addEventListener('click', () => this.openModal());
+        }
         if (this.elements.bulkCreateBtnMobile) {
             this.elements.bulkCreateBtnMobile.addEventListener('click', () => this.openModal());
         }
 
-        // Close modal
+        // Close modal (only via close button, not backdrop click)
         this.elements.closeBtn.addEventListener('click', () => this.closeModal());
-        this.elements.backdrop.addEventListener('click', () => this.closeModal());
 
         // File upload
         this.elements.uploadZone.addEventListener('click', () => this.elements.fileInput.click());
@@ -79,8 +84,19 @@ const BulkManager = {
         this.elements.clearAllBtn.addEventListener('click', () => this.clearAll());
         this.elements.exportAllBtn.addEventListener('click', () => this.exportAll());
 
-        // Back to Bulk button (on main canvas banner)
-        this.elements.backToBulkBtn.addEventListener('click', () => this.exitEditMode());
+        // Back to Bulk button (on main canvas banner — top and bottom)
+        const backToBulkHandler = () => {
+            if (this.editingRowIndex >= 0) {
+                this.exitEditMode();
+            } else {
+                // Not in edit mode — just reopen the modal
+                this.elements.backToBulkBanner.style.display = 'none';
+                this.elements.backToBulkBannerBottom.style.display = 'none';
+                this.openModal();
+            }
+        };
+        this.elements.backToBulkBtn.addEventListener('click', backToBulkHandler);
+        this.elements.backToBulkBtnBottom.addEventListener('click', backToBulkHandler);
     },
 
     captureTemplate() {
@@ -146,7 +162,17 @@ const BulkManager = {
         this.isOpen = false;
         this.elements.modal.style.display = 'none';
         document.body.style.overflow = '';
-        this.restoreTemplate();
+
+        // If there are rows, show the banner so user can return to bulk mode
+        if (this.rows.length > 0) {
+            this.elements.backToBulkLabel.textContent = 'Bulk Mode';
+            this.elements.backToBulkLabelBottom.textContent = 'Bulk Mode';
+            this.elements.backToBulkBanner.style.display = 'flex';
+            this.elements.backToBulkBannerBottom.style.display = 'flex';
+            lucide.createIcons();
+        } else {
+            this.restoreTemplate();
+        }
     },
 
     handleFiles(fileList) {
@@ -206,21 +232,47 @@ const BulkManager = {
     applyRow1ToAll() {
         if (this.rows.length < 2) return;
         const first = this.rows[0];
+        const fields = ['topText', 'middleText', 'bottomText', 'backNameValue', 'backClassValue', 'backSeasonValue'];
+
+        // Track which cells changed: array of { rowIndex, field }
+        const changed = [];
         for (let i = 1; i < this.rows.length; i++) {
-            this.rows[i].topText = first.topText;
-            this.rows[i].middleText = first.middleText;
-            this.rows[i].bottomText = first.bottomText;
-            this.rows[i].backNameValue = first.backNameValue;
-            this.rows[i].backClassValue = first.backClassValue;
-            this.rows[i].backSeasonValue = first.backSeasonValue;
+            for (const field of fields) {
+                if (this.rows[i][field] !== first[field]) {
+                    changed.push({ rowIndex: i, field });
+                }
+            }
+            // Apply values
+            for (const field of fields) {
+                this.rows[i][field] = first[field];
+            }
         }
         this.renderTable();
+
+        // Flash only the cells that actually changed
+        if (changed.length > 0) {
+            const changedRows = new Set(changed.map(c => c.rowIndex));
+            for (const { rowIndex, field } of changed) {
+                const input = this.elements.tableBody.querySelector(`input[data-index="${rowIndex}"][data-field="${field}"]`);
+                if (input) {
+                    input.classList.add('bulk-input-changed');
+                    setTimeout(() => input.classList.remove('bulk-input-changed'), 2000);
+                }
+            }
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.success(`Copied template text to ${changedRows.size} row${changedRows.size !== 1 ? 's' : ''}`);
+            }
+        } else {
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.info('All rows already match the template');
+            }
+        }
 
         // Stop flash, show confirmation
         const applyBtn = this.elements.applyRow1Btn;
         applyBtn.classList.remove('bulk-apply-flash');
         const original = applyBtn.innerHTML;
-        applyBtn.innerHTML = '<i data-lucide="check"></i> Applied to all!';
+        applyBtn.innerHTML = '<i data-lucide="check"></i> Copied to all!';
         applyBtn.disabled = true;
         lucide.createIcons();
         setTimeout(() => {
@@ -264,6 +316,7 @@ const BulkManager = {
                 <td class="bulk-col-num">${index + 1}</td>
                 <td class="bulk-col-thumb">
                     <img src="${row.image.src}" alt="Card ${index + 1}" class="bulk-thumbnail">
+                    ${index === 0 ? '<span class="bulk-edit-hint">click to edit</span>' : ''}
                 </td>
                 <td class="bulk-col-text">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.topText)}" data-index="${index}" data-field="topText">
@@ -301,9 +354,19 @@ const BulkManager = {
             tbody.appendChild(tr);
 
             // Make row 1 clickable (anywhere except inputs/buttons) to open canvas editor
+            // Use mousedown/mouseup tracking to avoid triggering on text selection drags
             if (index === 0) {
+                let mouseDownTarget = null;
+                tr.addEventListener('mousedown', (e) => {
+                    mouseDownTarget = e.target;
+                });
                 tr.addEventListener('click', (e) => {
                     if (e.target.closest('input, button')) return;
+                    // If mousedown started inside an input, this is a text selection drag — ignore
+                    if (mouseDownTarget && mouseDownTarget.closest('input')) return;
+                    // If user selected text (drag-highlight), don't treat as a click
+                    const selection = window.getSelection();
+                    if (selection && selection.toString().length > 0) return;
                     this.enterEditMode(0);
                 });
             }
@@ -313,7 +376,7 @@ const BulkManager = {
                 const colCount = showBack ? 9 : 6;
                 const sep = document.createElement('tr');
                 sep.classList.add('bulk-row-separator');
-                sep.innerHTML = `<td colspan="${colCount}"><p>Row 1 is the template. Edit it on the canvas to set shared settings (border, signature, etc.). Text and image adjustments are saved per card.</p></td>`;
+                sep.innerHTML = `<td colspan="${colCount}"><p><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;opacity:0.7"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Row 1 is the template. Click the pencil icon or the row to edit shared settings (border, signature, etc.) on the canvas. Text and image adjustments are saved per card.</p></td>`;
                 tbody.appendChild(sep);
             }
         });
@@ -413,10 +476,11 @@ const BulkManager = {
 
         // Show bulk-edit banner on canvas
         const isTemplate = index === 0;
-        this.elements.backToBulkLabel.textContent = isTemplate
-            ? `Editing Card 1 (Template)`
-            : `Editing Card ${index + 1}`;
+        const editLabel = isTemplate ? `Editing Card 1 (Template)` : `Editing Card ${index + 1}`;
+        this.elements.backToBulkLabel.textContent = editLabel;
+        this.elements.backToBulkLabelBottom.textContent = editLabel;
         this.elements.backToBulkBanner.style.display = 'flex';
+        this.elements.backToBulkBannerBottom.style.display = 'flex';
         lucide.createIcons();
     },
 
@@ -461,12 +525,16 @@ const BulkManager = {
 
         // Hide banner
         this.elements.backToBulkBanner.style.display = 'none';
+        this.elements.backToBulkBannerBottom.style.display = 'none';
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
 
         // Restore canvas to template state and sync sidebar UI
         this.restoreTemplate();
         UIManager.syncUIFromPreset(this.template.state);
+
+        // Show save confirmation toast
+        if (typeof ToastManager !== 'undefined') ToastManager.success('Card changes saved');
 
         // Reopen bulk modal
         this.isOpen = true;
@@ -475,7 +543,7 @@ const BulkManager = {
         this.updateUI();
         lucide.createIcons();
 
-        // Flash the "Apply Row 1 to All" button as a hint
+        // Flash the "Copy Template Text to All" button as a hint
         const applyBtn = this.elements.applyRow1Btn;
         applyBtn.classList.remove('bulk-apply-flash');
         void applyBtn.offsetWidth; // force reflow so re-adding the class restarts animation
@@ -519,6 +587,7 @@ const BulkManager = {
 
         // Hide banner and close completely
         this.elements.backToBulkBanner.style.display = 'none';
+        this.elements.backToBulkBannerBottom.style.display = 'none';
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
         this.isOpen = false;
