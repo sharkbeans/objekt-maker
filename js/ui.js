@@ -145,6 +145,15 @@ const UIManager = {
             fontWeightLabelMobile: document.getElementById('fontWeightLabelMobile'),
             fontWeightSliderMobile: document.getElementById('fontWeightSliderMobile'),
             fontWeightValueMobile: document.getElementById('fontWeightValueMobile'),
+            fontWeightBorderLabel: document.getElementById('fontWeightBorderLabel'),
+            fontWeightBorderSlider: document.getElementById('fontWeightBorderSlider'),
+            fontWeightBorderValue: document.getElementById('fontWeightBorderValue'),
+            fontWeightBorderLabelBack: document.getElementById('fontWeightBorderLabelBack'),
+            fontWeightBorderSliderBack: document.getElementById('fontWeightBorderSliderBack'),
+            fontWeightBorderValueBack: document.getElementById('fontWeightBorderValueBack'),
+            fontWeightBorderLabelMobile: document.getElementById('fontWeightBorderLabelMobile'),
+            fontWeightBorderSliderMobile: document.getElementById('fontWeightBorderSliderMobile'),
+            fontWeightBorderValueMobile: document.getElementById('fontWeightBorderValueMobile'),
 
             // Text height sliders (Front - Desktop)
             topTextHeight: document.getElementById('topTextHeight'),
@@ -1116,7 +1125,7 @@ const UIManager = {
             });
         }
 
-        // Font weight sliders (front and back are independent)
+        // Font weight sliders (front body, back main text, and shared border text)
         if (this.elements.fontWeightSlider) {
             this.elements.fontWeightSlider.addEventListener('input', (e) => {
                 const weight = parseInt(e.target.value);
@@ -1136,6 +1145,28 @@ const UIManager = {
                 const weight = parseInt(e.target.value);
                 CanvasManager.setFontWeightBack(weight);
                 this._syncFontWeightBackSliders(weight);
+            });
+        }
+        // Border weight sliders (shared between front and back border text)
+        if (this.elements.fontWeightBorderSlider) {
+            this.elements.fontWeightBorderSlider.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightBorder(weight);
+                this._syncFontWeightBorderSliders(weight);
+            });
+        }
+        if (this.elements.fontWeightBorderSliderBack) {
+            this.elements.fontWeightBorderSliderBack.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightBorder(weight);
+                this._syncFontWeightBorderSliders(weight);
+            });
+        }
+        if (this.elements.fontWeightBorderSliderMobile) {
+            this.elements.fontWeightBorderSliderMobile.addEventListener('input', (e) => {
+                const weight = parseInt(e.target.value);
+                CanvasManager.setFontWeightBorder(weight);
+                this._syncFontWeightBorderSliders(weight);
             });
         }
 
@@ -3851,28 +3882,42 @@ const UIManager = {
         if (this.elements.fontWeightLabel) this.elements.fontWeightLabel.style.display = '';
         if (this.elements.fontWeightLabelBack) this.elements.fontWeightLabelBack.style.display = '';
         if (this.elements.fontWeightLabelMobile) this.elements.fontWeightLabelMobile.style.display = '';
+        if (this.elements.fontWeightBorderLabel) this.elements.fontWeightBorderLabel.style.display = '';
+        if (this.elements.fontWeightBorderLabelBack) this.elements.fontWeightBorderLabelBack.style.display = '';
+        if (this.elements.fontWeightBorderLabelMobile) this.elements.fontWeightBorderLabelMobile.style.display = '';
         const isHelvetica = CanvasManager.fontFamily === 'Helvetica Neue';
-        // Front weight
+        // Front body weight (middle text / 100A)
         if (CanvasManager.fontWeightFront === null) {
             if (!isHelvetica) {
                 CanvasManager.setFontWeightFront(500);
                 this._syncFontWeightFrontSliders(500);
             } else {
-                this._syncFontWeightFrontSliders(600); // representative for Helvetica per-role
+                this._syncFontWeightFrontSliders(550); // representative for Helvetica per-role (frontMiddle default)
             }
         } else {
             this._syncFontWeightFrontSliders(CanvasManager.fontWeightFront);
         }
-        // Back weight
+        // Back main text weight (name/class/season)
         if (CanvasManager.fontWeightBack === null) {
             if (!isHelvetica) {
                 CanvasManager.setFontWeightBack(500);
                 this._syncFontWeightBackSliders(500);
             } else {
-                this._syncFontWeightBackSliders(600); // representative for Helvetica per-role
+                this._syncFontWeightBackSliders(500); // representative for Helvetica per-role (backValue default)
             }
         } else {
             this._syncFontWeightBackSliders(CanvasManager.fontWeightBack);
+        }
+        // Border text weight (shared: front top/bottom + back rotated)
+        if (CanvasManager.fontWeightBorder === null) {
+            if (!isHelvetica) {
+                CanvasManager.setFontWeightBorder(500);
+                this._syncFontWeightBorderSliders(500);
+            } else {
+                this._syncFontWeightBorderSliders(600); // representative for Helvetica per-role (frontTop/backRotated default)
+            }
+        } else {
+            this._syncFontWeightBorderSliders(CanvasManager.fontWeightBorder);
         }
     },
 
@@ -3886,6 +3931,15 @@ const UIManager = {
         if (this.elements.fontWeightSliderMobile) this.elements.fontWeightSliderMobile.value = weight;
         if (this.elements.fontWeightValueBack) this.elements.fontWeightValueBack.textContent = weight;
         if (this.elements.fontWeightValueMobile) this.elements.fontWeightValueMobile.textContent = weight;
+    },
+
+    _syncFontWeightBorderSliders(weight) {
+        if (this.elements.fontWeightBorderSlider) this.elements.fontWeightBorderSlider.value = weight;
+        if (this.elements.fontWeightBorderSliderBack) this.elements.fontWeightBorderSliderBack.value = weight;
+        if (this.elements.fontWeightBorderSliderMobile) this.elements.fontWeightBorderSliderMobile.value = weight;
+        if (this.elements.fontWeightBorderValue) this.elements.fontWeightBorderValue.textContent = weight;
+        if (this.elements.fontWeightBorderValueBack) this.elements.fontWeightBorderValueBack.textContent = weight;
+        if (this.elements.fontWeightBorderValueMobile) this.elements.fontWeightBorderValueMobile.textContent = weight;
     },
 
     /**
@@ -5182,9 +5236,25 @@ const UIManager = {
             weightSlider.min = '100';
             weightSlider.max = '900';
             weightSlider.step = '50';
-            const isFront = side === 'front';
-            const popupWeightCurrent = isFront ? CanvasManager.fontWeightFront : CanvasManager.fontWeightBack;
-            const popupWeight = popupWeightCurrent ?? (CanvasManager.fontFamily === 'Helvetica Neue' ? 600 : 500);
+            // Determine which weight property to use based on text type
+            const isBorderText = (side === 'front' && (textType === 'top' || textType === 'bottom')) ||
+                                  (side === 'back' && (textType === 'topRotated' || textType === 'bottomRotated'));
+            const isBackMainText = side === 'back' && !isBorderText;
+            weightLabel.textContent = isBorderText ? 'Border Weight' : (isBackMainText ? 'Main Text Weight' : 'Body Weight');
+            let popupWeightCurrent;
+            let popupDefaultWeight;
+            if (isBorderText) {
+                popupWeightCurrent = CanvasManager.fontWeightBorder;
+                popupDefaultWeight = 600;
+            } else if (isBackMainText) {
+                popupWeightCurrent = CanvasManager.fontWeightBack;
+                popupDefaultWeight = 500;
+            } else {
+                // front middle text
+                popupWeightCurrent = CanvasManager.fontWeightFront;
+                popupDefaultWeight = 550;
+            }
+            const popupWeight = popupWeightCurrent ?? (CanvasManager.fontFamily === 'Helvetica Neue' ? popupDefaultWeight : 500);
             weightSlider.value = popupWeight;
 
             const weightValueDisplay = document.createElement('span');
@@ -5198,12 +5268,15 @@ const UIManager = {
             weightSlider.addEventListener('input', (e) => {
                 const weight = parseInt(e.target.value);
                 weightValueDisplay.textContent = weight;
-                if (isFront) {
-                    CanvasManager.setFontWeightFront(weight);
-                    this._syncFontWeightFrontSliders(weight);
-                } else {
+                if (isBorderText) {
+                    CanvasManager.setFontWeightBorder(weight);
+                    this._syncFontWeightBorderSliders(weight);
+                } else if (isBackMainText) {
                     CanvasManager.setFontWeightBack(weight);
                     this._syncFontWeightBackSliders(weight);
+                } else {
+                    CanvasManager.setFontWeightFront(weight);
+                    this._syncFontWeightFrontSliders(weight);
                 }
             });
 

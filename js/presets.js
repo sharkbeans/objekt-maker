@@ -36,6 +36,7 @@ const PresetManager = {
             fontFamily: CanvasManager.fontFamily,
             fontWeightFront: CanvasManager.fontWeightFront,
             fontWeightBack: CanvasManager.fontWeightBack,
+            fontWeightBorder: CanvasManager.fontWeightBorder,
             topTextHeight: CanvasManager.topTextHeight,
             middleTextHeight: CanvasManager.middleTextHeight,
             bottomTextHeight: CanvasManager.bottomTextHeight,
@@ -152,6 +153,7 @@ const PresetManager = {
         else if (data.fontWeight !== undefined) CanvasManager.fontWeightFront = data.fontWeight; // legacy
         if (data.fontWeightBack !== undefined) CanvasManager.fontWeightBack = data.fontWeightBack;
         else if (data.fontWeight !== undefined) CanvasManager.fontWeightBack = data.fontWeight; // legacy
+        if (data.fontWeightBorder !== undefined) CanvasManager.fontWeightBorder = data.fontWeightBorder;
         if (data.topTextHeight !== undefined) CanvasManager.topTextHeight = data.topTextHeight;
         if (data.middleTextHeight !== undefined) CanvasManager.middleTextHeight = data.middleTextHeight;
         if (data.bottomTextHeight !== undefined) CanvasManager.bottomTextHeight = data.bottomTextHeight;
