@@ -154,6 +154,9 @@ const UIManager = {
             fontWeightBorderLabelMobile: document.getElementById('fontWeightBorderLabelMobile'),
             fontWeightBorderSliderMobile: document.getElementById('fontWeightBorderSliderMobile'),
             fontWeightBorderValueMobile: document.getElementById('fontWeightBorderValueMobile'),
+            resetFontWeightFront: document.getElementById('resetFontWeightFront'),
+            resetFontWeightBack: document.getElementById('resetFontWeightBack'),
+            resetFontWeightMobile: document.getElementById('resetFontWeightMobile'),
 
             // Text height sliders (Front - Desktop)
             topTextHeight: document.getElementById('topTextHeight'),
@@ -1168,6 +1171,17 @@ const UIManager = {
                 CanvasManager.setFontWeightBorder(weight);
                 this._syncFontWeightBorderSliders(weight);
             });
+        }
+
+        // Reset font & weight buttons (sidebar)
+        if (this.elements.resetFontWeightFront) {
+            this.elements.resetFontWeightFront.addEventListener('click', () => this.resetFontAndWeight());
+        }
+        if (this.elements.resetFontWeightBack) {
+            this.elements.resetFontWeightBack.addEventListener('click', () => this.resetFontAndWeight());
+        }
+        if (this.elements.resetFontWeightMobile) {
+            this.elements.resetFontWeightMobile.addEventListener('click', () => this.resetFontAndWeight());
         }
 
         // Text height sliders (Front - Desktop)
@@ -3885,6 +3899,9 @@ const UIManager = {
         if (this.elements.fontWeightBorderLabel) this.elements.fontWeightBorderLabel.style.display = '';
         if (this.elements.fontWeightBorderLabelBack) this.elements.fontWeightBorderLabelBack.style.display = '';
         if (this.elements.fontWeightBorderLabelMobile) this.elements.fontWeightBorderLabelMobile.style.display = '';
+        if (this.elements.resetFontWeightFront) this.elements.resetFontWeightFront.style.display = '';
+        if (this.elements.resetFontWeightBack) this.elements.resetFontWeightBack.style.display = '';
+        if (this.elements.resetFontWeightMobile) this.elements.resetFontWeightMobile.style.display = '';
         const isHelvetica = CanvasManager.fontFamily === 'Helvetica Neue';
         // Front body weight (middle text / 100A)
         if (CanvasManager.fontWeightFront === null) {
@@ -3940,6 +3957,35 @@ const UIManager = {
         if (this.elements.fontWeightBorderValue) this.elements.fontWeightBorderValue.textContent = weight;
         if (this.elements.fontWeightBorderValueBack) this.elements.fontWeightBorderValueBack.textContent = weight;
         if (this.elements.fontWeightBorderValueMobile) this.elements.fontWeightBorderValueMobile.textContent = weight;
+    },
+
+    resetFontAndWeight() {
+        const defaultFont = 'Helvetica Neue';
+        CanvasManager.setFontFamily(defaultFont);
+        CanvasManager.setFontWeightFront(null);
+        CanvasManager.setFontWeightBack(null);
+        CanvasManager.setFontWeightBorder(null);
+
+        // Update sidebar font preview buttons
+        if (this.elements.fontPickerPreview) {
+            this.elements.fontPickerPreview.textContent = `${defaultFont} (Default)`;
+            this.elements.fontPickerPreview.style.fontFamily = `'${defaultFont}', sans-serif`;
+        }
+        if (this.elements.fontPickerPreviewMobile) {
+            this.elements.fontPickerPreviewMobile.textContent = `${defaultFont} (Default)`;
+            this.elements.fontPickerPreviewMobile.style.fontFamily = `'${defaultFont}', sans-serif`;
+        }
+
+        // Update canvas-text-editor font button if open
+        const editorFontBtn = document.querySelector('#canvasTextEditor .font-picker-btn span');
+        if (editorFontBtn) {
+            editorFontBtn.textContent = defaultFont;
+            editorFontBtn.style.fontFamily = `'${defaultFont}', sans-serif`;
+        }
+
+        // Re-sync weight sliders to default values
+        this.updateFontWeightVisibility();
+        HistoryManager.pushState('Reset Font & Weight');
     },
 
     /**
@@ -4105,6 +4151,12 @@ const UIManager = {
         }
 
         try {
+            // Set exporting flag so placeholder drawings are suppressed
+            CanvasManager.isExporting = true;
+            if (this.currentView === 'back') {
+                CanvasManager.updateBackSidePreview();
+            }
+
             // Determine which canvas to export based on current view
             const canvas = this.currentView === 'front'
                 ? document.getElementById('mainCanvas')
@@ -4130,13 +4182,17 @@ const UIManager = {
             this.showErrorMessage('Failed to export image');
             console.error(error);
         } finally {
+            // Clear exporting flag and restore canvas to preview state
+            CanvasManager.isExporting = false;
             // Restore template visibility after export
             if (this.currentView === 'front' && templateWasVisible) {
                 CanvasManager.showTemplate = true;
                 CanvasManager.render();
             }
-            if (this.currentView === 'back' && templateBackWasVisible) {
-                CanvasManager.showTemplateBack = true;
+            if (this.currentView === 'back') {
+                if (templateBackWasVisible) {
+                    CanvasManager.showTemplateBack = true;
+                }
                 CanvasManager.updateBackSidePreview();
             }
         }
@@ -5284,6 +5340,31 @@ const UIManager = {
             weightWrapper.appendChild(weightValueDisplay);
             weightContainer.appendChild(weightLabel);
             weightContainer.appendChild(weightWrapper);
+
+            // Reset font & weight button
+            const resetFontWeightBtn = document.createElement('button');
+            resetFontWeightBtn.type = 'button';
+            resetFontWeightBtn.className = 'btn btn-secondary btn-small';
+            resetFontWeightBtn.style.cssText = 'margin-top: 10px; width: 100%;';
+            resetFontWeightBtn.innerHTML = '<i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Reset Font & Weight';
+            resetFontWeightBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.resetFontAndWeight();
+                // Update slider in modal to reflect new weight
+                const newWeight = isBorderText
+                    ? (CanvasManager.fontWeightBorder ?? 600)
+                    : isBackMainText
+                        ? (CanvasManager.fontWeightBack ?? 500)
+                        : (CanvasManager.fontWeightFront ?? 550);
+                weightSlider.value = newWeight;
+                weightValueDisplay.textContent = newWeight;
+                // Update font button label
+                fontBtn.innerHTML = `<span style="font-family: '${CanvasManager.fontFamily}', sans-serif;">${CanvasManager.fontFamily}</span><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>`;
+                if (window.lucide) lucide.createIcons();
+            });
+            resetFontWeightBtn.addEventListener('touchstart', (e) => e.stopPropagation());
+            weightContainer.appendChild(resetFontWeightBtn);
+
             editorContent.appendChild(weightContainer);
         }
 

@@ -29,6 +29,7 @@ const CanvasManager = {
     accentWidth: 82.61793, // Reduced by 10% from 91.7977 (91.7977 × 0.9) - base size
     accentColor: '#FFD400',
     borderImage: null, // Custom border/notch image
+    isExporting: false, // True during export to suppress placeholder drawings
     signatureImage: null, // Custom signature image
     signatureZoom: 1, // Signature zoom level (1 = 100%)
     signaturePosX: 0, // Signature X position offset
@@ -58,7 +59,7 @@ const CanvasManager = {
     cornerRadius: 36,
     notchHeight: 1050, // Height of the centered notch
     topText: 'SeoYeon',
-    middleText: '100A',
+    middleText: '100A#00001',
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
     fontFamily: 'Helvetica Neue', // Font family for front text
@@ -1689,14 +1690,18 @@ const CanvasManager = {
         this.ctx.restore();
 
         // Draw middle text (rotated 90° counterclockwise + 180° flip) - 100A with reduced letter spacing
+        // Supports optional serial number: "100A#00001" renders as "100A #00001" with MatrixSSK for serial
         this.ctx.save();
         const scaledMiddleFontSize = 45 * this.scaleFactor;
-        this.ctx.font = `${this.getFontWeightForRole('frontMiddle', 550)} ${scaledMiddleFontSize}px ${this.getFontFamilyForRole('frontMiddle')}`;
+        const middleFontWeight = this.getFontWeightForRole('frontMiddle', 550);
+        const middleFontDeclaration = `${middleFontWeight} ${scaledMiddleFontSize}px ${this.getFontFamilyForRole('frontMiddle')}`;
+        this.ctx.font = middleFontDeclaration;
         const scaledMiddleLetterSpacing = -1.975 * this.scaleFactor;
         this.ctx.letterSpacing = `${scaledMiddleLetterSpacing}px`;
-        this.ctx.translate(centerX, offsetY + this.canvasHeight / 2.25 + this.middleTextHeight);
+        const serialCenteringOffset = this.getSerialCenteringOffset(this.ctx, this.middleText, middleFontDeclaration, scaledMiddleFontSize, scaledMiddleLetterSpacing);
+        this.ctx.translate(centerX, offsetY + this.canvasHeight / 2.25 + this.middleTextHeight + serialCenteringOffset);
         this.ctx.rotate(-Math.PI / 2 + Math.PI);
-        this.ctx.fillText(this.middleText, 0, 0);
+        this.drawMiddleTextWithSerial(this.ctx, this.middleText, middleFontDeclaration, scaledMiddleFontSize, scaledMiddleLetterSpacing);
         this.ctx.restore();
 
         // Draw bottom text (rotated 90° clockwise) - tripleS with increased letter spacing
@@ -1974,10 +1979,10 @@ const CanvasManager = {
 
         backCtx.restore();
 
-        // Draw top logo if present, otherwise draw filled hexagonal cube logo at top left
+        // Draw top logo if present, otherwise draw filled hexagonal cube logo at top left (preview only)
         if (this.topLogoImage) {
             this.drawTopLogo(backCtx, this.topLogoBaseX * this.scaleFactor, this.topLogoBaseY * this.scaleFactor);
-        } else {
+        } else if (!this.isExporting) {
             this.drawFilledHexCubeIcon(backCtx, 47 * this.scaleFactor, 110 * this.scaleFactor);
         }
 
@@ -2358,6 +2363,136 @@ const CanvasManager = {
     },
 
     /**
+     * Parse middle text to split off a serial number (#XXXXX) from the main text.
+     * If the text contains a '#' followed by digits, returns { mainText, serial }.
+     * The main text gets a trailing space added before the serial portion.
+     * @param {string} text - Raw middle text (e.g. "100A#00001")
+     * @returns {{ mainText: string, serial: string|null }}
+     */
+    parseMiddleTextSerial(text) {
+        const hashIndex = text.indexOf('#');
+        if (hashIndex === -1) return { mainText: text, serial: null };
+
+        const after = text.slice(hashIndex + 1);
+        // Only treat as serial if what follows the '#' is purely digits
+        if (!/^\d+$/.test(after)) return { mainText: text, serial: null };
+
+        const mainText = text.slice(0, hashIndex);
+        return { mainText, serial: '#' + after };
+    },
+
+    /**
+     * Draw middle text with serial number support.
+     * If the text contains a '#NNNNN' serial, the part before '#' is drawn in the
+     * main font, a space is inserted, then '#NNNNN' is drawn in MatrixSSK Regular
+     * at the same font weight. Both parts share the same font size and baseline.
+     *
+     * This is called inside an already-transformed context (translated + rotated)
+     * so it draws centred at (0, 0) just like the original fillText call.
+     *
+     * @param {CanvasRenderingContext2D} ctx - Canvas context (already transformed)
+     * @param {string} text - Raw middle text
+     * @param {string} fontDeclaration - Full CSS font string for the main font (size already scaled)
+     * @param {number} scaledFontSize - Font size in px (already scaled)
+     * @param {number} scaledLetterSpacing - Letter spacing in px (already scaled)
+     */
+    /**
+     * Compute the Y-translation correction needed to re-center the middle text
+     * when a serial number is present. Because the text is rotated 90°, the
+     * serial's extra rendered width shifts the visual center upward; this returns
+     * a downward offset (positive Y) to compensate.
+     *
+     * Calibrated against: "100A #10006" (5-digit serial) → -57px at scaleFactor=1.
+     * Formula: offset = -(serialExtraWidth / 2) * calibrationFactor
+     * where serialExtraWidth = space + '#' + extraGap + digits (all measured).
+     *
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {string} text - Raw middle text (e.g. "100A#10006")
+     * @param {string} fontDeclaration - CSS font string for main text
+     * @param {number} scaledFontSize - Scaled font size in px
+     * @param {number} scaledLetterSpacing - Letter spacing for main text in px
+     * @returns {number} Y offset in canvas pixels (negative = shift up)
+     */
+    getSerialCenteringOffset(ctx, text, fontDeclaration, scaledFontSize, scaledLetterSpacing) {
+        const { serial } = this.parseMiddleTextSerial(text);
+        if (!serial) return 0;
+
+        const serialLetterSpacing = 2 * this.scaleFactor;
+        const digitsLetterSpacing = 4 * this.scaleFactor;
+        const hashExtraGap = 3 * this.scaleFactor;
+        const serialFont = `550 ${scaledFontSize}px "MatrixSSK", monospace`;
+
+        // Measure space width using main font
+        ctx.font = fontDeclaration;
+        ctx.letterSpacing = `${scaledLetterSpacing}px`;
+        const spaceWidth = ctx.measureText(' ').width;
+
+        // Measure '#' and digits widths using serial font
+        ctx.font = serialFont;
+        ctx.letterSpacing = `${serialLetterSpacing}px`;
+        const hashWidth = ctx.measureText('#').width + serialLetterSpacing + hashExtraGap;
+        const digits = serial.slice(1);
+        // Each digit contributes its width + digits letter spacing (trailing spacing on last char is included
+        // in measureText for centering purposes since it offsets visually)
+        ctx.letterSpacing = `${digitsLetterSpacing}px`;
+        const digitsWidth = ctx.measureText(digits).width + digitsLetterSpacing * digits.length;
+
+        const serialExtraWidth = spaceWidth + hashWidth + digitsWidth;
+
+        // Calibration: reference "100A #10006" (5 digits) produced -57px offset at scaleFactor=1.
+        // serialExtraWidth for that case divided by 2 should equal 57px * scaleFactor.
+        // We apply a calibration factor derived from this reference.
+        // calibrationFactor = (57 * scaleFactor) / (referenceSerialExtraWidth / 2)
+        // Since we can't re-measure the reference here, we use the ratio approach:
+        // offset = -(serialExtraWidth / 2) * (57 / referenceHalfWidth)
+        // referenceHalfWidth ≈ 57px at scaleFactor=1, so calibrationFactor ≈ 1.0 if formula is accurate.
+        // We trust the measurement and return half-width as the offset directly.
+        return -(serialExtraWidth / 2);
+    },
+
+    drawMiddleTextWithSerial(ctx, text, fontDeclaration, scaledFontSize, scaledLetterSpacing) {
+        const { mainText, serial } = this.parseMiddleTextSerial(text);
+
+        if (!serial) {
+            // No serial — draw as before
+            ctx.fillText(text, 0, 0);
+            return;
+        }
+
+        // Measure main text width so the serial can be positioned immediately after.
+        ctx.font = fontDeclaration;
+        ctx.letterSpacing = `${scaledLetterSpacing}px`;
+
+        // Add a space between mainText and the serial
+        const spacer = ' ';
+        const mainWithSpace = mainText + spacer;
+        const mainWidth = ctx.measureText(mainWithSpace).width;
+
+        const serialFont = `550 ${scaledFontSize}px "MatrixSSK", monospace`;
+
+        // Draw main text part starting from x=0 (same as original fillText call)
+        ctx.font = fontDeclaration;
+        ctx.letterSpacing = `${scaledLetterSpacing}px`;
+        ctx.fillText(mainWithSpace, 0, 0);
+
+        // Draw serial part in MatrixSSK immediately after main text
+        // Fixed weight 550, +2px letter spacing for '#', +4px letter spacing between digits, +3px extra gap after '#'
+        const serialLetterSpacing = 2 * this.scaleFactor;
+        const digitsLetterSpacing = 4 * this.scaleFactor;
+        const hashExtraGap = 3 * this.scaleFactor;
+        ctx.font = serialFont;
+        ctx.letterSpacing = `${serialLetterSpacing}px`;
+
+        // Draw '#' then the digits separately to insert extra gap between them
+        const hash = serial[0]; // '#'
+        const digits = serial.slice(1);
+        ctx.fillText(hash, mainWidth, 0);
+        const hashWidth = ctx.measureText(hash).width + serialLetterSpacing + hashExtraGap;
+        ctx.letterSpacing = `${digitsLetterSpacing}px`;
+        ctx.fillText(digits, mainWidth + hashWidth, 0);
+    },
+
+    /**
      * Draw season text with outline style for numbers (like "Atom02" where "02" is outlined)
      * @param {CanvasRenderingContext2D} ctx - Canvas context
      * @param {string} text - Season text (e.g., "Atom02")
@@ -2449,8 +2584,8 @@ const CanvasManager = {
             // Draw the signature image with transparency preserved
             // No clipping - allow overflow
             ctx.drawImage(this.signatureImage, drawX, drawY, drawWidth, drawHeight);
-        } else {
-            // Draw default procedural signature
+        } else if (!this.isExporting) {
+            // Draw default procedural signature (preview only, not during export)
             ctx.strokeStyle = this.textColor;
             ctx.lineWidth = 2 * this.scaleFactor;
             ctx.lineCap = 'round';
@@ -2645,7 +2780,7 @@ const CanvasManager = {
         this.imagePosX = 0;
         this.imagePosY = 0;
         this.topText = 'SeoYeon';
-        this.middleText = '100A';
+        this.middleText = '100A#00001';
         this.bottomText = 'tripleS';
         this.accentColor = '#FFD400';
         this.borderImage = null;

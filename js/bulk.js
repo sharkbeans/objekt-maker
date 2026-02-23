@@ -343,11 +343,17 @@ const BulkManager = {
                 <td class="bulk-col-text bulk-back-col" ${!showBack ? 'style="display:none"' : ''}>
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.backSeasonValue)}" data-index="${index}" data-field="backSeasonValue">
                 </td>
+                ${index === 0 ? `
+                <td class="bulk-col-actions">
+                    <button class="bulk-action-btn bulk-action-apply-row1" data-action="applyRow1" title="Copy Design to All">
+                        <i data-lucide="copy"></i> Copy Design to All
+                    </button>
+                </td>` : `
                 <td class="bulk-col-actions">
                     <button class="bulk-action-btn" data-action="edit" data-index="${index}" title="Edit on Canvas">
                         <i data-lucide="pencil"></i>
                     </button>
-                    <button class="bulk-action-btn" data-action="moveUp" data-index="${index}" title="Move up" ${index === 0 ? 'disabled' : ''}>
+                    <button class="bulk-action-btn" data-action="moveUp" data-index="${index}" title="Move up">
                         <i data-lucide="chevron-up"></i>
                     </button>
                     <button class="bulk-action-btn" data-action="moveDown" data-index="${index}" title="Move down" ${index === this.rows.length - 1 ? 'disabled' : ''}>
@@ -356,7 +362,7 @@ const BulkManager = {
                     <button class="bulk-action-btn bulk-action-delete" data-action="remove" data-index="${index}" title="Remove">
                         <i data-lucide="trash-2"></i>
                     </button>
-                </td>
+                </td>`}
             `;
             tbody.appendChild(tr);
 
@@ -381,7 +387,7 @@ const BulkManager = {
                 const colCount = showBack ? 9 : 6;
                 const sep = document.createElement('tr');
                 sep.classList.add('bulk-row-separator');
-                sep.innerHTML = `<td colspan="${colCount}"><p><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;opacity:0.7"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Row 1 is the template. Click the pencil icon or the row to edit shared settings (border, signature, etc.) on the canvas. Text and image adjustments are saved per card.</p></td>`;
+                sep.innerHTML = `<td colspan="${colCount}"><p><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;opacity:0.7"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Row 1 is the template. Click on the row to edit shared settings (border, signature, etc.) on the canvas. Text and image adjustments are saved per card.</p></td>`;
                 tbody.appendChild(sep);
             }
         });
@@ -402,6 +408,7 @@ const BulkManager = {
                 const action = button.dataset.action;
                 const idx = parseInt(button.dataset.index);
                 switch (action) {
+                    case 'applyRow1': this.applyRow1ToAll(); break;
                     case 'edit': this.enterEditMode(idx); break;
                     case 'moveUp': this.moveRow(idx, -1); break;
                     case 'moveDown': this.moveRow(idx, 1); break;

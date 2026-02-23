@@ -23,6 +23,11 @@ const App = {
             CanvasManager.init(canvas);
             console.log('[OK] CanvasManager initialized');
 
+            // Ensure MatrixSSK is loaded before first render so serial numbers
+            // don't fall back to the main font (font-display: swap causes a race on init)
+            await document.fonts.load('550 45px "MatrixSSK"').catch(() => {});
+            console.log('[OK] MatrixSSK font ready');
+
             // Initialize UIManager
             UIManager.init();
             console.log('[OK] UIManager initialized');

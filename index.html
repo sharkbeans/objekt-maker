@@ -366,7 +366,7 @@
                                 </label>
                                 <label>
                                     <span>Middle Text:</span>
-                                    <input type="text" id="middleText" value="100A" class="text-input">
+                                    <input type="text" id="middleText" value="100A#00001" class="text-input">
                                 </label>
                                 <label>
                                     <span>Middle Text Height:</span>
@@ -417,6 +417,7 @@
                                     <input type="range" id="fontWeightSlider" min="100" max="900" value="500" step="50">
                                     <span id="fontWeightValue">500</span>
                                 </label>
+                                <button id="resetFontWeightFront" type="button" class="btn btn-secondary btn-small" style="display: none; margin-top: var(--space-xs);"><i data-lucide="rotate-ccw"></i> Reset Font &amp; Weight</button>
                             </div>
                         </div>
 
@@ -668,6 +669,7 @@
                                     <input type="range" id="fontWeightSliderBack" min="100" max="900" value="600" step="50">
                                     <span id="fontWeightValueBack">600</span>
                                 </label>
+                                <button id="resetFontWeightBack" type="button" class="btn btn-secondary btn-small" style="display: none; margin-top: var(--space-xs);"><i data-lucide="rotate-ccw"></i> Reset Font &amp; Weight</button>
                             </div>
                         </div>
 
@@ -1186,6 +1188,7 @@
                                     <input type="range" id="fontWeightSliderMobile" min="100" max="900" value="500" step="50">
                                     <span id="fontWeightValueMobile">500</span>
                                 </label>
+                                <button id="resetFontWeightMobile" type="button" class="btn btn-secondary btn-small" style="display: none; margin-top: var(--space-xs);"><i data-lucide="rotate-ccw"></i> Reset Font &amp; Weight</button>
                             </div>
                         </div>
 
@@ -1343,7 +1346,7 @@
                 <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
                     <span class="bulk-count" id="bulkCount">0 cards</span>
                     <div class="bulk-actions-right">
-                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small" title="Copies text fields from Row 1 (template) to all other rows"><i data-lucide="copy"></i> Copy Template Design to All</button>
+                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small" title="Copies text fields from Row 1 (template) to all other rows"><i data-lucide="copy"></i> Copy Design to All</button>
                         <button id="bulkAddMore" class="btn btn-secondary btn-small"><i data-lucide="plus"></i> Add More</button>
                         <button id="bulkClearAll" class="btn btn-secondary btn-small"><i data-lucide="trash-2"></i> Clear All</button>
                     </div>
@@ -1362,7 +1365,7 @@
                                 <th class="bulk-col-text bulk-back-col">Name</th>
                                 <th class="bulk-col-text bulk-back-col">Class</th>
                                 <th class="bulk-col-text bulk-back-col">Season</th>
-                                <th class="bulk-col-actions">Actions</th>
+                                <th class="bulk-col-actions">Copy Design to All</th>
                             </tr>
                         </thead>
                         <tbody id="bulkTableBody"></tbody>
