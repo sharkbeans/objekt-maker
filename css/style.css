@@ -2565,7 +2565,7 @@ body {
     align-items: center;
     gap: 3px;
     position: absolute;
-    bottom: 1px;
+    bottom: 14px;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
