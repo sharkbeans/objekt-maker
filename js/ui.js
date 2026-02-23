@@ -5404,6 +5404,7 @@ const UIManager = {
         }
 
         // Add font picker for front and back side text
+        let weightSlider = null;
         if (isFrontText || isBackText) {
             const fontContainer = document.createElement('div');
             fontContainer.className = 'canvas-editor-font-container';
@@ -5444,7 +5445,7 @@ const UIManager = {
             const weightWrapper = document.createElement('div');
             weightWrapper.className = 'canvas-editor-slider-wrapper';
 
-            const weightSlider = document.createElement('input');
+            weightSlider = document.createElement('input');
             weightSlider.type = 'range';
             weightSlider.className = 'canvas-editor-slider';
             weightSlider.min = '100';
@@ -5475,10 +5476,26 @@ const UIManager = {
             weightValueDisplay.className = 'canvas-editor-slider-value';
             weightValueDisplay.textContent = popupWeight;
 
-            weightSlider.addEventListener('mousedown', (e) => e.stopPropagation());
-            weightSlider.addEventListener('mouseup', (e) => e.stopPropagation());
+            // Track slider dragging state (only for mouse/desktop, not touch/mobile)
+            weightSlider.addEventListener('mousedown', (e) => {
+                this._isSliderDragging = true;
+                e.stopPropagation();
+            });
+            weightSlider.addEventListener('mouseup', (e) => {
+                this._isSliderDragging = false;
+                e.stopPropagation();
+            });
             weightSlider.addEventListener('click', (e) => e.stopPropagation());
             weightSlider.addEventListener('touchstart', (e) => e.stopPropagation());
+
+            // Setup slider transparency (deferred until editor is added to DOM)
+            weightSlider._setupTransparency = () => {
+                this.setupSliderTransparency(weightSlider, {
+                    modal: editorContent,
+                    backdrop: document.getElementById('canvasTextEditorBackdrop'),
+                    sliderContainer: weightContainer
+                });
+            };
             weightSlider.addEventListener('input', (e) => {
                 const weight = parseInt(e.target.value);
                 weightValueDisplay.textContent = weight;
@@ -5845,6 +5862,9 @@ const UIManager = {
         // Setup slider transparency for all sliders (must be done after adding to DOM)
         if (heightSlider && heightSlider._setupTransparency) {
             heightSlider._setupTransparency();
+        }
+        if (weightSlider && weightSlider._setupTransparency) {
+            weightSlider._setupTransparency();
         }
         // Setup transparency for all logo sliders
         logoSliders.forEach(slider => {
