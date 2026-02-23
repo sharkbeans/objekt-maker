@@ -31,6 +31,8 @@ const BulkManager = {
             progressFill: document.getElementById('bulkProgressFill'),
             progressText: document.getElementById('bulkProgressText'),
             exportAllBtn: document.getElementById('bulkExportAll'),
+            exportFrontOnlyBtn: document.getElementById('bulkExportFrontOnly'),
+            exportBackOnlyBtn: document.getElementById('bulkExportBackOnly'),
             bulkCreateBtn: document.getElementById('bulkCreateBtn'),       // May be null (removed from UI)
             bulkCreateBtnMobile: document.getElementById('bulkCreateBtnMobile'), // May be null (removed from UI)
             // Bulk edit banner (on main canvas)
@@ -82,7 +84,9 @@ const BulkManager = {
         this.elements.applyRow1Btn.addEventListener('click', () => this.applyRow1ToAll());
         this.elements.addMoreBtn.addEventListener('click', () => this.elements.fileInput.click());
         this.elements.clearAllBtn.addEventListener('click', () => this.clearAll());
-        this.elements.exportAllBtn.addEventListener('click', () => this.exportAll());
+        this.elements.exportAllBtn.addEventListener('click', () => this.exportAll('all'));
+        this.elements.exportFrontOnlyBtn.addEventListener('click', () => this.exportAll('front'));
+        this.elements.exportBackOnlyBtn.addEventListener('click', () => this.exportAll('back'));
 
         // Back to Bulk button (on main canvas banner — top and bottom)
         const backToBulkHandler = () => {
@@ -150,6 +154,8 @@ const BulkManager = {
         this.elements.exportAllBtn.innerHTML = this.isMobile()
             ? '<i data-lucide="download"></i> Save All'
             : '<i data-lucide="download"></i> Download All as ZIP';
+        this.elements.exportFrontOnlyBtn.innerHTML = '<i data-lucide="download"></i> Front Only';
+        this.elements.exportBackOnlyBtn.innerHTML = '<i data-lucide="download"></i> Back Only';
         lucide.createIcons();
     },
 
@@ -226,12 +232,10 @@ const BulkManager = {
         this.updateUI();
     },
 
-    moveRow(fromIndex, direction) {
-        const toIndex = fromIndex + direction;
-        if (toIndex < 0 || toIndex >= this.rows.length) return;
-        const temp = this.rows[fromIndex];
-        this.rows[fromIndex] = this.rows[toIndex];
-        this.rows[toIndex] = temp;
+    makeFirst(index) {
+        if (index <= 0 || index >= this.rows.length) return;
+        const [row] = this.rows.splice(index, 1);
+        this.rows.unshift(row);
         this.updateUI();
     },
 
@@ -299,12 +303,17 @@ const BulkManager = {
         this.elements.tableContainer.style.display = hasRows ? 'block' : 'none';
         this.elements.countLabel.textContent = `${this.rows.length} card${this.rows.length !== 1 ? 's' : ''}`;
         this.elements.exportAllBtn.disabled = !hasRows;
+        this.elements.exportFrontOnlyBtn.disabled = !hasRows;
+        this.elements.exportBackOnlyBtn.disabled = !hasRows;
 
         // Hide back-side columns if objekt border is off
         const showBack = CanvasManager.showObjektBorder;
         document.querySelectorAll('.bulk-back-col').forEach(el => {
             el.style.display = showBack ? '' : 'none';
         });
+        // Show/hide front/back-only buttons based on back availability
+        this.elements.exportFrontOnlyBtn.style.display = showBack ? '' : 'none';
+        this.elements.exportBackOnlyBtn.style.display = showBack ? '' : 'none';
 
         this.renderTable();
     },
@@ -328,8 +337,9 @@ const BulkManager = {
                 <td class="bulk-col-text">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.topText)}" data-index="${index}" data-field="topText">
                 </td>
-                <td class="bulk-col-text">
+                <td class="bulk-col-text bulk-col-middletext">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.middleText)}" data-index="${index}" data-field="middleText">
+                    ${index === 0 ? '<button class="bulk-edit-hint bulk-random-btn" data-action="randomizeSerials"><i data-lucide="shuffle"></i> Random</button>' : ''}
                 </td>
                 <td class="bulk-col-text">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.bottomText)}" data-index="${index}" data-field="bottomText">
@@ -345,19 +355,16 @@ const BulkManager = {
                 </td>
                 ${index === 0 ? `
                 <td class="bulk-col-actions">
-                    <button class="bulk-action-btn bulk-action-apply-row1" data-action="applyRow1" title="Copy Design to All">
-                        <i data-lucide="copy"></i> Copy Design to All
+                    <button class="bulk-action-btn bulk-action-apply-row1" data-action="applyRow1" title="Apply to All">
+                        <i data-lucide="copy"></i> Apply to All
                     </button>
                 </td>` : `
                 <td class="bulk-col-actions">
                     <button class="bulk-action-btn" data-action="edit" data-index="${index}" title="Edit on Canvas">
                         <i data-lucide="pencil"></i>
                     </button>
-                    <button class="bulk-action-btn" data-action="moveUp" data-index="${index}" title="Move up">
-                        <i data-lucide="chevron-up"></i>
-                    </button>
-                    <button class="bulk-action-btn" data-action="moveDown" data-index="${index}" title="Move down" ${index === this.rows.length - 1 ? 'disabled' : ''}>
-                        <i data-lucide="chevron-down"></i>
+                    <button class="bulk-action-btn" data-action="makeFirst" data-index="${index}" title="Make template (row 1)">
+                        <i data-lucide="arrow-up-to-line"></i>
                     </button>
                     <button class="bulk-action-btn bulk-action-delete" data-action="remove" data-index="${index}" title="Remove">
                         <i data-lucide="trash-2"></i>
@@ -410,12 +417,20 @@ const BulkManager = {
                 switch (action) {
                     case 'applyRow1': this.applyRow1ToAll(); break;
                     case 'edit': this.enterEditMode(idx); break;
-                    case 'moveUp': this.moveRow(idx, -1); break;
-                    case 'moveDown': this.moveRow(idx, 1); break;
+                    case 'makeFirst': this.makeFirst(idx); break;
                     case 'remove': this.removeRow(idx); break;
                 }
             });
         });
+
+        // Bind random serial button
+        const randomBtn = tbody.querySelector('.bulk-random-btn');
+        if (randomBtn) {
+            randomBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.randomizeSerials();
+            });
+        }
 
         lucide.createIcons();
     },
@@ -617,17 +632,27 @@ const BulkManager = {
         });
     },
 
-    async exportAll() {
+    async exportAll(mode = 'all') {
         if (this.rows.length === 0) return;
 
         const total = this.rows.length;
         const showBack = CanvasManager.showObjektBorder;
         const mobile = this.isMobile();
+        const exportFront = mode === 'all' || mode === 'front';
+        const exportBack = (mode === 'all' || mode === 'back') && showBack;
 
         // Show progress
         this.elements.progress.style.display = 'flex';
         this.elements.exportAllBtn.disabled = true;
-        this.elements.exportAllBtn.innerHTML = '<i data-lucide="loader"></i> Generating...';
+        this.elements.exportFrontOnlyBtn.disabled = true;
+        this.elements.exportBackOnlyBtn.disabled = true;
+
+        // Find the clicked button to show generating state
+        const activeBtn = mode === 'front' ? this.elements.exportFrontOnlyBtn
+            : mode === 'back' ? this.elements.exportBackOnlyBtn
+            : this.elements.exportAllBtn;
+        const originalBtnHtml = activeBtn.innerHTML;
+        activeBtn.innerHTML = '<i data-lucide="loader"></i> Generating...';
         lucide.createIcons();
 
         // Hide template overlays during export
@@ -654,12 +679,14 @@ const BulkManager = {
                 CanvasManager.render();
 
                 // Capture front
-                const mainCanvas = document.getElementById('mainCanvas');
-                const frontBlob = await this.canvasToBlob(mainCanvas);
-                generatedFiles.push({ name: `card-${num}-front.png`, blob: frontBlob });
+                if (exportFront) {
+                    const mainCanvas = document.getElementById('mainCanvas');
+                    const frontBlob = await this.canvasToBlob(mainCanvas);
+                    generatedFiles.push({ name: `card-${num}-front.png`, blob: frontBlob });
+                }
 
                 // Capture back (if applicable)
-                if (showBack) {
+                if (exportBack) {
                     const backCanvas = CanvasManager.renderBackSide();
                     const backBlob = await this.canvasToBlob(backCanvas);
                     generatedFiles.push({ name: `card-${num}-back.png`, blob: backBlob });
@@ -679,7 +706,10 @@ const BulkManager = {
                 if (navigator.canShare && navigator.canShare({ files: shareFiles })) {
                     this.elements.progressText.textContent = '100% - Sharing...';
                     try {
-                        await navigator.share({ files: shareFiles, title: 'Objektify Bulk Export' });
+                        const shareTitle = mode === 'front' ? 'Objektify Bulk Export (Front)'
+                            : mode === 'back' ? 'Objektify Bulk Export (Back)'
+                            : 'Objektify Bulk Export';
+                        await navigator.share({ files: shareFiles, title: shareTitle });
                         this.elements.progressText.textContent = 'Done!';
                         return;
                     } catch (e) {
@@ -701,7 +731,10 @@ const BulkManager = {
             const zipBlob = await zip.generateAsync({ type: 'blob' });
             const url = URL.createObjectURL(zipBlob);
             const link = document.createElement('a');
-            link.download = 'objektify-bulk.zip';
+            const zipName = mode === 'front' ? 'objektify-bulk-front.zip'
+                : mode === 'back' ? 'objektify-bulk-back.zip'
+                : 'objektify-bulk.zip';
+            link.download = zipName;
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
@@ -727,9 +760,55 @@ const BulkManager = {
                 this.elements.progress.style.display = 'none';
                 this.elements.progressFill.style.width = '0%';
                 this.elements.exportAllBtn.disabled = false;
+                this.elements.exportFrontOnlyBtn.disabled = false;
+                this.elements.exportBackOnlyBtn.disabled = false;
                 this.elements.exportAllBtn.innerHTML = btnLabel;
+                activeBtn.innerHTML = originalBtnHtml;
                 lucide.createIcons();
             }, 2000);
+        }
+    },
+
+    randomizeSerials() {
+        if (this.rows.length === 0) return;
+
+        // Generate unique random serials
+        const usedSerials = new Set();
+        const generateSerial = () => {
+            let serial;
+            do {
+                serial = String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0');
+            } while (usedSerials.has(serial));
+            usedSerials.add(serial);
+            return serial;
+        };
+
+        const changed = [];
+        for (let i = 0; i < this.rows.length; i++) {
+            const serial = generateSerial();
+            const oldVal = this.rows[i].middleText;
+            // Replace the #NNNNN serial portion, or trailing digits as fallback
+            let newVal;
+            if (/#\d+/.test(oldVal)) {
+                newVal = oldVal.replace(/#\d+/, '#' + serial);
+            } else {
+                newVal = oldVal.replace(/\d+$/, '') + serial;
+            }
+            if (newVal !== oldVal) changed.push(i);
+            this.rows[i].middleText = newVal;
+        }
+        this.renderTable();
+
+        // Flash changed cells
+        for (const rowIndex of changed) {
+            const input = this.elements.tableBody.querySelector(`input[data-index="${rowIndex}"][data-field="middleText"]`);
+            if (input) {
+                input.classList.add('bulk-input-changed');
+                setTimeout(() => input.classList.remove('bulk-input-changed'), 2000);
+            }
+        }
+        if (typeof ToastManager !== 'undefined') {
+            ToastManager.success(`Randomized serials for ${this.rows.length} card${this.rows.length !== 1 ? 's' : ''}`);
         }
     },
 

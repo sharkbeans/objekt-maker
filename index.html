@@ -1346,7 +1346,7 @@
                 <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
                     <span class="bulk-count" id="bulkCount">0 cards</span>
                     <div class="bulk-actions-right">
-                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small" title="Copies text fields from Row 1 (template) to all other rows"><i data-lucide="copy"></i> Copy Design to All</button>
+                        <button id="bulkApplyRow1" class="btn btn-secondary btn-small" title="Copies text fields from Row 1 (template) to all other rows"><i data-lucide="copy"></i> Apply to All</button>
                         <button id="bulkAddMore" class="btn btn-secondary btn-small"><i data-lucide="plus"></i> Add More</button>
                         <button id="bulkClearAll" class="btn btn-secondary btn-small"><i data-lucide="trash-2"></i> Clear All</button>
                     </div>
@@ -1365,7 +1365,7 @@
                                 <th class="bulk-col-text bulk-back-col">Name</th>
                                 <th class="bulk-col-text bulk-back-col">Class</th>
                                 <th class="bulk-col-text bulk-back-col">Season</th>
-                                <th class="bulk-col-actions">Copy Design to All</th>
+                                <th class="bulk-col-actions">Apply to All</th>
                             </tr>
                         </thead>
                         <tbody id="bulkTableBody"></tbody>
@@ -1381,6 +1381,12 @@
                     </div>
                     <span class="bulk-progress-text" id="bulkProgressText">0%</span>
                 </div>
+                <button id="bulkExportFrontOnly" class="btn btn-secondary" disabled>
+                    <i data-lucide="download"></i> Front Only
+                </button>
+                <button id="bulkExportBackOnly" class="btn btn-secondary bulk-back-col" disabled>
+                    <i data-lucide="download"></i> Back Only
+                </button>
                 <button id="bulkExportAll" class="btn btn-primary" disabled>
                     <i data-lucide="download"></i> Download All as ZIP
                 </button>

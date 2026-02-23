@@ -2552,6 +2552,36 @@ body {
     letter-spacing: 0.03em;
 }
 
+.bulk-col-middletext {
+    position: relative;
+}
+
+.bulk-random-btn {
+    background: none;
+    border: none;
+    padding: 1px 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.bulk-random-btn i,
+.bulk-random-btn svg {
+    width: 10px;
+    height: 10px;
+}
+
+.bulk-random-btn:hover {
+    opacity: 1;
+    color: #fde047;
+}
+
 .bulk-row-template.bulk-row-template-clickable:hover {
     background: rgba(250, 204, 21, 0.18) !important;
     border-left-color: #fde047;
