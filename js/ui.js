@@ -3855,16 +3855,35 @@ const UIManager = {
         const rules = [];
         let addedCount = 0;
 
+        const mimeTypes = {
+            '.ttf': 'font/ttf',
+            '.otf': 'font/otf',
+            '.woff': 'font/woff',
+            '.woff2': 'font/woff2',
+        };
+        const formatNames = {
+            '.ttf': 'truetype',
+            '.otf': 'opentype',
+            '.woff': 'woff',
+            '.woff2': 'woff2',
+        };
+
         for (const { path, entry } of fontFiles) {
-            const fileName = path.split('/').pop().replace(fontExtensions, '').trim();
-            const fontName = fontFiles.length === 1 ? zipBaseName : `${zipBaseName} ${fileName}`;
+            const fileName = path.split('/').pop();
+            const ext = fileName.match(/\.[^.]+$/)?.[0]?.toLowerCase() ?? '';
+            const baseName = fileName.replace(fontExtensions, '').trim();
+            const fontName = fontFiles.length === 1 ? zipBaseName : `${zipBaseName} ${baseName}`;
 
             if (this.customFonts.some(f => f.name === fontName)) continue;
 
-            const blob = await entry.async('blob');
+            const rawBlob = await entry.async('blob');
+            // Re-type the blob with the correct font MIME type so browsers
+            // accept it in @font-face over HTTPS (avoids MIME mismatch rejection).
+            const blob = new Blob([rawBlob], { type: mimeTypes[ext] ?? 'font/ttf' });
             const objectUrl = URL.createObjectURL(blob);
+            const format = formatNames[ext] ?? 'truetype';
 
-            rules.push(`@font-face { font-family: '${fontName}'; src: url('${objectUrl}'); }`);
+            rules.push(`@font-face { font-family: '${fontName}'; src: url('${objectUrl}') format('${format}'); }`);
             this.customFonts.push({ name: fontName, url: objectUrl });
             addedCount++;
         }
