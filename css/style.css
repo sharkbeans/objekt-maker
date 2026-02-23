@@ -2228,6 +2228,7 @@ body {
 @media (max-width: 768px) {
     .canvas-top-bar {
         gap: var(--space-sm);
+        flex-wrap: wrap;
     }
 
     .btn-icon {
@@ -2238,6 +2239,19 @@ body {
     .btn-icon svg {
         width: 16px;
         height: 16px;
+    }
+
+    /* On mobile, pull the reset button out of absolute positioning and
+       place it as a full-width row above the front/back toggle */
+    .canvas-reset-btn {
+        position: static;
+        transform: none;
+        order: -1;
+        width: 100%;
+    }
+
+    .canvas-reset-btn:hover {
+        transform: translateY(-1px);
     }
 }
 
