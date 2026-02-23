@@ -2253,6 +2253,12 @@ body {
     .canvas-reset-btn:hover {
         transform: translateY(-1px);
     }
+
+    /* Move undo/redo below the full-width toggle so they share one row */
+    .canvas-top-bar #undoBtn,
+    .canvas-top-bar #redoBtn {
+        order: 1;
+    }
 }
 
 /* ========================================
