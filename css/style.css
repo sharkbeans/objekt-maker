@@ -2253,6 +2253,15 @@ body {
     .canvas-reset-btn:hover {
         transform: translateY(-1px);
     }
+
+    /* Move undo button after the view toggle so it sits on the same row as redo */
+    #undoBtn {
+        order: 1;
+    }
+
+    #redoBtn {
+        order: 1;
+    }
 }
 
 /* ========================================
