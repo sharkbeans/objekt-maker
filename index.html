@@ -464,19 +464,16 @@
 
                 <!-- Back Side Controls (Desktop - in sidebar) -->
                 <section class="control-section back-side-controls-desktop" id="backSideSection" style="display: none;">
-                    <h2 class="section-title">
-                        <span>Back Side</span>
-                    </h2>
+                    <h2 class="section-title"><i data-lucide="camera"></i> Upload Image</h2>
+                    <div class="upload-area" id="backUploadArea">
+                        <input type="file" id="backImageUpload" accept="image/png,image/jpeg,image/jpg" hidden>
+                        <label for="backImageUpload" class="upload-label">
+                            <span class="upload-icon"><i data-lucide="upload"></i></span>
+                            <span class="upload-text">Click to upload or drag images here</span>
+                            <span class="upload-hint">JPG or PNG, max 5MB</span>
+                        </label>
+                    </div>
                     <div id="backSideContent">
-                        <!-- Back Image Upload -->
-                        <div class="upload-area" id="backUploadArea" style="margin-bottom: var(--space-lg);">
-                            <input type="file" id="backImageUpload" accept="image/png,image/jpeg,image/jpg" hidden>
-                            <label for="backImageUpload" class="upload-label">
-                                <span class="upload-icon"><i data-lucide="upload"></i></span>
-                                <span class="upload-text">Upload back side image</span>
-                                <span class="upload-hint">JPG or PNG, max 5MB</span>
-                            </label>
-                        </div>
 
                         <!-- Back Image Adjustments -->
                         <div id="backImageAdjustments" class="adjustment-controls collapsible-section" style="margin-bottom: var(--space-lg); display: none;">
@@ -890,7 +887,7 @@
                     <button id="redoBtn" class="btn btn-icon" disabled title="Redo (Ctrl+Y)">
                         <i data-lucide="redo-2"></i>
                     </button>
-                    <button id="resetBtnCanvas" class="btn btn-danger canvas-reset-btn"><i data-lucide="rotate-ccw"></i> Reset</button>
+                    <button id="resetBtnCanvas" class="btn btn-danger canvas-reset-btn"><i data-lucide="rotate-ccw"></i><span class="reset-btn-label"> Reset</span></button>
                 </div>
 
                 <!-- Mobile Pan Controls Layout (sliders outside canvas) - COMMENTED OUT
@@ -902,6 +899,12 @@
                 <div class="canvas-wrapper-container">
                     <div class="canvas-wrapper active" id="canvasWrapper">
                         <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                        <!-- Mobile upload placeholder (shown when no image) -->
+                        <div class="canvas-upload-placeholder" id="canvasUploadPlaceholder">
+                            <span class="upload-icon"><i data-lucide="upload"></i></span>
+                            <span class="upload-text">Click to upload or drag images here</span>
+                            <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
+                        </div>
                         <!-- Tooltip for top text field -->
                         <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
                             <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
@@ -981,19 +984,16 @@
 
                 <!-- Back Side Controls (Mobile - below back canvas) -->
                 <section class="control-section back-side-controls-mobile" id="backSideSectionMobile" style="display: none;">
-                    <h2 class="section-title">
-                        <span>Back Side</span>
-                    </h2>
+                    <h2 class="section-title"><i data-lucide="camera"></i> Upload Image</h2>
+                    <div class="upload-area" id="backUploadAreaMobile">
+                        <input type="file" id="backImageUploadMobile" accept="image/png,image/jpeg,image/jpg" hidden>
+                        <label for="backImageUploadMobile" class="upload-label">
+                            <span class="upload-icon"><i data-lucide="upload"></i></span>
+                            <span class="upload-text">Click to upload or drag images here</span>
+                            <span class="upload-hint">JPG or PNG, max 5MB</span>
+                        </label>
+                    </div>
                     <div id="backSideContentMobile">
-                        <!-- Back Image Upload (Mobile) -->
-                        <div class="upload-area" id="backUploadAreaMobile" style="margin-bottom: var(--space-lg);">
-                            <input type="file" id="backImageUploadMobile" accept="image/png,image/jpeg,image/jpg" hidden>
-                            <label for="backImageUploadMobile" class="upload-label">
-                                <span class="upload-icon"><i data-lucide="upload"></i></span>
-                                <span class="upload-text">Upload back side image</span>
-                                <span class="upload-hint">JPG or PNG, max 5MB</span>
-                            </label>
-                        </div>
 
                         <!-- Back Image Adjustments (Mobile) -->
                         <div id="backImageAdjustmentsMobile" class="adjustment-controls collapsible-section" style="margin-bottom: var(--space-lg); display: none;">

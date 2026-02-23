@@ -490,6 +490,7 @@ const SavedCardsManager = {
                 item.addEventListener('click', async () => {
                     try {
                         await this.loadCard(card.id);
+                        UIManager.updateCanvasUploadPlaceholder();
                         ToastManager.success('Card loaded!');
                     } catch (error) {
                         ToastManager.error(`Failed to load card: ${error.message}`);

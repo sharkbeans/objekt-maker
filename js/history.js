@@ -315,6 +315,7 @@ const HistoryManager = {
                         this._ensureCanvasToggleVisibility();
                         this._isRestoring = false;
                         this.updateUI();
+                        UIManager.updateCanvasUploadPlaceholder();
                         console.log('[Session] State restored from localStorage');
                     });
                 });

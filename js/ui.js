@@ -39,6 +39,7 @@ const UIManager = {
             // Canvas
             canvasContainer: document.getElementById('canvasContainer'),
             canvasWrapper: document.getElementById('canvasWrapper'),
+            canvasUploadPlaceholder: document.getElementById('canvasUploadPlaceholder'),
             backCanvasWrapper: document.getElementById('backCanvasWrapper'),
             canvasViewToggle: document.getElementById('canvasViewToggle'),
             toggleBtns: document.querySelectorAll('.toggle-btn'),
@@ -384,6 +385,9 @@ const UIManager = {
         this.currentView = null;
         this.switchCanvasView('front');
 
+        // Show mobile canvas upload placeholder if no image loaded
+        this.updateCanvasUploadPlaceholder();
+
     },
 
     /**
@@ -395,6 +399,22 @@ const UIManager = {
         this.elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         this.elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // Mobile canvas upload placeholder events
+        if (this.elements.canvasUploadPlaceholder) {
+            this.elements.canvasUploadPlaceholder.addEventListener('click', () => {
+                this.elements.imageUpload.click();
+            });
+            this.elements.canvasUploadPlaceholder.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                this.elements.canvasUploadPlaceholder.classList.add('drag-over');
+            });
+            this.elements.canvasUploadPlaceholder.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                this.elements.canvasUploadPlaceholder.classList.remove('drag-over');
+            });
+            this.elements.canvasUploadPlaceholder.addEventListener('drop', (e) => this.handleDrop(e));
+        }
 
         // Back image upload events
         if (this.elements.backImageUpload) {
@@ -2984,6 +3004,7 @@ const UIManager = {
         // Multiple images → bulk create mode
         if (files.length > 1) {
             this.startBulkFromFiles(files);
+            this.updateCanvasUploadPlaceholder();
             // Reset input so same files can be re-selected
             event.target.value = '';
             return;
@@ -3003,6 +3024,9 @@ const UIManager = {
 
             // Show mobile pan controls
             this.updateMobilePanControlsVisibility();
+
+            // Hide mobile canvas upload placeholder
+            this.updateCanvasUploadPlaceholder();
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -4249,6 +4273,9 @@ const UIManager = {
     async handleDrop(event) {
         event.preventDefault();
         this.elements.uploadArea.classList.remove('drag-over');
+        if (this.elements.canvasUploadPlaceholder) {
+            this.elements.canvasUploadPlaceholder.classList.remove('drag-over');
+        }
 
         const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/'));
         if (!files.length) return;
@@ -4256,6 +4283,7 @@ const UIManager = {
         // Multiple images → bulk create mode
         if (files.length > 1) {
             this.startBulkFromFiles(files);
+            this.updateCanvasUploadPlaceholder();
             return;
         }
 
@@ -4266,6 +4294,7 @@ const UIManager = {
             this.showCanvas();
             this.scrollToPreview();
             this.showSuccessMessage('Image loaded successfully!');
+            this.updateCanvasUploadPlaceholder();
         } catch (error) {
             this.showErrorMessage(error.message);
         }
@@ -4283,6 +4312,17 @@ const UIManager = {
      */
     hideCanvas() {
         this.elements.canvasWrapper.classList.remove('active');
+    },
+
+    /**
+     * Update mobile canvas upload placeholder visibility.
+     * Shows when no image is loaded (single or bulk) on mobile.
+     */
+    updateCanvasUploadPlaceholder() {
+        const el = this.elements.canvasUploadPlaceholder;
+        if (!el) return;
+        const hasImage = CanvasManager.hasImage() || (BulkManager.rows && BulkManager.rows.length > 0);
+        el.classList.toggle('visible', !hasImage);
     },
 
     /**

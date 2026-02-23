@@ -801,7 +801,12 @@ input[type="range"]::-moz-range-thumb:hover {
     pointer-events: auto;
 }
 
+.canvas-upload-placeholder {
+    pointer-events: auto;
+}
+
 .canvas-wrapper {
+    position: relative;
     grid-area: 1 / 1;
     display: none;
     border-radius: var(--radius-sm);
@@ -832,6 +837,37 @@ input[type="range"]::-moz-range-thumb:hover {
 .canvas-wrapper.rotating-out-right {
     animation: rotateOutRight 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
     z-index: 1;
+}
+
+/* Mobile canvas upload placeholder */
+.canvas-upload-placeholder {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .canvas-upload-placeholder {
+        display: none;
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-sm);
+        text-align: center;
+        cursor: pointer;
+        border: 2px dashed var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-color);
+        transition: all 0.2s ease;
+    }
+    .canvas-upload-placeholder.visible {
+        display: flex;
+    }
+    .canvas-upload-placeholder:hover {
+        border-color: var(--primary-color);
+        background: rgba(41, 122, 255, 0.04);
+    }
 }
 
 @keyframes rotateIn {
@@ -2250,13 +2286,23 @@ body {
         height: 16px;
     }
 
-    /* On mobile, pull the reset button out of absolute positioning and
-       place it as a full-width row above the front/back toggle */
+    /* On mobile, make the reset button a small icon-only square, placed
+       above the view toggle on the right side */
     .canvas-reset-btn {
-        position: static;
+        position: absolute;
+        right: 0;
+        top: 0;
         transform: none;
-        order: -1;
-        width: 100%;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .canvas-reset-btn .reset-btn-label {
+        display: none;
     }
 
     .canvas-reset-btn:hover {
