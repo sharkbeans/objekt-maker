@@ -62,8 +62,9 @@ const CanvasManager = {
     bottomText: 'tripleS',
     textColor: '#000000', // Color for all text
     fontFamily: 'Helvetica Neue', // Font family for front text
-    fontWeightFront: null, // Font weight for front text (null = per-role defaults for Helvetica Neue)
-    fontWeightBack: null,  // Font weight for back text (null = per-role defaults for Helvetica Neue)
+    fontWeightFront: null, // Font weight for front middle text / 100A (null = per-role defaults for Helvetica Neue)
+    fontWeightBack: null,  // Font weight for back main text / name, class, season (null = per-role defaults for Helvetica Neue)
+    fontWeightBorder: null, // Shared font weight for border text on both sides (front top/bottom + back rotated)
 
     // Text height offsets (Front side)
     topTextHeight: 0,
@@ -394,9 +395,14 @@ const CanvasManager = {
      * @returns {number} The font weight to use
      */
     getFontWeightForRole(role, defaultWeight) {
-        if (role.startsWith('front')) {
+        // Border text roles are shared between front and back sides
+        if (role === 'frontTop' || role === 'backRotated') {
+            return this.fontWeightBorder ?? defaultWeight;
+        }
+        if (role === 'frontMiddle') {
             return this.fontWeightFront ?? defaultWeight;
         }
+        // Back main text roles: backLabel, backValue
         return this.fontWeightBack ?? defaultWeight;
     },
 
@@ -407,6 +413,12 @@ const CanvasManager = {
 
     setFontWeightBack(weight) {
         this.fontWeightBack = weight;
+        this.render();
+        this.updateBackSidePreview();
+    },
+
+    setFontWeightBorder(weight) {
+        this.fontWeightBorder = weight;
         this.render();
         this.updateBackSidePreview();
     },
