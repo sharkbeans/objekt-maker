@@ -13,6 +13,7 @@ Made for Objekt cards and similar formats.
 | Back Side  | Signature, logos, QR         |
 | Bulk Mode  | Generate many cards at once  |
 | Export     | 300 DPI print-ready PNG      |
+|            |                              |
 | History    | Undo, redo, restore sessions |
 | Presets    | Save and share templates     |
 | Collection | Binder of saved full designs |
@@ -224,3 +225,12 @@ This project is an independent, open-source fan project created for non-commerci
 **Non-Commercial Use:** This tool is provided for free. The developer does not generate revenue, sell "Objekts," or provide any blockchain-related "minting" services associated with official MODHAUS products.
 
 **Assumption of Risk:** This software is provided "as is" without warranty of any kind. Users are responsible for ensuring their use of the tool complies with local laws and the official Terms of Service of the respective IP holders.
+ 
+ ## Offline Release
+
+ - Download the release ZIP from the project's GitHub Releases page.
+ - The ZIP root includes `index.html` plus the folders `fonts/`, `assets/`, `css/`, and `js/` so the app runs offline with no setup.
+ - To add custom fonts: create per-font folders inside the top-level `fonts/` directory (example: `fonts/MatrixSSK Regular/MatrixSSK Regular.ttf`). The app will try to load fonts from `fonts/` first, then fall back to `assets/fonts/`.
+ - Do not add or distribute copyrighted fonts unless you have the right to do so.
+ - To run: open `index.html` in a modern browser (no server required). Some browsers restrict loading local fonts via file://; in that case open the file with a simple local server, e.g. `python -m http.server`.
+

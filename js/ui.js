@@ -20,6 +20,7 @@ const UIManager = {
         'Caveat', 'Kalam'
     ],
     loadedFonts: new Set(),
+    customFonts: [], // { name: string, url: string } - loaded from manifest or ZIP upload
     fontObserver: null,
 
     /**
@@ -136,6 +137,7 @@ const UIManager = {
             closeFontPicker: document.getElementById('closeFontPicker'),
             fontSearchInput: document.getElementById('fontSearchInput'),
             fontList: document.getElementById('fontList'),
+            fontZipUpload: document.getElementById('fontZipUpload'),
             fontWeightLabel: document.getElementById('fontWeightLabel'),
             fontWeightSlider: document.getElementById('fontWeightSlider'),
             fontWeightValue: document.getElementById('fontWeightValue'),
@@ -372,6 +374,9 @@ const UIManager = {
         };
 
         this.bindEvents();
+
+        // Load local fonts from manifest (offline mode) -- async, non-blocking
+        this.loadLocalFontsFromManifest();
 
         console.log('UI Manager initialized');
 
@@ -1125,6 +1130,17 @@ const UIManager = {
         if (this.elements.fontPickerModal) {
             this.elements.fontPickerModal.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') this.closeFontPicker();
+            });
+        }
+
+        // Font ZIP upload
+        if (this.elements.fontZipUpload) {
+            this.elements.fontZipUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    this.handleFontZipUpload(file);
+                    e.target.value = ''; // reset so same file can be re-uploaded
+                }
             });
         }
 
@@ -3772,6 +3788,100 @@ const UIManager = {
     },
 
     /**
+     * Load fonts declared in fonts/manifest.json (offline / local release mode).
+     * Silently no-ops when fetch fails (online hosted environment or file:// restrictions).
+     */
+    async loadLocalFontsFromManifest() {
+        let entries;
+        try {
+            const resp = await fetch('fonts/manifest.json');
+            if (!resp.ok) return;
+            entries = await resp.json();
+        } catch (e) {
+            return;
+        }
+        if (!Array.isArray(entries) || entries.length === 0) return;
+
+        const style = document.createElement('style');
+        const rules = [];
+
+        for (const entry of entries) {
+            if (!entry.name || !entry.file) continue;
+            const url = `fonts/${entry.file}`;
+            rules.push(`@font-face { font-family: '${entry.name}'; src: url('${url}'); }`);
+            this.customFonts.push({ name: entry.name, url });
+        }
+
+        if (rules.length === 0) return;
+        style.textContent = rules.join('\n');
+        document.head.appendChild(style);
+        console.log(`[Fonts] Loaded ${rules.length} font(s) from manifest.json`);
+    },
+
+    /**
+     * Extract font files from a user-supplied ZIP and register them via @font-face.
+     * Font name is derived from the ZIP filename (strip extension).
+     */
+    async handleFontZipUpload(file) {
+        if (!window.JSZip) {
+            ToastManager.error('JSZip library not available.');
+            return;
+        }
+
+        const zipBaseName = file.name.replace(/\.zip$/i, '').trim();
+
+        let zip;
+        try {
+            zip = await JSZip.loadAsync(file);
+        } catch (e) {
+            ToastManager.error('Could not read ZIP file.');
+            return;
+        }
+
+        const fontExtensions = /\.(ttf|otf|woff|woff2)$/i;
+        const fontFiles = [];
+        zip.forEach((relativePath, zipEntry) => {
+            if (!zipEntry.dir && fontExtensions.test(relativePath)) {
+                fontFiles.push({ path: relativePath, entry: zipEntry });
+            }
+        });
+
+        if (fontFiles.length === 0) {
+            ToastManager.warning('No font files found in ZIP.');
+            return;
+        }
+
+        const style = document.createElement('style');
+        const rules = [];
+        let addedCount = 0;
+
+        for (const { path, entry } of fontFiles) {
+            const fileName = path.split('/').pop().replace(fontExtensions, '').trim();
+            const fontName = fontFiles.length === 1 ? zipBaseName : `${zipBaseName} ${fileName}`;
+
+            if (this.customFonts.some(f => f.name === fontName)) continue;
+
+            const blob = await entry.async('blob');
+            const objectUrl = URL.createObjectURL(blob);
+
+            rules.push(`@font-face { font-family: '${fontName}'; src: url('${objectUrl}'); }`);
+            this.customFonts.push({ name: fontName, url: objectUrl });
+            addedCount++;
+        }
+
+        if (addedCount === 0) {
+            ToastManager.info('All fonts from this ZIP were already loaded.');
+            return;
+        }
+
+        style.textContent = rules.join('\n');
+        document.head.appendChild(style);
+
+        this.renderFontList(this.elements.fontSearchInput?.value?.trim() ?? '');
+        ToastManager.success(`${addedCount} font${addedCount > 1 ? 's' : ''} loaded from ZIP.`);
+    },
+
+    /**
      * Load a Google Font by injecting a stylesheet link
      */
     loadGoogleFont(fontName) {
@@ -3812,7 +3922,9 @@ const UIManager = {
     },
 
     /**
-     * Render the font list with optional search filter
+     * Render the font list with optional search filter.
+     * Custom fonts (manifest / ZIP uploads) appear at the top,
+     * followed by the standard Helvetica Neue + Google Fonts list.
      */
     renderFontList(filter) {
         const container = this.elements.fontList;
@@ -3820,7 +3932,6 @@ const UIManager = {
 
         container.innerHTML = '';
 
-        // Clean up previous observer
         if (this.fontObserver) {
             this.fontObserver.disconnect();
         }
@@ -3828,68 +3939,96 @@ const UIManager = {
         const currentFont = CanvasManager.fontFamily;
         const lowerFilter = filter.toLowerCase();
 
-        // Include default font + Google Fonts
-        const allFonts = ['Helvetica Neue', ...this.googleFonts];
-        const filtered = allFonts.filter(f => f.toLowerCase().includes(lowerFilter));
+        // --- Custom fonts section (manifest + ZIP uploads) ---
+        const filteredCustom = this.customFonts.filter(f =>
+            f.name.toLowerCase().includes(lowerFilter)
+        );
 
-        // Create IntersectionObserver for lazy font loading
-        this.fontObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const item = entry.target;
-                    const fontName = item.dataset.font;
-                    if (fontName !== 'Helvetica Neue') {
-                        this.loadGoogleFont(fontName);
+        const standardFonts = ['Helvetica Neue', ...this.googleFonts];
+        const filteredStandard = standardFonts.filter(f => f.toLowerCase().includes(lowerFilter));
+        const hasCustom = filteredCustom.length > 0;
+        const hasStandard = filteredStandard.length > 0;
+
+        if (hasCustom) {
+            const label = document.createElement('div');
+            label.className = 'font-list-section-label';
+            label.textContent = 'Custom Fonts';
+            container.appendChild(label);
+
+            filteredCustom.forEach(({ name }) => {
+                const item = document.createElement('div');
+                item.className = 'font-list-item';
+                if (name === currentFont) item.classList.add('active');
+                item.textContent = name;
+                item.dataset.font = name;
+                item.style.fontFamily = `'${name}', sans-serif`; // already loaded, apply immediately
+                item.addEventListener('click', () => this._selectFont(name));
+                container.appendChild(item);
+            });
+        }
+
+        if (hasStandard) {
+            if (hasCustom) {
+                const label = document.createElement('div');
+                label.className = 'font-list-section-label';
+                label.textContent = 'Standard Fonts';
+                container.appendChild(label);
+            }
+
+            // Create IntersectionObserver for lazy Google Font loading
+            this.fontObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const item = entry.target;
+                        const fontName = item.dataset.font;
+                        if (fontName !== 'Helvetica Neue') {
+                            this.loadGoogleFont(fontName);
+                        }
+                        item.style.fontFamily = `'${fontName}', sans-serif`;
+                        this.fontObserver.unobserve(item);
                     }
-                    item.style.fontFamily = `'${fontName}', sans-serif`;
-                    this.fontObserver.unobserve(item);
-                }
+                });
+            }, { root: container, rootMargin: '50px' });
+
+            filteredStandard.forEach(fontName => {
+                const item = document.createElement('div');
+                item.className = 'font-list-item';
+                if (fontName === currentFont) item.classList.add('active');
+                item.textContent = fontName;
+                item.dataset.font = fontName;
+                item.addEventListener('click', () => this._selectFont(fontName));
+                container.appendChild(item);
+                this.fontObserver.observe(item);
             });
-        }, { root: container, rootMargin: '50px' });
+        }
+    },
 
-        filtered.forEach(fontName => {
-            const item = document.createElement('div');
-            item.className = 'font-list-item';
-            if (fontName === currentFont) item.classList.add('active');
-            item.textContent = fontName;
-            item.dataset.font = fontName;
+    /**
+     * Select a font: load if needed, update canvas + UI, close picker, push history.
+     */
+    _selectFont(fontName) {
+        // Only load from Google for standard Google Fonts (not custom fonts)
+        if (fontName !== 'Helvetica Neue' && !this.customFonts.some(f => f.name === fontName)) {
+            this.loadGoogleFont(fontName);
+        }
+        CanvasManager.setFontFamily(fontName);
 
-            item.addEventListener('click', () => {
-                // Load the font for canvas rendering
-                if (fontName !== 'Helvetica Neue') {
-                    this.loadGoogleFont(fontName);
-                }
-                CanvasManager.setFontFamily(fontName);
-
-                // Update desktop preview button
-                if (this.elements.fontPickerPreview) {
-                    this.elements.fontPickerPreview.textContent = fontName;
-                    this.elements.fontPickerPreview.style.fontFamily = `'${fontName}', sans-serif`;
-                }
-
-                // Update mobile preview button
-                if (this.elements.fontPickerPreviewMobile) {
-                    this.elements.fontPickerPreviewMobile.textContent = fontName;
-                    this.elements.fontPickerPreviewMobile.style.fontFamily = `'${fontName}', sans-serif`;
-                }
-
-                // Update canvas-text-editor font button if open
-                const editorFontBtn = document.querySelector('#canvasTextEditor .font-picker-btn span');
-                if (editorFontBtn) {
-                    editorFontBtn.textContent = fontName;
-                    editorFontBtn.style.fontFamily = `'${fontName}', sans-serif`;
-                }
-
-                // Show/hide font weight slider based on font
-                this.updateFontWeightVisibility(fontName);
-
-                this.closeFontPicker();
-                HistoryManager.pushState(`Font: ${fontName}`);
-            });
-
-            container.appendChild(item);
-            this.fontObserver.observe(item);
-        });
+        if (this.elements.fontPickerPreview) {
+            this.elements.fontPickerPreview.textContent = fontName;
+            this.elements.fontPickerPreview.style.fontFamily = `'${fontName}', sans-serif`;
+        }
+        if (this.elements.fontPickerPreviewMobile) {
+            this.elements.fontPickerPreviewMobile.textContent = fontName;
+            this.elements.fontPickerPreviewMobile.style.fontFamily = `'${fontName}', sans-serif`;
+        }
+        const editorFontBtn = document.querySelector('#canvasTextEditor .font-picker-btn span');
+        if (editorFontBtn) {
+            editorFontBtn.textContent = fontName;
+            editorFontBtn.style.fontFamily = `'${fontName}', sans-serif`;
+        }
+        this.updateFontWeightVisibility(fontName);
+        this.closeFontPicker();
+        HistoryManager.pushState(`Font: ${fontName}`);
     },
 
     updateFontWeightVisibility() {

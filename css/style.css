@@ -3077,3 +3077,31 @@ body {
     background: var(--primary-color);
     color: #fff;
 }
+
+/* Font ZIP upload row */
+.font-zip-upload-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.font-zip-upload-btn {
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Section labels inside font list (Custom Fonts / Standard Fonts) */
+.font-list-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding: 6px 2px 2px 2px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2px;
+}

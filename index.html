@@ -1595,6 +1595,17 @@
             </div>
             <div class="font-picker-modal-body">
                 <input type="text" id="fontSearchInput" class="text-input" placeholder="Search fonts..." autocomplete="off">
+                <div class="font-zip-upload-row">
+                    <a href="https://www.dafont.com/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-small font-zip-upload-btn">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        Browse Fonts
+                    </a>
+                    <label for="fontZipUpload" class="btn btn-secondary btn-small font-zip-upload-btn">
+                        <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+                        Upload Font ZIP
+                    </label>
+                    <input type="file" id="fontZipUpload" accept=".zip" style="display: none;">
+                </div>
                 <div id="fontList" class="font-list"></div>
             </div>
         </div>
