@@ -43,6 +43,12 @@ const BulkManager = {
             backToBulkBannerBottom: document.getElementById('bulkEditBannerBottom'),
             backToBulkLabelBottom: document.getElementById('bulkEditLabelBottom'),
             backToBulkBtnBottom: document.getElementById('backToBulkBtnBottom'),
+            // Canvas nav (chevrons + counter)
+            canvasNav: document.getElementById('bulkCanvasNav'),
+            canvasPrevBtn: document.getElementById('bulkCanvasPrev'),
+            canvasNextBtn: document.getElementById('bulkCanvasNext'),
+            canvasCounter: document.getElementById('bulkCanvasCounter'),
+            canvasCounterLabel: document.querySelector('#bulkCanvasCounter .bulk-canvas-counter-label'),
         };
 
         this.bindEvents();
@@ -101,6 +107,14 @@ const BulkManager = {
         };
         this.elements.backToBulkBtn.addEventListener('click', backToBulkHandler);
         this.elements.backToBulkBtnBottom.addEventListener('click', backToBulkHandler);
+
+        // Canvas nav chevrons
+        this.elements.canvasPrevBtn.addEventListener('click', () => {
+            if (this.editingRowIndex > 0) this.enterEditMode(this.editingRowIndex - 1);
+        });
+        this.elements.canvasNextBtn.addEventListener('click', () => {
+            if (this.editingRowIndex < this.rows.length - 1) this.enterEditMode(this.editingRowIndex + 1);
+        });
     },
 
     captureTemplate() {
@@ -202,6 +216,7 @@ const BulkManager = {
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
+                    const wasEmpty = this.rows.length === 0;
                     this.rows.push({
                         image: img,
                         fileName: file.name,
@@ -217,6 +232,12 @@ const BulkManager = {
                         imagePosY: templateState.imagePosY,
                     });
                     this.updateUI();
+                    // On mobile, scroll to actionsBar when first image is added
+                    if (wasEmpty && window.innerWidth <= 768) {
+                        setTimeout(() => {
+                            this.elements.actionsBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 50);
+                    }
                 };
                 img.src = e.target.result;
             };
@@ -508,7 +529,25 @@ const BulkManager = {
         this.elements.backToBulkLabelBottom.textContent = editLabel;
         this.elements.backToBulkBanner.style.display = 'flex';
         this.elements.backToBulkBannerBottom.style.display = 'flex';
+
+        // Show canvas nav
+        this._updateCanvasNav();
         lucide.createIcons();
+    },
+
+    _updateCanvasNav() {
+        const total = this.rows.length;
+        const current = this.editingRowIndex;
+        this.elements.canvasNav.style.display = 'flex';
+        this.elements.canvasCounter.style.display = 'block'; // outer wrapper, inner div handles flex
+        this.elements.canvasCounterLabel.textContent = `${current + 1} / ${total}`;
+        this.elements.canvasPrevBtn.disabled = current <= 0;
+        this.elements.canvasNextBtn.disabled = current >= total - 1;
+    },
+
+    _hideCanvasNav() {
+        this.elements.canvasNav.style.display = '';
+        this.elements.canvasCounter.style.display = 'none';
     },
 
     exitEditMode() {
@@ -550,9 +589,10 @@ const BulkManager = {
             this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
         }
 
-        // Hide banner
+        // Hide banner and canvas nav
         this.elements.backToBulkBanner.style.display = 'none';
         this.elements.backToBulkBannerBottom.style.display = 'none';
+        this._hideCanvasNav();
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
 
@@ -612,9 +652,10 @@ const BulkManager = {
             this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
         }
 
-        // Hide banner and close completely
+        // Hide banner, canvas nav, and close completely
         this.elements.backToBulkBanner.style.display = 'none';
         this.elements.backToBulkBannerBottom.style.display = 'none';
+        this._hideCanvasNav();
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
         this.isOpen = false;

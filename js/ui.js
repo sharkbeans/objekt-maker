@@ -1302,10 +1302,18 @@ const UIManager = {
 
         // Action buttons
         this.elements.exportBtn.addEventListener('click', () => this.exportImage());
-        this.elements.resetBtn.addEventListener('click', () => this.resetAll());
         this.elements.exportBtnMobile.addEventListener('click', () => this.exportImage());
-        this.elements.resetBtnMobile.addEventListener('click', () => this.resetAll());
-        this.elements.resetBtnCanvas.addEventListener('click', () => this.resetAll());
+
+        const handleReset = () => {
+            if (confirm('Are you sure? This will clear the canvas, remove all uploaded images, and revert all settings to default.')) {
+                HistoryManager.clearSessionState();
+                localStorage.removeItem('selectedBorderId');
+                location.reload();
+            }
+        };
+        this.elements.resetBtn.addEventListener('click', handleReset);
+        this.elements.resetBtnMobile.addEventListener('click', handleReset);
+        this.elements.resetBtnCanvas.addEventListener('click', handleReset);
 
         // Canvas view toggle buttons
         this.elements.toggleBtns.forEach(btn => {
@@ -4321,7 +4329,8 @@ const UIManager = {
     updateCanvasUploadPlaceholder() {
         const el = this.elements.canvasUploadPlaceholder;
         if (!el) return;
-        const hasImage = CanvasManager.hasImage() || (BulkManager.rows && BulkManager.rows.length > 0);
+        const isBulkOpen = BulkManager.isOpen || (BulkManager.rows && BulkManager.rows.length > 0);
+        const hasImage = CanvasManager.hasImage() || isBulkOpen;
         el.classList.toggle('visible', !hasImage);
     },
 

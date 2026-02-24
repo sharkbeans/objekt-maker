@@ -865,15 +865,20 @@
                         <span class="bulk-edit-autosave-hint">Changes save when you return</span>
                     </div>
                     <button id="backToBulkBtn" class="btn btn-primary btn-small">
-                        <i data-lucide="check"></i> Save & Return to Bulk
+                        <i data-lucide="check"></i><span class="btn-label-text"> Save & Return to Bulk</span>
                     </button>
                 </div>
 
                 <!-- Canvas Top Bar: View Toggle + Undo/Redo -->
                 <div class="canvas-top-bar">
-                    <button id="undoBtn" class="btn btn-icon" disabled title="Undo (Ctrl+Z)">
-                        <i data-lucide="undo-2"></i>
-                    </button>
+                    <div class="canvas-undo-redo-group">
+                        <button id="undoBtn" class="btn btn-icon" disabled title="Undo (Ctrl+Z)">
+                            <i data-lucide="undo-2"></i>
+                        </button>
+                        <button id="redoBtn" class="btn btn-icon" disabled title="Redo (Ctrl+Y)">
+                            <i data-lucide="redo-2"></i>
+                        </button>
+                    </div>
                     <div class="canvas-view-toggle" id="canvasViewToggle">
                         <button class="toggle-btn active" data-view="front">
                             <i data-lucide="image"></i>
@@ -884,9 +889,6 @@
                             <span>Back Side</span>
                         </button>
                     </div>
-                    <button id="redoBtn" class="btn btn-icon" disabled title="Redo (Ctrl+Y)">
-                        <i data-lucide="redo-2"></i>
-                    </button>
                     <button id="resetBtnCanvas" class="btn btn-danger canvas-reset-btn"><i data-lucide="rotate-ccw"></i><span class="reset-btn-label"> Reset</span></button>
                 </div>
 
@@ -896,25 +898,38 @@
                 </div>
                 -->
 
-                <div class="canvas-wrapper-container">
-                    <div class="canvas-wrapper active" id="canvasWrapper">
-                        <canvas id="mainCanvas" width="768" height="1186"></canvas>
-                        <!-- Mobile upload placeholder (shown when no image) -->
-                        <div class="canvas-upload-placeholder" id="canvasUploadPlaceholder">
-                            <span class="upload-icon"><i data-lucide="upload"></i></span>
-                            <span class="upload-text">Click to upload or drag images here</span>
-                            <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
+                <div class="bulk-canvas-nav" id="bulkCanvasNav">
+                    <div class="canvas-wrapper-container">
+                        <div class="canvas-wrapper active" id="canvasWrapper">
+                            <canvas id="mainCanvas" width="768" height="1186"></canvas>
+                            <!-- Mobile upload placeholder (shown when no image) -->
+                            <div class="canvas-upload-placeholder" id="canvasUploadPlaceholder">
+                                <span class="upload-icon"><i data-lucide="upload"></i></span>
+                                <span class="upload-text">Click to upload or drag images here</span>
+                                <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
+                            </div>
+                            <!-- Tooltip for top text field -->
+                            <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
+                                <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
+                                    <i data-lucide="x"></i>
+                                </button>
+                                <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
+                            </div>
                         </div>
-                        <!-- Tooltip for top text field -->
-                        <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">
-                            <button class="tooltip-close" id="closeTooltip" aria-label="Close tooltip">
-                                <i data-lucide="x"></i>
-                            </button>
-                            <p class="tooltip-text">Click the 'SeoYeon' text to edit it directly!</p>
+                        <div class="canvas-wrapper" id="backCanvasWrapper">
+                            <canvas id="backCanvas" width="768" height="1186"></canvas>
                         </div>
                     </div>
-                    <div class="canvas-wrapper" id="backCanvasWrapper">
-                        <canvas id="backCanvas" width="768" height="1186"></canvas>
+                </div>
+                <div id="bulkCanvasCounter" style="display:none;">
+                    <div class="bulk-canvas-counter-row">
+                        <button class="bulk-canvas-nav-btn" id="bulkCanvasPrev" title="Previous card">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <span class="bulk-canvas-counter-label">1 / 1</span>
+                        <button class="bulk-canvas-nav-btn" id="bulkCanvasNext" title="Next card">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -926,7 +941,7 @@
                         <span class="bulk-edit-autosave-hint">Changes save when you return</span>
                     </div>
                     <button id="backToBulkBtnBottom" class="btn btn-primary btn-small">
-                        <i data-lucide="check"></i> Save & Return to Bulk
+                        <i data-lucide="check"></i><span class="btn-label-text"> Save & Return to Bulk</span>
                     </button>
                 </div>
 
@@ -1381,15 +1396,23 @@
                     </div>
                     <span class="bulk-progress-text" id="bulkProgressText">0%</span>
                 </div>
-                <button id="bulkExportFrontOnly" class="btn btn-secondary" disabled>
-                    <i data-lucide="download"></i> Front Only
-                </button>
-                <button id="bulkExportBackOnly" class="btn btn-secondary bulk-back-col" disabled>
-                    <i data-lucide="download"></i> Back Only
-                </button>
-                <button id="bulkExportAll" class="btn btn-primary" disabled>
-                    <i data-lucide="download"></i> Download All as ZIP
-                </button>
+                <div class="bulk-footer-btn-row">
+                    <button id="bulkExportFrontOnly" class="btn btn-secondary" disabled>
+                        <i data-lucide="download"></i>
+                        <span class="bulk-footer-long-label">Front Only</span>
+                        <span class="bulk-footer-short-label">Front</span>
+                    </button>
+                    <button id="bulkExportBackOnly" class="btn btn-secondary bulk-back-col" disabled>
+                        <i data-lucide="download"></i>
+                        <span class="bulk-footer-long-label">Back Only</span>
+                        <span class="bulk-footer-short-label">Back</span>
+                    </button>
+                    <button id="bulkExportAll" class="btn btn-primary" disabled>
+                        <i data-lucide="download"></i>
+                        <span class="bulk-footer-long-label">Download All as ZIP</span>
+                        <span class="bulk-footer-short-label">All</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
