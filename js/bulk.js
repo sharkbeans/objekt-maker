@@ -339,7 +339,7 @@ const BulkManager = {
                 </td>
                 <td class="bulk-col-text bulk-col-middletext">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.middleText)}" data-index="${index}" data-field="middleText">
-                    ${index === 0 ? '<button class="bulk-edit-hint bulk-random-btn" data-action="randomizeSerials"><i data-lucide="shuffle"></i> Random</button>' : ''}
+                    ${index === 0 ? '<button class="bulk-random-btn" data-action="randomizeSerials" title="Randomize serials"><i data-lucide="shuffle"></i></button>' : ''}
                 </td>
                 <td class="bulk-col-text">
                     <input type="text" class="bulk-input" value="${this.escapeHtml(row.bottomText)}" data-index="${index}" data-field="bottomText">

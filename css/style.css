@@ -2557,18 +2557,19 @@ body {
 }
 
 .bulk-random-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
     background: none;
     border: none;
-    padding: 1px 4px;
+    padding: 1px 2px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    position: absolute;
-    bottom: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
+    color: #facc15;
+    opacity: 0.85;
 }
 
 .bulk-random-btn i,
