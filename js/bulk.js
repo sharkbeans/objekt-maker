@@ -51,6 +51,9 @@ const BulkManager = {
             canvasNextBtn: document.getElementById('bulkCanvasNext'),
             canvasCounter: document.getElementById('bulkCanvasCounter'),
             canvasCounterLabel: document.querySelector('#bulkCanvasCounter .bulk-canvas-counter-label'),
+            // Side nav buttons (desktop/tablet)
+            canvasSidePrevBtn: document.getElementById('bulkCanvasSidePrev'),
+            canvasSideNextBtn: document.getElementById('bulkCanvasSideNext'),
         };
 
         this.bindEvents();
@@ -109,14 +112,26 @@ const BulkManager = {
         };
         this.elements.backToBulkBtn.addEventListener('click', backToBulkHandler);
         this.elements.backToBulkBtnBottom.addEventListener('click', backToBulkHandler);
+        this.elements.backToBulkBanner.addEventListener('click', backToBulkHandler);
+        this.elements.backToBulkBannerBottom.addEventListener('click', backToBulkHandler);
 
-        // Canvas nav chevrons
-        this.elements.canvasPrevBtn.addEventListener('click', () => {
-            if (this.editingRowIndex > 0) this.enterEditMode(this.editingRowIndex - 1);
-        });
-        this.elements.canvasNextBtn.addEventListener('click', () => {
-            if (this.editingRowIndex < this.rows.length - 1) this.enterEditMode(this.editingRowIndex + 1);
-        });
+        // Canvas nav chevrons (bottom counter + side buttons)
+        const prevHandler = () => {
+            if (this.editingRowIndex > 0) {
+                this._saveCurrentRow();
+                this.enterEditMode(this.editingRowIndex - 1);
+            }
+        };
+        const nextHandler = () => {
+            if (this.editingRowIndex < this.rows.length - 1) {
+                this._saveCurrentRow();
+                this.enterEditMode(this.editingRowIndex + 1);
+            }
+        };
+        this.elements.canvasPrevBtn.addEventListener('click', prevHandler);
+        this.elements.canvasNextBtn.addEventListener('click', nextHandler);
+        this.elements.canvasSidePrevBtn.addEventListener('click', prevHandler);
+        this.elements.canvasSideNextBtn.addEventListener('click', nextHandler);
     },
 
     captureTemplate() {
@@ -187,17 +202,22 @@ const BulkManager = {
 
         // If there are rows, show the banner so user can return to bulk mode
         if (this.rows.length > 0) {
+            this.editingRowIndex = 0;
+            this._templateBeforeEdit = JSON.parse(JSON.stringify(this.template.state));
             this.elements.backToBulkLabel.textContent = 'Bulk Mode';
             this.elements.backToBulkLabelBottom.textContent = 'Bulk Mode';
             this.elements.backToBulkBanner.style.display = 'flex';
             this.elements.backToBulkBannerBottom.style.display = 'flex';
-            lucide.createIcons();
             // Always show row 1 on canvas when closing without choosing
             this.applyRowToCanvas(this.rows[0]);
             CanvasManager.showTemplate = false;
             CanvasManager.showTemplateBack = false;
             CanvasManager.render();
             CanvasManager.updateBackSidePreview();
+            // Show canvas nav
+            document.body.classList.add('bulk-editing');
+            this._updateCanvasNav();
+            lucide.createIcons();
             // Persist the current template state (captured in openModal)
             this.saveBulkState();
         } else {
@@ -539,6 +559,7 @@ const BulkManager = {
         this.elements.backToBulkBannerBottom.style.display = 'flex';
 
         // Show canvas nav
+        document.body.classList.add('bulk-editing');
         this._updateCanvasNav();
         lucide.createIcons();
     },
@@ -551,6 +572,8 @@ const BulkManager = {
         this.elements.canvasCounterLabel.textContent = `${current + 1} / ${total}`;
         this.elements.canvasPrevBtn.disabled = current <= 0;
         this.elements.canvasNextBtn.disabled = current >= total - 1;
+        this.elements.canvasSidePrevBtn.disabled = current <= 0;
+        this.elements.canvasSideNextBtn.disabled = current >= total - 1;
     },
 
     _hideCanvasNav() {
@@ -558,7 +581,8 @@ const BulkManager = {
         this.elements.canvasCounter.style.display = 'none';
     },
 
-    exitEditMode() {
+    // Save the current row's canvas edits back to the row data and update the template
+    _saveCurrentRow() {
         if (this.editingRowIndex < 0) return;
 
         const row = this.rows[this.editingRowIndex];
@@ -597,7 +621,17 @@ const BulkManager = {
             this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
         }
 
+        // Persist updated rows and template
+        this.saveBulkState();
+    },
+
+    exitEditMode() {
+        if (this.editingRowIndex < 0) return;
+
+        this._saveCurrentRow();
+
         // Hide banner and canvas nav
+        document.body.classList.remove('bulk-editing');
         this.elements.backToBulkBanner.style.display = 'none';
         this.elements.backToBulkBannerBottom.style.display = 'none';
         this._hideCanvasNav();
@@ -607,9 +641,6 @@ const BulkManager = {
         // Restore canvas to template state and sync sidebar UI
         this.restoreTemplate();
         UIManager.syncUIFromPreset(this.template.state);
-
-        // Persist updated rows and template
-        this.saveBulkState();
 
         // Show save confirmation toast
         if (typeof ToastManager !== 'undefined') ToastManager.success('Card changes saved');
@@ -633,46 +664,16 @@ const BulkManager = {
     _exitEditModeAndClose() {
         if (this.editingRowIndex < 0) return;
 
-        const row = this.rows[this.editingRowIndex];
-
-        // Save per-row data
-        row.topText = CanvasManager.topText;
-        row.middleText = CanvasManager.middleText;
-        row.bottomText = CanvasManager.bottomText;
-        row.backNameValue = CanvasManager.backNameValue;
-        row.backClassValue = CanvasManager.backClassValue;
-        row.backSeasonValue = CanvasManager.backSeasonValue;
-        row.imageScale = Math.round(CanvasManager.imageScale * 100);
-        row.imagePosX = CanvasManager.imagePosX;
-        row.imagePosY = CanvasManager.imagePosY;
-
-        // Update template (same logic as exitEditMode)
-        const originalTemplateImage = this.template.uploadedImage;
-        this.captureTemplate();
-        this.template.uploadedImage = originalTemplateImage;
-        this.template.state.imageScale = this._templateBeforeEdit.imageScale;
-        this.template.state.imagePosX = this._templateBeforeEdit.imagePosX;
-        this.template.state.imagePosY = this._templateBeforeEdit.imagePosY;
-        this.template.state.imageRotation = this._templateBeforeEdit.imageRotation;
-        if (this.rows.length > 0) {
-            this.template.state.topText = this.rows[0].topText;
-            this.template.state.middleText = this.rows[0].middleText;
-            this.template.state.bottomText = this.rows[0].bottomText;
-            this.template.state.backNameValue = this.rows[0].backNameValue;
-            this.template.state.backClassValue = this.rows[0].backClassValue;
-            this.template.state.backSeasonValue = this.rows[0].backSeasonValue;
-        }
+        this._saveCurrentRow();
 
         // Hide banner, canvas nav, and close completely
+        document.body.classList.remove('bulk-editing');
         this.elements.backToBulkBanner.style.display = 'none';
         this.elements.backToBulkBannerBottom.style.display = 'none';
         this._hideCanvasNav();
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
         this.isOpen = false;
-
-        // Persist updated rows and template
-        this.saveBulkState();
 
         // Restore template on canvas
         this.restoreTemplate();

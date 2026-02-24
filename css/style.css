@@ -2131,6 +2131,7 @@ body {
     background: rgba(250, 204, 21, 0.12);
     border: 1px solid rgba(250, 204, 21, 0.4);
     border-radius: var(--radius-sm);
+    cursor: pointer;
 }
 
 .bulk-edit-banner-info {
@@ -2167,6 +2168,48 @@ body {
     min-width: 0;
 }
 
+/* Side nav buttons (desktop/tablet only, flanking the canvas) */
+.bulk-canvas-side-btn {
+    display: none; /* hidden by default, shown via bulk-editing class */
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--surface-color, #1e1e1e);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s, background 0.15s, opacity 0.15s;
+}
+
+.bulk-canvas-side-btn:hover:not(:disabled) {
+    color: var(--accent-color, #facc15);
+    background: var(--surface-hover, #2a2a2a);
+}
+
+.bulk-canvas-side-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.bulk-canvas-side-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Show side buttons only on desktop/tablet when in bulk-editing mode */
+body.bulk-editing .bulk-canvas-side-btn {
+    display: flex;
+}
+
+@media (max-width: 768px) {
+    body.bulk-editing .bulk-canvas-side-btn {
+        display: none;
+    }
+}
+
 .bulk-canvas-nav-btn {
     flex-shrink: 0;
     display: flex;
@@ -2195,6 +2238,11 @@ body {
 .bulk-canvas-nav-btn svg {
     width: 18px;
     height: 18px;
+}
+
+/* Hard rule: always show counter when body has bulk-editing class */
+body.bulk-editing #bulkCanvasCounter {
+    display: block !important;
 }
 
 .bulk-canvas-counter-row {
