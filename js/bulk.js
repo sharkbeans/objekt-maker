@@ -10,6 +10,8 @@ const BulkManager = {
     editingRowIndex: -1,       // Index of row currently being edited on main canvas (-1 = not editing)
     _templateBeforeEdit: null, // Deep copy of template.state before entering edit mode
 
+    BULK_STORAGE_KEY: 'objektify_bulk_session',
+
     // DOM element refs
     elements: {},
 
@@ -196,6 +198,8 @@ const BulkManager = {
             CanvasManager.showTemplateBack = false;
             CanvasManager.render();
             CanvasManager.updateBackSidePreview();
+            // Persist the current template state (captured in openModal)
+            this.saveBulkState();
         } else {
             this.restoreTemplate();
         }
@@ -232,6 +236,7 @@ const BulkManager = {
                         imagePosY: templateState.imagePosY,
                     });
                     this.updateUI();
+                    this.saveBulkState();
                     // On mobile, scroll to actionsBar when first image is added
                     if (wasEmpty && window.innerWidth <= 768) {
                         setTimeout(() => {
@@ -251,6 +256,7 @@ const BulkManager = {
     removeRow(index) {
         this.rows.splice(index, 1);
         this.updateUI();
+        this.saveBulkState();
     },
 
     makeFirst(index) {
@@ -258,6 +264,7 @@ const BulkManager = {
         const [row] = this.rows.splice(index, 1);
         this.rows.unshift(row);
         this.updateUI();
+        this.saveBulkState();
     },
 
     applyRow1ToAll() {
@@ -316,6 +323,7 @@ const BulkManager = {
     clearAll() {
         this.rows = [];
         this.updateUI();
+        this.saveBulkState();
     },
 
     updateUI() {
@@ -600,6 +608,9 @@ const BulkManager = {
         this.restoreTemplate();
         UIManager.syncUIFromPreset(this.template.state);
 
+        // Persist updated rows and template
+        this.saveBulkState();
+
         // Show save confirmation toast
         if (typeof ToastManager !== 'undefined') ToastManager.success('Card changes saved');
 
@@ -659,6 +670,9 @@ const BulkManager = {
         this.editingRowIndex = -1;
         this._templateBeforeEdit = null;
         this.isOpen = false;
+
+        // Persist updated rows and template
+        this.saveBulkState();
 
         // Restore template on canvas
         this.restoreTemplate();
@@ -850,6 +864,117 @@ const BulkManager = {
         }
         if (typeof ToastManager !== 'undefined') {
             ToastManager.success(`Randomized serials for ${this.rows.length} card${this.rows.length !== 1 ? 's' : ''}`);
+        }
+    },
+
+    /**
+     * Serialize BulkManager rows and template to localStorage.
+     * Images are stored as data URL strings.
+     */
+    saveBulkState() {
+        try {
+            if (this.rows.length === 0) {
+                localStorage.removeItem(this.BULK_STORAGE_KEY);
+                return;
+            }
+
+            const serializedRows = this.rows.map(row => ({
+                imageSrc: row.image ? row.image.src : null,
+                fileName: row.fileName,
+                topText: row.topText,
+                middleText: row.middleText,
+                bottomText: row.bottomText,
+                backNameValue: row.backNameValue,
+                backClassValue: row.backClassValue,
+                backSeasonValue: row.backSeasonValue,
+                imageScale: row.imageScale,
+                imagePosX: row.imagePosX,
+                imagePosY: row.imagePosY,
+            }));
+
+            const serializedTemplate = this.template ? {
+                state: this.template.state,
+                uploadedImageSrc: this.template.uploadedImage ? this.template.uploadedImage.src : null,
+                borderImageSrc: this.template.borderImage ? this.template.borderImage.src : null,
+                signatureImageSrc: this.template.signatureImage ? this.template.signatureImage.src : null,
+                topLogoImageSrc: this.template.topLogoImage ? this.template.topLogoImage.src : null,
+                logoImageSrc: this.template.logoImage ? this.template.logoImage.src : null,
+                frontLogoImageSrc: this.template.frontLogoImage ? this.template.frontLogoImage.src : null,
+                frameImageSrc: this.template.frameImage ? this.template.frameImage.src : null,
+            } : null;
+
+            const data = { rows: serializedRows, template: serializedTemplate };
+            localStorage.setItem(this.BULK_STORAGE_KEY, JSON.stringify(data));
+            console.log('[Bulk] Session saved:', this.rows.length, 'rows');
+        } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+                console.warn('[Bulk] localStorage quota exceeded, bulk session not saved');
+            } else {
+                console.warn('[Bulk] Failed to save bulk session:', error);
+            }
+        }
+    },
+
+    /**
+     * Restore BulkManager rows and template from localStorage.
+     * @returns {Promise<boolean>} True if bulk state was restored
+     */
+    async loadBulkState() {
+        try {
+            const saved = localStorage.getItem(this.BULK_STORAGE_KEY);
+            if (!saved) return false;
+
+            const data = JSON.parse(saved);
+            if (!data || !Array.isArray(data.rows) || data.rows.length === 0) return false;
+
+            const loadImage = (src) => new Promise((resolve) => {
+                if (!src) { resolve(null); return; }
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+
+            // Restore rows
+            const restoredRows = await Promise.all(data.rows.map(async (row) => ({
+                image: await loadImage(row.imageSrc),
+                fileName: row.fileName,
+                topText: row.topText,
+                middleText: row.middleText,
+                bottomText: row.bottomText,
+                backNameValue: row.backNameValue,
+                backClassValue: row.backClassValue,
+                backSeasonValue: row.backSeasonValue,
+                imageScale: row.imageScale,
+                imagePosX: row.imagePosX,
+                imagePosY: row.imagePosY,
+            })));
+
+            // Filter out rows whose image failed to load
+            this.rows = restoredRows.filter(row => row.image !== null);
+            if (this.rows.length === 0) return false;
+
+            // Restore template
+            if (data.template) {
+                this.template = {
+                    state: data.template.state,
+                    uploadedImage: await loadImage(data.template.uploadedImageSrc),
+                    borderImage: await loadImage(data.template.borderImageSrc),
+                    signatureImage: await loadImage(data.template.signatureImageSrc),
+                    topLogoImage: await loadImage(data.template.topLogoImageSrc),
+                    logoImage: await loadImage(data.template.logoImageSrc),
+                    frontLogoImage: await loadImage(data.template.frontLogoImageSrc),
+                    frameImage: await loadImage(data.template.frameImageSrc),
+                    qrCodeCanvas: null,
+                    qrCodeImage: null,
+                };
+            }
+
+            console.log('[Bulk] Session restored:', this.rows.length, 'rows');
+            return true;
+        } catch (error) {
+            console.warn('[Bulk] Failed to restore bulk session:', error);
+            return false;
         }
     },
 

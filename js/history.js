@@ -315,8 +315,26 @@ const HistoryManager = {
                         this._ensureCanvasToggleVisibility();
                         this._isRestoring = false;
                         this.updateUI();
-                        UIManager.updateCanvasUploadPlaceholder();
-                        console.log('[Session] State restored from localStorage');
+
+                        // Restore bulk session (rows + template) and update UI accordingly
+                        BulkManager.loadBulkState().then((hasBulk) => {
+                            if (hasBulk) {
+                                // Show the "Back to Bulk" banner so the user can return to bulk mode
+                                BulkManager.elements.backToBulkLabel.textContent = 'Bulk Mode';
+                                BulkManager.elements.backToBulkLabelBottom.textContent = 'Bulk Mode';
+                                BulkManager.elements.backToBulkBanner.style.display = 'flex';
+                                BulkManager.elements.backToBulkBannerBottom.style.display = 'flex';
+                                // Show the first row on the canvas
+                                BulkManager.applyRowToCanvas(BulkManager.rows[0]);
+                                CanvasManager.showTemplate = false;
+                                CanvasManager.showTemplateBack = false;
+                                CanvasManager.render();
+                                CanvasManager.updateBackSidePreview();
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                            }
+                            UIManager.updateCanvasUploadPlaceholder();
+                            console.log('[Session] State restored from localStorage');
+                        });
                     });
                 });
 
