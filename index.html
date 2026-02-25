@@ -35,6 +35,10 @@
 
     <!-- JSZip for bulk export -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+
+    <!-- GIF parsing libraries -->
+    <script src="https://unpkg.com/gifuct-js@2.1.2/dist/gifuct-js.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -57,11 +61,11 @@
                 <section class="control-section">
                     <h2 class="section-title"><i data-lucide="camera"></i> Upload Image</h2>
                     <div class="upload-area" id="uploadArea">
-                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg" multiple hidden>
+                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg,image/gif,video/mp4" multiple hidden>
                         <label for="imageUpload" class="upload-label">
                             <span class="upload-icon"><i data-lucide="upload"></i></span>
                             <span class="upload-text">Click to upload or drag images here</span>
-                            <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
+                            <span class="upload-hint">JPG, PNG, GIF or MP4. Images max 5MB, animated max 30MB</span>
                         </label>
                     </div>
                 </section>
@@ -909,7 +913,7 @@
                             <div class="canvas-upload-placeholder" id="canvasUploadPlaceholder">
                                 <span class="upload-icon"><i data-lucide="upload"></i></span>
                                 <span class="upload-text">Click to upload or drag images here</span>
-                                <span class="upload-hint">JPG or PNG, max 5MB. Multiple images → Bulk Create</span>
+                                <span class="upload-hint">JPG, PNG, GIF or MP4. Images max 5MB, animated max 30MB</span>
                             </div>
                             <!-- Tooltip for top text field -->
                             <div id="topTextTooltip" class="text-field-tooltip" style="display: none;">

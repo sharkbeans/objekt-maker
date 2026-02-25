@@ -4285,7 +4285,7 @@ const UIManager = {
             this.elements.canvasUploadPlaceholder.classList.remove('drag-over');
         }
 
-        const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
         if (!files.length) return;
 
         // Multiple images → bulk create mode
@@ -4371,17 +4371,31 @@ const UIManager = {
 
             // Use 'photocard' when objekt border is off, 'objekt' when on
             const baseName = CanvasManager.showObjektBorder ? 'objekt' : 'photocard';
-            const filename = `${baseName}-${this.currentView}.png`;
 
             // Check if we're on mobile
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-            if (isMobile && navigator.canShare) {
-                // Try Web Share API for mobile devices - allows saving to gallery
-                await this.exportImageShare(canvas, filename);
+            // If front side is animated, export as video
+            if (this.currentView === 'front' && CanvasManager.isAnimated()) {
+                const videoResult = await CanvasManager.exportAsVideo();
+                const filename = `${baseName}-front.${videoResult.extension}`;
+                if (isMobile && navigator.canShare) {
+                    const file = new File([videoResult.blob], filename, { type: videoResult.mimeType });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: 'Objekt Video' });
+                    } else {
+                        await this.exportBlobStandard(videoResult.blob, filename);
+                    }
+                } else {
+                    await this.exportBlobStandard(videoResult.blob, filename);
+                }
             } else {
-                // Standard download for desktop
-                await this.exportImageStandard(canvas, filename);
+                const filename = `${baseName}-${this.currentView}.png`;
+                if (isMobile && navigator.canShare) {
+                    await this.exportImageShare(canvas, filename);
+                } else {
+                    await this.exportImageStandard(canvas, filename);
+                }
             }
 
             this.showSuccessMessage(`${this.currentView === 'front' ? 'Front' : 'Back'} side downloaded!`);
@@ -4483,6 +4497,20 @@ const UIManager = {
                 reject(error);
             }
         });
+    },
+
+    /**
+     * Download a blob directly by URL
+     * @param {Blob} blob
+     * @param {string} filename
+     */
+    async exportBlobStandard(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
     },
 
     /**

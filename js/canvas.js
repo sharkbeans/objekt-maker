@@ -7,6 +7,9 @@ const CanvasManager = {
     canvas: null,
     ctx: null,
     uploadedImage: null,
+    mediaType: 'static', // 'static' | 'gif' | 'video'
+    gifData: { frames: [], delays: [], currentFrame: 0, lastFrameTime: 0, animationFrame: null },
+    videoData: { element: null, originalFile: null, animationFrame: null },
     imageScale: 1,
     imageRotation: 0,
     imagePosX: 0,
@@ -201,50 +204,267 @@ const CanvasManager = {
         return Math.round(mm * (300 / 25.4));
     },
 
+    // ─── GIF Parsing ───
+
+    async parseGif(arrayBuffer) {
+        return new Promise((resolve, reject) => {
+            try {
+                let gifuctLib = null;
+                if (typeof window.gifuct !== 'undefined') gifuctLib = window.gifuct;
+                else if (typeof gifuct !== 'undefined') gifuctLib = gifuct;
+                else if (typeof window.GifuctJs !== 'undefined') gifuctLib = window.GifuctJs;
+
+                if (gifuctLib) {
+                    console.log('Parsing GIF with gifuct-js');
+                    const gif = gifuctLib.parseGIF(arrayBuffer);
+                    const frames = gifuctLib.decompressFrames(gif, true);
+                    console.log(`GIF parsed: ${frames.length} frames`);
+                    return this.processGifuctFrames(frames, resolve, reject);
+                }
+
+                if (typeof window.GifReader !== 'undefined') {
+                    console.log('Parsing GIF with omggif (fallback)');
+                    return this.parseGifWithOmggif(arrayBuffer, resolve, reject);
+                }
+
+                reject(new Error('GIF parser library not loaded. Please reload the page.'));
+            } catch (error) {
+                console.error('Error parsing GIF:', error);
+                reject(error);
+            }
+        });
+    },
+
+    processGifuctFrames(frames, resolve, reject) {
+        try {
+            if (frames.length === 0) { reject(new Error('GIF has no frames')); return; }
+
+            const imageFrames = [];
+            const delays = [];
+            const gifWidth = frames[0].dims.width;
+            const gifHeight = frames[0].dims.height;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = gifWidth;
+            tempCanvas.height = gifHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            let loadedFrames = 0;
+
+            frames.forEach((frame, index) => {
+                const imageData = tempCtx.createImageData(frame.dims.width, frame.dims.height);
+                imageData.data.set(frame.patch);
+                tempCtx.putImageData(imageData, frame.dims.left, frame.dims.top);
+
+                const img = new Image();
+                img.onload = () => {
+                    loadedFrames++;
+                    if (loadedFrames === frames.length) {
+                        console.log('All GIF frames loaded successfully');
+                        resolve({ frames: imageFrames, delays });
+                    }
+                };
+                img.onerror = () => reject(new Error(`Failed to load GIF frame ${index}`));
+                img.src = tempCanvas.toDataURL('image/png');
+                imageFrames[index] = img;
+                delays[index] = (frame.delay || 10) * 10;
+            });
+        } catch (error) {
+            reject(error);
+        }
+    },
+
+    parseGifWithOmggif(arrayBuffer, resolve, reject) {
+        try {
+            const bytes = new Uint8Array(arrayBuffer);
+            const reader = new window.GifReader(bytes);
+            const imageFrames = [];
+            const delays = [];
+            const width = reader.width;
+            const height = reader.height;
+
+            console.log(`GIF parsed with omggif: ${reader.numFrames()} frames, ${width}x${height}`);
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            let loadedFrames = 0;
+
+            for (let i = 0; i < reader.numFrames(); i++) {
+                const frameInfo = reader.frameInfo(i);
+                const framePixels = new Uint8ClampedArray(width * height * 4);
+                reader.decodeAndBlitFrameRGBA(i, framePixels);
+
+                const imageData = tempCtx.createImageData(width, height);
+                imageData.data.set(framePixels);
+                tempCtx.putImageData(imageData, 0, 0);
+
+                const img = new Image();
+                img.onload = () => {
+                    loadedFrames++;
+                    if (loadedFrames === reader.numFrames()) {
+                        console.log('All GIF frames loaded successfully (omggif)');
+                        resolve({ frames: imageFrames, delays });
+                    }
+                };
+                img.onerror = () => reject(new Error(`Failed to load GIF frame ${i}`));
+                img.src = tempCanvas.toDataURL('image/png');
+                imageFrames[i] = img;
+                delays[i] = (frameInfo.delay || 10) * 10;
+            }
+        } catch (error) {
+            console.error('Error parsing GIF with omggif:', error);
+            reject(error);
+        }
+    },
+
+    // ─── Animation Loops ───
+
+    startGifAnimation() {
+        if (this.gifData.frames.length === 0) return;
+        this.gifData.lastFrameTime = performance.now();
+
+        const animate = (now) => {
+            const elapsed = now - this.gifData.lastFrameTime;
+            const delay = this.gifData.delays[this.gifData.currentFrame] || 100;
+
+            if (elapsed >= delay) {
+                this.gifData.currentFrame = (this.gifData.currentFrame + 1) % this.gifData.frames.length;
+                this.uploadedImage = this.gifData.frames[this.gifData.currentFrame];
+                this.gifData.lastFrameTime = now;
+                this.render();
+            }
+
+            this.gifData.animationFrame = requestAnimationFrame(animate);
+        };
+
+        this.gifData.animationFrame = requestAnimationFrame(animate);
+    },
+
+    startVideoAnimation() {
+        const animate = () => {
+            if (this.videoData.element && !this.videoData.element.paused) {
+                this.render();
+            }
+            this.videoData.animationFrame = requestAnimationFrame(animate);
+        };
+        this.videoData.animationFrame = requestAnimationFrame(animate);
+    },
+
+    stopAnimation() {
+        if (this.gifData.animationFrame) {
+            cancelAnimationFrame(this.gifData.animationFrame);
+            this.gifData.animationFrame = null;
+        }
+        if (this.videoData.animationFrame) {
+            cancelAnimationFrame(this.videoData.animationFrame);
+            this.videoData.animationFrame = null;
+        }
+    },
+
+    isAnimated() {
+        return this.mediaType === 'gif' || this.mediaType === 'video';
+    },
+
+    // ─── Image/Media Loading ───
+
     /**
-     * Load an image from file
-     * @param {File} file - Image file to load
+     * Load an image/GIF/video from file
+     * @param {File} file - Media file to load
      * @returns {Promise<boolean>} Success status
      */
     async loadImage(file) {
+        // Validate file type
+        const isStatic = file.type.match(/^image\/(png|jpeg|jpg)$/);
+        const isGif = file.type === 'image/gif';
+        const isVideo = file.type === 'video/mp4';
+
+        if (!isStatic && !isGif && !isVideo) {
+            throw new Error('Please upload a PNG, JPG, GIF, or MP4 file');
+        }
+
+        // Size limits
+        const maxSize = (isGif || isVideo) ? 30 * 1024 * 1024 : 5 * 1024 * 1024;
+        const sizeLabel = (isGif || isVideo) ? '30MB' : '5MB';
+        if (file.size > maxSize) {
+            throw new Error(`File size must be less than ${sizeLabel}`);
+        }
+
+        // Stop any existing animation
+        this.stopAnimation();
+
+        if (isGif) {
+            return this.loadGif(file);
+        } else if (isVideo) {
+            return this.loadVideo(file);
+        } else {
+            return this.loadStaticImage(file);
+        }
+    },
+
+    async loadStaticImage(file) {
         return new Promise((resolve, reject) => {
-            // Validate file type
-            if (!file.type.match('image/(png|jpeg|jpg)')) {
-                reject(new Error('Please upload a PNG or JPG image'));
-                return;
-            }
-
-            // Validate file size (max 5MB)
-            const maxSize = 5 * 1024 * 1024;
-            if (file.size > maxSize) {
-                reject(new Error('Image size must be less than 5MB'));
-                return;
-            }
-
             const reader = new FileReader();
-
             reader.onload = (e) => {
                 const img = new Image();
-
                 img.onload = () => {
+                    this.mediaType = 'static';
                     this.uploadedImage = img;
                     console.log('Image loaded:', img.width, 'x', img.height);
                     this.render();
                     resolve(true);
                 };
-
-                img.onerror = () => {
-                    reject(new Error('Failed to load image'));
-                };
-
+                img.onerror = () => reject(new Error('Failed to load image'));
                 img.src = e.target.result;
             };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    },
 
-            reader.onerror = () => {
-                reject(new Error('Failed to read file'));
+    async loadGif(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const { frames, delays } = await this.parseGif(arrayBuffer);
+
+        this.mediaType = 'gif';
+        this.gifData.frames = frames;
+        this.gifData.delays = delays;
+        this.gifData.currentFrame = 0;
+        this.uploadedImage = frames[0];
+        console.log('GIF loaded:', frames.length, 'frames');
+        this.render();
+        this.startGifAnimation();
+        return true;
+    },
+
+    async loadVideo(file) {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.preload = 'auto';
+
+            video.onloadeddata = () => {
+                this.mediaType = 'video';
+                this.videoData.element = video;
+                this.videoData.originalFile = file;
+                this.uploadedImage = video;
+                console.log('Video loaded:', video.videoWidth, 'x', video.videoHeight, 'duration:', video.duration);
+                this.render();
+                video.play().then(() => {
+                    this.startVideoAnimation();
+                }).catch(err => {
+                    console.warn('Video autoplay blocked:', err);
+                    this.startVideoAnimation();
+                });
+                resolve(true);
             };
 
-            reader.readAsDataURL(file);
+            video.onerror = () => reject(new Error('Failed to load video'));
+            video.src = URL.createObjectURL(file);
         });
     },
 
@@ -1421,7 +1641,9 @@ const CanvasManager = {
         // Calculate image dimensions to cover the entire canvas with 2:3 aspect ratio
         // Using "cover" mode - fill entire area, cropping if necessary
         const targetAspect = 2 / 3; // Width / Height = 2 / 3
-        const imgAspect = this.uploadedImage.width / this.uploadedImage.height;
+        const imgW = this.uploadedImage.videoWidth || this.uploadedImage.width;
+        const imgH = this.uploadedImage.videoHeight || this.uploadedImage.height;
+        const imgAspect = imgW / imgH;
 
         let drawWidth, drawHeight;
 
@@ -2681,6 +2903,103 @@ const CanvasManager = {
         ctx.closePath();
     },
 
+    // ─── Video Export ───
+
+    async exportAsVideo(duration = null) {
+        try {
+            // Auto-detect duration
+            if (!duration) {
+                if (this.mediaType === 'video' && this.videoData.element) {
+                    duration = this.videoData.element.duration;
+                } else if (this.mediaType === 'gif' && this.gifData.delays.length > 0) {
+                    duration = this.gifData.delays.reduce((sum, d) => sum + d, 0) / 1000;
+                } else {
+                    duration = 5;
+                }
+            }
+            // Cap at 30 seconds
+            duration = Math.min(duration, 30);
+
+            const exportWidth = this.canvas.width;
+            const exportHeight = this.canvas.height;
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = exportWidth;
+            exportCanvas.height = exportHeight;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            const stream = exportCanvas.captureStream(30);
+
+            const mimeTypes = [
+                { type: 'video/mp4', ext: 'mp4' },
+                { type: 'video/mp4;codecs=h264', ext: 'mp4' },
+                { type: 'video/webm;codecs=h264', ext: 'mp4' },
+                { type: 'video/webm;codecs=vp9', ext: 'webm' },
+                { type: 'video/webm;codecs=vp8', ext: 'webm' },
+                { type: 'video/webm', ext: 'webm' }
+            ];
+
+            let selectedFormat = { type: 'video/webm', ext: 'webm' };
+            for (const format of mimeTypes) {
+                if (MediaRecorder.isTypeSupported(format.type)) {
+                    selectedFormat = format;
+                    console.log('Using mime type:', format.type);
+                    break;
+                }
+            }
+
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: selectedFormat.type });
+            const chunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) chunks.push(event.data);
+            };
+
+            // Reset media to start before recording
+            if (this.mediaType === 'video' && this.videoData.element) {
+                this.videoData.element.currentTime = 0;
+            } else if (this.mediaType === 'gif') {
+                this.gifData.currentFrame = 0;
+                this.gifData.lastFrameTime = performance.now();
+                this.uploadedImage = this.gifData.frames[0];
+            }
+
+            let animationId;
+            const renderExportFrame = () => {
+                this.render();
+                exportCtx.clearRect(0, 0, exportWidth, exportHeight);
+                exportCtx.drawImage(this.canvas, 0, 0);
+                animationId = requestAnimationFrame(renderExportFrame);
+            };
+
+            return new Promise((resolve, reject) => {
+                mediaRecorder.onstop = () => {
+                    if (animationId) cancelAnimationFrame(animationId);
+                    const blob = new Blob(chunks, { type: selectedFormat.type });
+                    console.log(`Video encoding complete! ${exportWidth}x${exportHeight}`);
+                    resolve({ blob, mimeType: selectedFormat.type, extension: selectedFormat.ext });
+                };
+
+                mediaRecorder.onerror = (error) => {
+                    if (animationId) cancelAnimationFrame(animationId);
+                    reject(error);
+                };
+
+                renderExportFrame();
+                mediaRecorder.start();
+                console.log(`Recording video at ${exportWidth}x${exportHeight} for ${duration}s...`);
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    stream.getTracks().forEach(track => track.stop());
+                }, duration * 1000);
+            });
+        } catch (error) {
+            console.error('Error exporting video:', error);
+            throw error;
+        }
+    },
+
     /**
      * Export canvas as downloadable image
      * @param {Array} textOverlays - Array of text overlay objects (not used anymore)
@@ -2717,18 +3036,30 @@ const CanvasManager = {
 
         let result;
         if (this.enableBackSide) {
-            await new Promise((resolve) => {
-                this.canvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = `${filename}-front.${format}`;
-                    link.href = url;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    resolve(true);
-                }, `image/${format}`, 0.95);
-            });
+            // Front side: video if animated, PNG otherwise
+            if (this.isAnimated()) {
+                const videoResult = await this.exportAsVideo();
+                const url = URL.createObjectURL(videoResult.blob);
+                const link = document.createElement('a');
+                link.download = `${filename}-front.${videoResult.extension}`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            } else {
+                await new Promise((resolve) => {
+                    this.canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `${filename}-front.${format}`;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                        resolve(true);
+                    }, `image/${format}`, 0.95);
+                });
+            }
 
+            // Back side always exports as PNG
             const backCanvas = this.renderBackSide();
             await new Promise((resolve) => {
                 backCanvas.toBlob((blob) => {
@@ -2744,17 +3075,29 @@ const CanvasManager = {
 
             result = true;
         } else {
-            result = await new Promise((resolve) => {
-                this.canvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = `${filename}.${format}`;
-                    link.href = url;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    resolve(true);
-                }, `image/${format}`, 0.95);
-            });
+            // Single side: video if animated, PNG otherwise
+            if (this.isAnimated()) {
+                const videoResult = await this.exportAsVideo();
+                const url = URL.createObjectURL(videoResult.blob);
+                const link = document.createElement('a');
+                link.download = `${filename}.${videoResult.extension}`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                result = true;
+            } else {
+                result = await new Promise((resolve) => {
+                    this.canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `${filename}.${format}`;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                        resolve(true);
+                    }, `image/${format}`, 0.95);
+                });
+            }
         }
 
         // Restore template visibility after export (Phase 3)
@@ -2774,6 +3117,16 @@ const CanvasManager = {
      * Reset canvas to initial state
      */
     reset() {
+        // Stop any running animation
+        this.stopAnimation();
+        this.mediaType = 'static';
+        this.gifData = { frames: [], delays: [], currentFrame: 0, lastFrameTime: 0, animationFrame: null };
+        if (this.videoData.element) {
+            this.videoData.element.pause();
+            URL.revokeObjectURL(this.videoData.element.src);
+        }
+        this.videoData = { element: null, originalFile: null, animationFrame: null };
+
         this.uploadedImage = null;
         this.imageScale = 1;
         this.imageRotation = 0;
