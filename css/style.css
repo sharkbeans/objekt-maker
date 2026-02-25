@@ -3244,6 +3244,65 @@ body.bulk-editing #bulkCanvasCounter {
     border-color: var(--primary-color);
 }
 
+/* Media Loading Overlay */
+.media-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-loading-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.media-loading-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-xl) calc(var(--space-xl) * 1.5);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    animation: modalSlideIn 0.25s ease;
+}
+
+.media-loading-spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: mediaSpinnerRotate 0.8s linear infinite;
+}
+
+@keyframes mediaSpinnerRotate {
+    to { transform: rotate(360deg); }
+}
+
+.media-loading-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.media-loading-sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
 /* Font Picker Modal */
 .font-picker-modal {
     position: fixed;

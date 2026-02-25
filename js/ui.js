@@ -3020,6 +3020,8 @@ const UIManager = {
 
         // Single image → default single canvas
         const file = files[0];
+        const isLargeMedia = file.type === 'image/gif' || file.type === 'video/mp4';
+        if (isLargeMedia) this.showMediaLoadingOverlay();
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
@@ -3037,6 +3039,8 @@ const UIManager = {
             this.updateCanvasUploadPlaceholder();
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            if (isLargeMedia) this.hideMediaLoadingOverlay();
         }
     },
 
@@ -4297,6 +4301,8 @@ const UIManager = {
 
         // Single image → default single canvas
         const file = files[0];
+        const isLargeMedia = file.type === 'image/gif' || file.type === 'video/mp4';
+        if (isLargeMedia) this.showMediaLoadingOverlay();
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
@@ -4305,6 +4311,8 @@ const UIManager = {
             this.updateCanvasUploadPlaceholder();
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            if (isLargeMedia) this.hideMediaLoadingOverlay();
         }
     },
 
@@ -4542,6 +4550,16 @@ const UIManager = {
     showErrorMessage(message) {
         console.error('[ERROR]', message);
         ToastManager.error(message);
+    },
+
+    showMediaLoadingOverlay() {
+        const el = document.getElementById('mediaLoadingOverlay');
+        if (el) el.style.display = 'flex';
+    },
+
+    hideMediaLoadingOverlay() {
+        const el = document.getElementById('mediaLoadingOverlay');
+        if (el) el.style.display = 'none';
     },
 
     /**
