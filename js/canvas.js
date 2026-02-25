@@ -445,9 +445,19 @@ const CanvasManager = {
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.preload = 'auto';
+            video.autoplay = false;
 
-            video.onloadeddata = () => {
+            const url = URL.createObjectURL(file);
+            let initialized = false;
+
+            video.onloadedmetadata = () => {
+                video.currentTime = 0;
+            };
+
+            video.onseeked = () => {
+                if (initialized) return;
+                initialized = true;
+
                 this.mediaType = 'video';
                 this.videoData.element = video;
                 this.videoData.originalFile = file;
@@ -463,8 +473,11 @@ const CanvasManager = {
                 resolve(true);
             };
 
-            video.onerror = () => reject(new Error('Failed to load video'));
-            video.src = URL.createObjectURL(file);
+            video.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Failed to load video'));
+            };
+            video.src = url;
         });
     },
 
