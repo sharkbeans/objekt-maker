@@ -2867,6 +2867,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading border image…', 'Please wait…');
         try {
             await CanvasManager.loadBorderImage(file);
             this.elements.clearBorderImageBack.style.display = 'block';
@@ -2878,6 +2879,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded border image');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3021,7 +3024,8 @@ const UIManager = {
         // Single image → default single canvas
         const file = files[0];
         const isLargeMedia = file.type === 'image/gif' || file.type === 'video/mp4';
-        if (isLargeMedia) this.showMediaLoadingOverlay();
+        const uploadSub = isLargeMedia ? 'This may take a moment for large GIFs and videos.' : 'Please wait…';
+        this.showMediaLoadingOverlay('Uploading image…', uploadSub);
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
@@ -3040,7 +3044,7 @@ const UIManager = {
         } catch (error) {
             this.showErrorMessage(error.message);
         } finally {
-            if (isLargeMedia) this.hideMediaLoadingOverlay();
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3052,6 +3056,7 @@ const UIManager = {
         if (!files.length) return;
 
         const file = files[0];
+        this.showMediaLoadingOverlay('Uploading image…', 'Please wait…');
         try {
             await CanvasManager.loadBackImage(file);
             this.showBackImageControls(true);
@@ -3059,6 +3064,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded back image');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
         event.target.value = '';
     },
@@ -3075,6 +3082,7 @@ const UIManager = {
         if (!files.length) return;
 
         const file = files[0];
+        this.showMediaLoadingOverlay('Uploading image…', 'Please wait…');
         try {
             await CanvasManager.loadBackImage(file);
             this.showBackImageControls(true);
@@ -3082,6 +3090,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded back image');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3195,6 +3205,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading border image…', 'Please wait…');
         try {
             await CanvasManager.loadBorderImage(file);
             this.elements.clearBorderImage.style.display = 'block';
@@ -3202,6 +3213,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded border image');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3304,6 +3317,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading logo…', 'Please wait…');
         try {
             // Clear bottom text (tripleS) before loading logo
             CanvasManager.backGroupName = '';
@@ -3336,6 +3350,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded back logo');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3365,6 +3381,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading logo…', 'Please wait…');
         try {
             await CanvasManager.loadTopLogoImage(file);
 
@@ -3387,6 +3404,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded top logo');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3455,6 +3474,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading logo…', 'Please wait…');
         try {
             // Clear bottom text before loading logo
             CanvasManager.bottomText = '';
@@ -3492,6 +3512,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded front logo');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3502,6 +3524,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading frame…', 'Please wait…');
         try {
             await CanvasManager.loadFrameImage(file);
 
@@ -3532,6 +3555,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded frame');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3600,6 +3625,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading template…', 'Please wait…');
         try {
             await CanvasManager.loadTemplateImage(file);
             // Show template controls
@@ -3618,6 +3644,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded template');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -3654,6 +3682,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading template…', 'Please wait…');
         try {
             await CanvasManager.loadTemplateImageBack(file);
             // Show template controls
@@ -3672,6 +3701,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded back template');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -4189,6 +4220,7 @@ const UIManager = {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.showMediaLoadingOverlay('Uploading signature…', 'Please wait…');
         try {
             await CanvasManager.loadSignatureImage(file);
 
@@ -4220,6 +4252,8 @@ const UIManager = {
             HistoryManager.pushState('Uploaded signature');
         } catch (error) {
             this.showErrorMessage(error.message);
+        } finally {
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -4302,7 +4336,8 @@ const UIManager = {
         // Single image → default single canvas
         const file = files[0];
         const isLargeMedia = file.type === 'image/gif' || file.type === 'video/mp4';
-        if (isLargeMedia) this.showMediaLoadingOverlay();
+        const dropSub = isLargeMedia ? 'This may take a moment for large GIFs and videos.' : 'Please wait…';
+        this.showMediaLoadingOverlay('Uploading image…', dropSub);
         try {
             await CanvasManager.loadImage(file);
             this.showCanvas();
@@ -4312,7 +4347,7 @@ const UIManager = {
         } catch (error) {
             this.showErrorMessage(error.message);
         } finally {
-            if (isLargeMedia) this.hideMediaLoadingOverlay();
+            this.hideMediaLoadingOverlay();
         }
     },
 
@@ -4365,6 +4400,12 @@ const UIManager = {
             CanvasManager.updateBackSidePreview();
         }
 
+        const isAnimated = this.currentView === 'front' && CanvasManager.isAnimated();
+        const downloadTitle = isAnimated ? 'Exporting video…' : 'Downloading image…';
+        const downloadSub = isAnimated ? 'This may take a moment.' : 'Please wait…';
+        this.showMediaLoadingOverlay(downloadTitle, downloadSub, true);
+        this.updateMediaLoadingProgress(10);
+
         try {
             // Set exporting flag so placeholder drawings are suppressed
             CanvasManager.isExporting = true;
@@ -4384,8 +4425,10 @@ const UIManager = {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
             // If front side is animated, export as video
-            if (this.currentView === 'front' && CanvasManager.isAnimated()) {
+            if (isAnimated) {
+                this.updateMediaLoadingProgress(20, '20%');
                 const videoResult = await CanvasManager.exportAsVideo();
+                this.updateMediaLoadingProgress(80, '80%');
                 const filename = `${baseName}-front.${videoResult.extension}`;
                 if (isMobile && navigator.canShare) {
                     const file = new File([videoResult.blob], filename, { type: videoResult.mimeType });
@@ -4398,6 +4441,7 @@ const UIManager = {
                     await this.exportBlobStandard(videoResult.blob, filename);
                 }
             } else {
+                this.updateMediaLoadingProgress(40, '40%');
                 const filename = `${baseName}-${this.currentView}.png`;
                 if (isMobile && navigator.canShare) {
                     await this.exportImageShare(canvas, filename);
@@ -4406,11 +4450,13 @@ const UIManager = {
                 }
             }
 
+            this.updateMediaLoadingProgress(100, '100%');
             this.showSuccessMessage(`${this.currentView === 'front' ? 'Front' : 'Back'} side downloaded!`);
         } catch (error) {
             this.showErrorMessage('Failed to export image');
             console.error(error);
         } finally {
+            this.hideMediaLoadingOverlay();
             // Clear exporting flag and restore canvas to preview state
             CanvasManager.isExporting = false;
             // Restore template visibility after export
@@ -4552,14 +4598,34 @@ const UIManager = {
         ToastManager.error(message);
     },
 
-    showMediaLoadingOverlay() {
+    showMediaLoadingOverlay(title = 'Loading file…', sub = 'Please wait…', showProgress = false) {
         const el = document.getElementById('mediaLoadingOverlay');
-        if (el) el.style.display = 'flex';
+        if (!el) return;
+        const titleEl = document.getElementById('mediaLoadingTitle');
+        const subEl = document.getElementById('mediaLoadingSub');
+        const progressEl = document.getElementById('mediaLoadingProgress');
+        const fillEl = document.getElementById('mediaLoadingProgressFill');
+        const textEl = document.getElementById('mediaLoadingProgressText');
+        if (titleEl) titleEl.textContent = title;
+        if (subEl) subEl.textContent = sub;
+        if (progressEl) progressEl.style.display = showProgress ? 'flex' : 'none';
+        if (fillEl) fillEl.style.width = '0%';
+        if (textEl) textEl.textContent = '0%';
+        el.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    },
+
+    updateMediaLoadingProgress(percent, label = null) {
+        const fillEl = document.getElementById('mediaLoadingProgressFill');
+        const textEl = document.getElementById('mediaLoadingProgressText');
+        if (fillEl) fillEl.style.width = `${percent}%`;
+        if (textEl) textEl.textContent = label !== null ? label : `${percent}%`;
     },
 
     hideMediaLoadingOverlay() {
         const el = document.getElementById('mediaLoadingOverlay');
         if (el) el.style.display = 'none';
+        document.body.style.overflow = '';
     },
 
     /**

@@ -1351,8 +1351,14 @@
         <div class="media-loading-backdrop"></div>
         <div class="media-loading-content">
             <div class="media-loading-spinner"></div>
-            <p class="media-loading-title">Loading file…</p>
-            <p class="media-loading-sub">This may take a moment for large GIFs and videos.</p>
+            <p class="media-loading-title" id="mediaLoadingTitle">Loading file…</p>
+            <p class="media-loading-sub" id="mediaLoadingSub">Please wait…</p>
+            <div class="media-loading-progress" id="mediaLoadingProgress" style="display: none;">
+                <div class="media-loading-progress-bar">
+                    <div class="media-loading-progress-fill" id="mediaLoadingProgressFill"></div>
+                </div>
+                <span class="media-loading-progress-text" id="mediaLoadingProgressText">0%</span>
+            </div>
         </div>
     </div>
 

@@ -3275,6 +3275,9 @@ body.bulk-editing #bulkCanvasCounter {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     text-align: center;
     animation: modalSlideIn 0.25s ease;
+    min-width: 280px;
+    max-width: 360px;
+    width: 90vw;
 }
 
 .media-loading-spinner {
@@ -3301,6 +3304,38 @@ body.bulk-editing #bulkCanvasCounter {
     font-size: 0.8rem;
     color: var(--text-secondary);
     margin: 0;
+}
+
+.media-loading-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    margin-top: var(--space-xs);
+}
+
+.media-loading-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.media-loading-progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.2s ease;
+    width: 0%;
+}
+
+.media-loading-progress-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 36px;
+    text-align: right;
 }
 
 /* Font Picker Modal */
