@@ -34,7 +34,7 @@ Made for Objekt cards and similar formats.
 
 **Card Sizes** — Choose from built-in size presets (Objekt, Standard Photocard, Credit Card, Instax Mini) or enter a custom size in millimeters. All sizes auto-convert to 300 DPI pixels for print-ready output.
 
-# Front Side2x
+# Front Side
 
 ## Image
 
